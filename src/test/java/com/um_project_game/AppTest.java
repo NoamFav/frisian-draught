@@ -1,4 +1,4 @@
-package java.com.example;
+package com.um_project_game;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
