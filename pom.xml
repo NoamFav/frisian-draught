@@ -24,11 +24,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    <groupId>org.jetbrains</groupId>
-    <artifactId>annotations</artifactId>
-    <version>24.0.1</version>
-    <scope>compile</scope>
-  </dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>24.0.1</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
