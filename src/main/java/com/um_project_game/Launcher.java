@@ -23,8 +23,4 @@ public class Launcher extends Application {
     public static void main(String[] args) {
         launch();
     }
-
-    public void info() {
-        System.out.println("This is a game");
-    }
 }
