@@ -1,10 +1,11 @@
 package com.um_project_game;
 
+import org.jetbrains.annotations.NotNull;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Launcher for the app
