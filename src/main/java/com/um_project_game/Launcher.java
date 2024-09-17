@@ -23,4 +23,8 @@ public class Launcher extends Application {
     public static void main(String[] args) {
         launch();
     }
+
+    public void randomMethod() {
+        System.out.println("Random method");
+    }
 }
