@@ -1,5 +1,7 @@
 package com.um_project_game;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
