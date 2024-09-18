@@ -4,6 +4,13 @@ import javafx.scene.control.Button;
 
 public class Buttons {
 
+    /**
+     * @param text The text to be displayed on the button
+     * @param x The x-coordinate of the button
+     * @param y The y-coordinate of the button
+     * @param width The width of the button
+     * @param height The height of the button
+     */
     public Buttons(String text, int x, int y, int width, int height) {
         Button button = new Button(text);
         button.setLayoutX(x);
