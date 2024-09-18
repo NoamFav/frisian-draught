@@ -1,5 +1,7 @@
 package com.um_project_game;
 
+import java.net.URL;
+
 import org.jetbrains.annotations.NotNull;
 
 import javafx.application.Application;
@@ -16,6 +18,16 @@ public class Launcher extends Application {
         Pane root = new Pane();
         Scene scene = new Scene(root, 320, 240);
         stage.setTitle("Hello!");
+
+        URL cssUrl = getClass().getResource("/stylesheet.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.err.println("Stylesheet not found");
+        }
+
+        new Menu(root);
+
         stage.setScene(scene);
         stage.show();
     }
