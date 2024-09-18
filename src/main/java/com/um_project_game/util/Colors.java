@@ -16,5 +16,8 @@ public class Colors {
         colors.put("buttonColorOutline", "#FFFFFF");
         colors.put("topBarColor", "#FFFFFF");
         colors.put("topBarTextColor", "#000000");
+        colors.put("topBarHoverColor", "#FFFFFF");
+        colors.put("topBarHoverTextColor", "#000000");
+        colors.put("topBarColorOutline", "#FFFFFF");
     }
 }
