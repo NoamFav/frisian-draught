@@ -23,6 +23,17 @@ public class Buttons {
         button.setOnAction(event -> action.run());
     }
 
+    public Buttons(String text, int width, int height, Runnable action) {
+        button = new Button(text);
+        button.setPrefWidth(width);
+        button.setPrefHeight(height);
+        button.setOnAction(event -> action.run());
+    }
+
+    public Buttons(Button button) {
+        this.button = button;
+    }
+
     public Button getButton() {
         return button;
     }
