@@ -5,4 +5,5 @@
 .Button {
     -fx-background-color: #f4f4f4;
     -fx-text-fill: #333333;
+    -fx-rounded-corners: 5;
 }

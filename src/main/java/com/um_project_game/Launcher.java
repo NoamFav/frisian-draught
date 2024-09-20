@@ -16,7 +16,7 @@ public class Launcher extends Application {
     @Override
     public void start(@NotNull Stage stage) {
         Pane root = new Pane();
-        Scene scene = new Scene(root, 320, 240);
+        Scene scene = new Scene(root, 1920, 1080);
         stage.setTitle("Hello!");
 
         URL cssUrl = getClass().getResource("/stylesheet.css");
