@@ -1,10 +1,13 @@
 package com.um_project_game;
 
 import com.um_project_game.util.Buttons;
+import com.um_project_game.board.MainBoard;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+
+import org.joml.Vector2i;
 
 public class Menu {
 
@@ -26,6 +29,8 @@ public class Menu {
         Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, nill);
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, nill);
+
+        new MainBoard(root, 200, new Vector2i(50, (int)(settingsButton.getButton().getLayoutY() - 20)));
 
         controlButtons.getChildren().addAll(startGameButton.getButton(), multiplayerButton.getButton(), tutorialButton.getButton(), settingsButton.getButton());
 
