@@ -26,7 +26,7 @@ public class Launcher extends Application {
             System.err.println("Stylesheet not found");
         }
 
-        new Menu(root);
+        new Menu(root, scene);
 
         stage.setScene(scene);
         stage.show();
