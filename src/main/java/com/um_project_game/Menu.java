@@ -4,12 +4,16 @@ import com.um_project_game.util.Buttons;
 import com.um_project_game.board.MainBoard;
 
 import javafx.scene.Scene;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 import org.joml.Vector2i;
 
 public class Menu {
+
+    private MainBoard mainBoard = new MainBoard();
 
     /**
      * @param root
@@ -30,10 +34,26 @@ public class Menu {
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, nill);
 
-        new MainBoard(root, 200, new Vector2i(50, (int)(settingsButton.getButton().getLayoutY() - 20)));
-
         controlButtons.getChildren().addAll(startGameButton.getButton(), multiplayerButton.getButton(), tutorialButton.getButton(), settingsButton.getButton());
+        
+        int recentBoardsY = (int)(controlButtons.getLayoutY() + (controlButtons.getSpacing() + buttonHeight) * controlButtons.getChildren().size());
 
-        root.getChildren().addAll(controlButtons);
+        VBox recentBoards = new VBox();
+        recentBoards.setSpacing(20);
+        recentBoards.setLayoutX(50);
+        recentBoards.setLayoutY(recentBoardsY + 50);
+
+        Text recentBoardsTitle = new Text("Recent Boards");
+
+        float boardSize = 200;
+        HBox recentGames = new HBox();
+        recentGames.setSpacing(100);
+        for (int i = 0; i < 3; i++) {
+            recentGames.getChildren().add(mainBoard.getRandomBoard(root, boardSize));
+        }
+
+        recentBoards.getChildren().addAll(recentBoardsTitle, recentGames);
+
+        root.getChildren().addAll(controlButtons, recentBoards);
     }
 }
