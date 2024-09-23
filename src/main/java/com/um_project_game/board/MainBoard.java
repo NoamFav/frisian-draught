@@ -51,6 +51,7 @@ import javafx.scene.shape.Rectangle;
         setupBoard(pawns);
         renderBoard(root, tileSize, board);
         renderPawn(board, pawns, tileSize);
+        board.getStyleClass().add("board");
         return board;
 
       }
@@ -77,12 +78,7 @@ import javafx.scene.shape.Rectangle;
                   }
               }
           }
-
-          for (Pawn pawn : pawns) {
-              pawn.setKing(true);
-          }
-      }
-
+    }
       /**
      * @param root root of the window
      * @param tileSize size of each tile

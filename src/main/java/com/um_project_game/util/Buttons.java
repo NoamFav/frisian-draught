@@ -21,6 +21,7 @@ public class Buttons {
         button.setPrefWidth(width);
         button.setPrefHeight(height);
         button.setOnAction(event -> action.run());
+        button.getStyleClass().add("button");
     }
 
     public Buttons(String text, int width, int height, Runnable action) {
