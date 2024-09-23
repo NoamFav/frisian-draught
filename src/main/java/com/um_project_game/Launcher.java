@@ -1,9 +1,11 @@
 package com.um_project_game;
 
 import java.net.URL;
+import javafx.util.Duration;
 
 import org.jetbrains.annotations.NotNull;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -13,6 +15,9 @@ import javafx.stage.Stage;
  * Launcher for the app
  */
 public class Launcher extends Application {
+
+    private PauseTransition resizePause; 
+
     @Override
     public void start(@NotNull Stage stage) {
         Pane root = new Pane();
@@ -26,7 +31,21 @@ public class Launcher extends Application {
             System.err.println("Stylesheet not found");
         }
 
-        new Menu(root, scene);
+        Menu menu = new Menu(root, scene);
+
+        resizePause = new PauseTransition(Duration.millis(50));
+        resizePause.setOnFinished(event -> {
+            menu.onResize(scene, root, (int) scene.getWidth(), (int) scene.getHeight());
+        });
+
+        // Add resize listeners
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+            resizePause.playFromStart(); // Restart the pause every time the size changes
+        });
+
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+            resizePause.playFromStart(); // Restart the pause every time the size changes
+        });
 
         stage.setScene(scene);
         stage.show();
