@@ -31,11 +31,11 @@ public class Pawn {
     }
 
     public boolean isKing() {
-        image = isWhite ? pawnImages.whiteKing() : pawnImages.blackKing();
         return isKing;
     }
 
     public void setKing(boolean king) {
+        image = isWhite ? pawnImages.whiteKing() : pawnImages.blackKing();
         isKing = king;
     }
 

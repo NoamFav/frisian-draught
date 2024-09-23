@@ -45,7 +45,7 @@ public class Menu {
 
         Text recentBoardsTitle = new Text("Recent Boards");
 
-        float boardSize = 200;
+        float boardSize = 400;
         HBox recentGames = new HBox();
         recentGames.setSpacing(100);
         for (int i = 0; i < 3; i++) {
