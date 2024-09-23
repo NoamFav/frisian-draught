@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.joml.Vector2i;
 
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -17,8 +18,6 @@ import javafx.scene.shape.Rectangle;
 
       private Vector2i boardSize = new Vector2i(10,10);
 
-      private List<Pawn> pawns = new ArrayList<>();
-
       /**
        * Create the main board and render it to the root
        *
@@ -28,13 +27,15 @@ import javafx.scene.shape.Rectangle;
      */
     public GridPane getMainBoard(Pane root, float boardSize, Vector2i boardPosition) {
         float tileSize = boardSize / 10;
+        List<Pawn> pawns = new ArrayList<>();
 
         GridPane board = new GridPane();
 
         board.setLayoutX(boardPosition.x);
         board.setLayoutY(boardPosition.y);
-        setupBoard();
+        setupBoard(pawns);
         renderBoard(root, tileSize, board);
+        renderPawn(board, pawns, tileSize);
         return board;
     }
 
@@ -45,8 +46,11 @@ import javafx.scene.shape.Rectangle;
      */
     public GridPane getRandomBoard(Pane root, float boardSize) {
         float tileSize = boardSize / 10;
+        List<Pawn> pawns = new ArrayList<>();
         GridPane board = new GridPane();
+        setupBoard(pawns);
         renderBoard(root, tileSize, board);
+        renderPawn(board, pawns, tileSize);
         return board;
 
       }
@@ -54,13 +58,13 @@ import javafx.scene.shape.Rectangle;
       /**
      * setup the board with pawns
      */
-    public void setupBoard() {
+    public void setupBoard(List<Pawn> pawns) {
           
           // White pawns
           for (int i = 0; i < 4; i++) {
               for (int j = 0; j < 10; j++) {
-                  if ((i + j) % 2 == 0) {
-                      pawns.add(new Pawn(new Vector2i(i, j), true));
+                  if ((i + j) % 2 == 1) {
+                      pawns.add(new Pawn(new Vector2i(j, i), false));
                   }
               }
           }
@@ -68,10 +72,14 @@ import javafx.scene.shape.Rectangle;
           // Black pawns
           for (int i = 6; i < 10; i++) {
               for (int j = 0; j < 10; j++) {
-                  if ((i + j) % 2 == 0) {
-                      pawns.add(new Pawn(new Vector2i(i, j), false));
+                  if ((i + j) % 2 == 1) {
+                      pawns.add(new Pawn(new Vector2i(j, i), true));
                   }
               }
+          }
+
+          for (Pawn pawn : pawns) {
+              pawn.setKing(true);
           }
       }
 
@@ -96,4 +104,23 @@ import javafx.scene.shape.Rectangle;
           }
           return board;
       }
-  }
+
+   public void renderPawn(GridPane board, List<Pawn> pawns, float tileSize) {
+        // Tile size based on board's overall size (assuming 10x10 board)
+ 
+        // Iterate through your pawn objects
+        for (Pawn pawn : pawns) {
+            // Load the appropriate image for each pawn
+            // Create an ImageView and set its fit width and height to match the tile size
+            ImageView pawnView = new ImageView(pawn.getImage());
+            pawnView.setFitWidth(tileSize);
+            pawnView.setFitHeight(tileSize);
+
+            // Preserve the aspect ratio
+            pawnView.setPreserveRatio(true);
+
+            // Add the pawn image to the GridPane at the pawn's position
+            board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
+        }
+    }
+}
