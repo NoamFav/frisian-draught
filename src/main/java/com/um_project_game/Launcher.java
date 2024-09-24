@@ -77,7 +77,7 @@ public class Launcher extends Application {
 
         // Customize the button labels
         ButtonType yesButton = new ButtonType("Yes, I'm sure", ButtonData.OK_DONE);
-        ButtonType noButton = new ButtonType("Nah", ButtonData.CANCEL_CLOSE);
+        ButtonType noButton = new ButtonType("Nah, I'm good", ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(yesButton, noButton);
 
