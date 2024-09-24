@@ -119,4 +119,23 @@ import javafx.scene.shape.Rectangle;
             board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
         }
     }
+
+   public Pawn getPawnAtPosition(List<Pawn> pawns, Vector2i position) {
+        for (Pawn pawn : pawns) {
+            if (pawn.getPosition().equals(position)) {
+                return pawn;
+            }
+        }
+        return null;
+    }
+
+   public void movePawn(Vector2i newPosition, List<Pawn> pawns) {
+        // Check if there is a pawn at the new position
+       Pawn pawn = getPawnAtPosition(pawns, newPosition);
+        if (pawn != null) {
+            // Remove the pawn from the list
+            pawns.remove(pawn);
+        }
+        pawn.setPosition(newPosition);
+    }
 }
