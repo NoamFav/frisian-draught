@@ -22,8 +22,8 @@ public class Pawn {
         this.image = isWhite ? pawnImages.whitePawn() : pawnImages.blackPawn();
     }
 
-    public void onHover() {
-        // TODO: Implement hover effect with possible moves
+    public Image onHover() {
+        return isWhite ? pawnImages.whitePawnHover() : pawnImages.blackPawnHover();
     }
 
     public Vector2i getPosition() {
