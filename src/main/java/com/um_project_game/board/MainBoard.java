@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.joml.Vector2i;
 
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -26,7 +28,7 @@ import javafx.scene.shape.Rectangle;
      * @param boardPosition where the board should be placed (x, y)
      */
     public GridPane getMainBoard(Pane root, float boardSize, Vector2i boardPosition) {
-        float tileSize = boardSize / 10;
+        float tileSize = boardSize / 9;
         List<Pawn> pawns = new ArrayList<>();
 
         GridPane board = new GridPane();
@@ -102,24 +104,29 @@ import javafx.scene.shape.Rectangle;
       }
 
    public void renderPawn(GridPane board, List<Pawn> pawns, float tileSize) {
-        // Tile size based on board's overall size (assuming 10x10 board)
- 
-        // Iterate through your pawn objects
-        for (Pawn pawn : pawns) {
-            // Load the appropriate image for each pawn
-            // Create an ImageView and set its fit width and height to match the tile size
-            ImageView pawnView = new ImageView(pawn.getImage());
-            pawnView.setFitWidth(tileSize);
-            pawnView.setFitHeight(tileSize);
+    // Define a scaling factor (e.g., 0.8 means the pawn will be 80% of the tile size)
+    double scaleFactor = 0.8;
 
-            // Preserve the aspect ratio
-            pawnView.setPreserveRatio(true);
+    // Iterate through your pawn objects
+    for (Pawn pawn : pawns) {
+        // Load the appropriate image for each pawn
+        ImageView pawnView = new ImageView(pawn.getImage());
 
-            // Add the pawn image to the GridPane at the pawn's position
-            board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
-        }
+        // Set the pawn size to be smaller than the tile size
+        pawnView.setFitWidth(tileSize * scaleFactor);
+        pawnView.setFitHeight(tileSize * scaleFactor);
+
+        // Preserve the aspect ratio
+        pawnView.setPreserveRatio(true);
+
+        // Add the pawn image to the GridPane at the pawn's position
+        board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
+
+        // Center the pawn within the tile
+        GridPane.setHalignment(pawnView, HPos.CENTER);
+        GridPane.setValignment(pawnView, VPos.CENTER);
     }
-
+}
    public Pawn getPawnAtPosition(List<Pawn> pawns, Vector2i position) {
         for (Pawn pawn : pawns) {
             if (pawn.getPosition().equals(position)) {
