@@ -111,6 +111,23 @@ import javafx.scene.shape.Rectangle;
     for (Pawn pawn : pawns) {
         // Load the appropriate image for each pawn
         ImageView pawnView = new ImageView(pawn.getImage());
+        pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                // Change the image on hover
+                pawnView.setImage(pawn.onHover());
+
+                // Increase the size on hover
+                pawnView.setFitWidth(tileSize * scaleFactor * 1.2);
+                pawnView.setFitHeight(tileSize * scaleFactor * 1.2);
+            } else {
+                // Revert to the original image when hover ends
+                pawnView.setImage(pawn.getImage());
+
+                // Revert to the original size
+                pawnView.setFitWidth(tileSize * scaleFactor);
+                pawnView.setFitHeight(tileSize * scaleFactor);
+            }
+        });
 
         // Set the pawn size to be smaller than the tile size
         pawnView.setFitWidth(tileSize * scaleFactor);
