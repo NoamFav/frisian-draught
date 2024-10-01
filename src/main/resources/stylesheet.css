@@ -34,3 +34,23 @@
 .board:hover {
     -fx-background-color: #333333;
 }
+
+.playerUI {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+    -fx-padding: 5;
+}
+
+.chatUI {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}
+
+.movesList {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}

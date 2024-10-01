@@ -1,4 +1,4 @@
- package com.um_project_game.board;
+package com.um_project_game.board;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import javafx.scene.shape.Rectangle;
      * @param boardPosition where the board should be placed (x, y)
      */
     public GridPane getMainBoard(Pane root, float boardSize, Vector2i boardPosition) {
-        float tileSize = boardSize / 9;
+        float tileSize = boardSize / 10;
         List<Pawn> pawns = new ArrayList<>();
 
         GridPane board = new GridPane();
