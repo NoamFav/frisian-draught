@@ -18,10 +18,7 @@ import javafx.scene.text.Text;
 public class Menu {
 
     private MainBoard mainBoard = new MainBoard();
-
-    private int referenceWidth = 1366;
-    private int referenceHeight = 768;
-
+ 
     // Dimensions
     private int topBarHeight = 75;
     private int bottomBarHeight = 55;
@@ -40,7 +37,7 @@ public class Menu {
 
     private int liveGameX = 695;
     private int liveGameY = 120;
-    private int liveGameSpacing = 15;
+    private int liveGameSpacing = 15; 
     private int liveGameSize = 225;
 
     private int versionStatusX = 1030;
@@ -100,7 +97,7 @@ public class Menu {
 
         Runnable nill = () -> {}; // TODO: Implement the actions for the buttons
 
-        Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, nill);
+        Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, () -> Launcher.changeState(1));
         Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, nill);
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, nill);
@@ -165,7 +162,7 @@ public class Menu {
         root.getChildren().add(versionStatusPane);
     }
 
-    public void onResize(Scene scene, Pane root, int oldVal, int newVal) {
+    public void onResize(Pane root, Scene scene) {
         
         Node topBar = root.lookup("#top-bar");
         Node bottomBar = root.lookup("#bottom-bar");
@@ -181,7 +178,7 @@ public class Menu {
         if (liveGame != null) root.getChildren().remove(liveGame);
         if (versionStatus != null) root.getChildren().remove(versionStatus);
 
-        newDimensions(scene, newVal);
+        newDimensions(scene);
         setTopBar(scene, root);
         setBottomBar(scene, root);
         setMenuButtons(scene, root);
@@ -190,13 +187,13 @@ public class Menu {
         setVersionStatus(scene, root);
     }
 
-    private void newDimensions(Scene scene, int newVal) {
+    private void newDimensions(Scene scene) {
     // Calculate the ratios using oldVal and newVal for width and height respectively
     int newSceneWidth = (int) scene.getWidth();
     int newSceneHeight = (int) scene.getHeight();
 
-    int oldValHeight = referenceHeight;
-    int oldValWidth = referenceWidth;
+    int oldValHeight = Launcher.REF_HEIGHT;
+    int oldValWidth = Launcher.REF_WIDTH;
 
     topBarHeight = convertDimensions(75, newSceneHeight, oldValHeight); 
     bottomBarHeight = convertDimensions(55, newSceneHeight, oldValHeight);
