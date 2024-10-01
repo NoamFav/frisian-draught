@@ -12,7 +12,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
@@ -23,13 +22,24 @@ import javafx.stage.Stage;
  */
 public class Launcher extends Application {
 
-    private PauseTransition resizePause; 
+    private PauseTransition resizePause;
+    public static final int REF_WIDTH = 1366;
+    public static final int REF_HEIGHT = 768;
+    public static int GAME_STATE = 0; // 0 = Menu, 1 = Game, 2 = Settings
+    private Stage primaryStage;
 
     @Override
     public void start(@NotNull Stage stage) {
+        this.primaryStage = stage;
+        setupStage();
+    }
+
+    private void setupStage() {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1366, 768);
-        stage.setTitle("Hello!");
+        primaryStage.setTitle("Hello!");
+
+        gameStateSwitch(root, scene);
 
         URL cssUrl = getClass().getResource("/stylesheet.css");
         if (cssUrl != null) {
@@ -37,22 +47,6 @@ public class Launcher extends Application {
         } else {
             System.err.println("Stylesheet not found");
         }
-
-        Menu menu = new Menu(root, scene);
-
-        resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(event -> {
-            menu.onResize(scene, root, (int) scene.getWidth(), (int) scene.getHeight());
-        });
-
-        // Add resize listeners
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
-            resizePause.playFromStart(); // Restart the pause every time the size changes
-        });
-
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
-            resizePause.playFromStart(); // Restart the pause every time the size changes
-        });
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -63,9 +57,65 @@ public class Launcher extends Application {
                     break;
             }
         });
-        
-        stage.setScene(scene);
-        stage.show();
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private void gameStateSwitch(Pane root, Scene scene) {
+        switch (GAME_STATE) {
+            case 0:
+                Menu menu = new Menu(root, scene);
+
+                resizePause = new PauseTransition(Duration.millis(50));
+                resizePause.setOnFinished(event -> {
+                    menu.onResize(root, scene);
+                });
+
+                // Add resize listeners
+                scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+                    resizePause.playFromStart(); // Restart the pause every time the size changes
+                });
+
+                scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+                    resizePause.playFromStart(); // Restart the pause every time the size changes
+                });
+
+                break;
+            case 1:
+                Game game = new Game(root, scene);
+
+                resizePause = new PauseTransition(Duration.millis(50));
+                resizePause.setOnFinished(event -> {
+                    game.onResize(root, scene);
+                });
+
+                // Add resize listeners
+                scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+                    resizePause.playFromStart(); // Restart the pause every time the size changes
+                });
+
+                scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+                    resizePause.playFromStart(); // Restart the pause every time the size changes
+                });
+
+                break;
+            case 2:
+                // Settings
+                break;
+            default:
+                break;
+        }
+    }
+
+    public static void changeState(int newState) {
+        GAME_STATE = newState;
+
+        Platform.runLater(() -> {
+            Launcher instance = new Launcher();
+            Stage newStage = new Stage();
+            instance.start(newStage);
+        });
     }
 
     private void showExitConfirmation() {
