@@ -60,7 +60,6 @@ public class MainBoard {
         renderPawn(board, pawns, tileSize);
         board.getStyleClass().add("board");
         return board;
-
       }
 
       /**
@@ -184,11 +183,10 @@ public class MainBoard {
         // Lambda to handle highlighting and adding click handler to the tile
         BiConsumer<Integer, Integer> highlightMove = (newX, newY) -> {
             Rectangle square = new Rectangle(tileSize, tileSize);
-            square.setFill(Color.GREEN);
+            square.setFill(newY == 0 || newY == boardSize.y - 1 ? Color.YELLOW : Color.GREEN);
             board.add(square, newX, newY);
             possibleMoves.add(new Vector2i(newX, newY));
             
-            // Pass `null` for captured pawn in a regular move
             movePawnOnClick(square, board, pawns, pawn, tileSize, null);
         };
         // Lambda to check capturing logic
@@ -205,7 +203,7 @@ public class MainBoard {
                     if (getPawnAtPosition(pawns, jumpPos) == null) {
                         // Capture move is possible
                         Rectangle square = new Rectangle(tileSize, tileSize);
-                        square.setFill(Color.GREEN);
+                        square.setFill(Color.RED);
                         board.add(square, newX, newY);
                         possibleMoves.add(jumpPos);
 
@@ -306,6 +304,11 @@ public class MainBoard {
                 // Move the selected pawn
                 pawn.setPosition(position);
                 clearHighlights(board, tileSize);
+
+                if (pawn.isWhite() && position.y == 0 || !pawn.isWhite() && position.y == boardSize.y - 1) {
+                    // Promote the pawn to a king
+                    pawn.setKing(true);
+                }
                 
                 // If a capture occurred, remove the captured pawn
                 if (capturedPawn != null) {
