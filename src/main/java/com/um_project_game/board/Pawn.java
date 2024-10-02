@@ -23,7 +23,11 @@ public class Pawn {
     }
 
     public Image onHover() {
-        return isWhite ? pawnImages.whitePawnHover() : pawnImages.blackPawnHover();
+        if (isKing) {
+            return isWhite ? pawnImages.whiteKingHover() : pawnImages.blackKingHover();
+        } else {
+            return isWhite ? pawnImages.whitePawnHover() : pawnImages.blackPawnHover();
+        }
     }
 
     public Vector2i getPosition() {
