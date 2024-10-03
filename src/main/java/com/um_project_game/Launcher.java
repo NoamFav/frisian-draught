@@ -25,7 +25,7 @@ public class Launcher extends Application {
     private PauseTransition resizePause;
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
-    public static int GAME_STATE = 0; // 0 = Menu, 1 = Game, 2 = Settings
+    public static int GAME_STATE = 1; // 0 = Menu, 1 = Game, 2 = Settings
     private Stage primaryStage;
 
     @Override

@@ -1,11 +1,13 @@
 package com.um_project_game.board;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.util.TriConsumer;
 import org.joml.Vector2i;
 
 import javafx.geometry.HPos;
@@ -17,338 +19,451 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 /**
-* main_board
-*/
+ * Represents the main board of the game.
+ */
 public class MainBoard {
 
-    private Vector2i boardSize = new Vector2i(10,10);
+    private static final int BOARD_SIZE = 10;
+    private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
     private Pawn focusedPawn;
     private List<Vector2i> possibleMoves = new ArrayList<>();
 
     /**
-    * Create the main board and render it to the root
-    *
-    * @param root root of the window
-    * @param boardSize how big the board should be counting all the tiles
-    * @param boardPosition where the board should be placed (x, y)
-    */
-    public GridPane getMainBoard(Pane root, float boardSize, Vector2i boardPosition) {
-        float tileSize = boardSize / 10;
+     * Creates and returns the main board, rendering it to the root pane.
+     *
+     * @param root          Root pane of the window.
+     * @param boardPixelSize Size of the board in pixels.
+     * @param boardPosition Position where the board should be placed (x, y).
+     * @return GridPane representing the board.
+     */
+    public GridPane getMainBoard(Pane root, float boardPixelSize, Vector2i boardPosition) {
+        float tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
-
         GridPane board = new GridPane();
 
         board.setLayoutX(boardPosition.x);
         board.setLayoutY(boardPosition.y);
+
         setupBoard(pawns);
-        renderBoard(root, tileSize, board);
-        renderPawn(board, pawns, tileSize);
+        renderBoard(tileSize, board);
+        renderPawns(board, pawns, tileSize);
+
         return board;
     }
 
-      /**
-       * made for non unique boards, aka VBox and other
-     * @param root root of the window
-     * @return a random board
+    /**
+     * Creates and returns a random board, suitable for non-unique layouts.
+     *
+     * @param root          Root pane of the window.
+     * @param boardPixelSize Size of the board in pixels.
+     * @return GridPane representing a random board.
      */
-    public GridPane getRandomBoard(Pane root, float boardSize) {
-        float tileSize = boardSize / 10;
+    public GridPane getRandomBoard(Pane root, float boardPixelSize) {
+        float tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
         GridPane board = new GridPane();
+
         setupBoard(pawns);
-        renderBoard(root, tileSize, board);
-        renderPawn(board, pawns, tileSize);
+        renderBoard(tileSize, board);
+        renderPawns(board, pawns, tileSize);
         board.getStyleClass().add("board");
+
         return board;
-      }
-
-      /**
-     * setup the board with pawns
-     */
-    public void setupBoard(List<Pawn> pawns) {
-          
-          // White pawns
-          for (int i = 0; i < 4; i++) {
-              for (int j = 0; j < boardSize.x; j++) {
-                  if ((i + j) % 2 == 1) {
-                      pawns.add(new Pawn(new Vector2i(j, i), false));
-                  }
-              }
-          }
-
-          // Black pawns
-          for (int i = 6; i < 10; i++) {
-              for (int j = 0; j < boardSize.x; j++) {
-                  if ((i + j) % 2 == 1) {
-                      pawns.add(new Pawn(new Vector2i(j, i), true));
-                  }
-              }
-          }
     }
-      /**
-     * @param root root of the window
-     * @param tileSize size of each tile
-     * @param board the board to render
-     * @return a gridpane as the board
+
+    /**
+     * Sets up the initial positions of the pawns on the board.
+     *
+     * @param pawns List to populate with the initial pawns.
      */
-    public GridPane renderBoard(Pane root, float tileSize, GridPane board) {
-          for (int i = 0; i < boardSize.x; i++) {
-              for (int j = 0; j < boardSize.y; j++) {
-                  Rectangle square = new Rectangle(tileSize, tileSize);
-
-                  if ((i + j) % 2 == 0) {
-                      square.setFill(Color.WHITE);
-                  } else {
-                      square.setFill(Color.BLACK);
-                  }
-                  board.add(square, i, j);
-              }
-          }
-          return board;
-      }
-
-    public void renderPawn(GridPane board, List<Pawn> pawns, float tileSize) {
-    // Define a scaling factor (e.g., 0.8 means the pawn will be 80% of the tile size)
-    double scaleFactor = 0.8;
-
-    // Iterate through your pawn objects
-    for (Pawn pawn : pawns) {
-        // Load the appropriate image for each pawn
-        ImageView pawnView = new ImageView(pawn.getImage());
-        pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                // Change the image on hover
-                pawnView.setImage(pawn.onHover());
-
-                // Increase the size on hover
-                pawnView.setFitWidth(tileSize * scaleFactor * 1.2);
-                pawnView.setFitHeight(tileSize * scaleFactor * 1.2);
-            } else {
-                // Revert to the original image when hover ends
-                pawnView.setImage(pawn.getImage());
-
-                // Revert to the original size
-                pawnView.setFitWidth(tileSize * scaleFactor);
-                pawnView.setFitHeight(tileSize * scaleFactor);
+    private void setupBoard(List<Pawn> pawns) {
+        // Function to add pawns to the board
+        BiConsumer<Integer, Boolean> addPawns = (startRow, isWhite) -> {
+            for (int y = startRow; y < startRow + 4; y++) {
+                for (int x = 0; x < boardSize.x; x++) {
+                    if ((x + y) % 2 == 1) {
+                        pawns.add(new Pawn(new Vector2i(x, y), isWhite));
+                    }
+                }
             }
+        };
+
+        // Add white pawns
+        addPawns.accept(0, false);
+        // Add black pawns
+        addPawns.accept(6, true);
+    }
+
+    /**
+     * Renders the board grid.
+     *
+     * @param tileSize Size of each tile.
+     * @param board    GridPane to render the board onto.
+     */
+    private void renderBoard(float tileSize, GridPane board) {
+        BiConsumer<Integer, Integer> renderTile = (x, y) -> {
+            Rectangle square = new Rectangle(tileSize, tileSize);
+            square.setFill((x + y) % 2 == 0 ? Color.WHITE : Color.BLACK);
+            board.add(square, x, y);
+        };
+
+        for (int y = 0; y < boardSize.y; y++) {
+            for (int x = 0; x < boardSize.x; x++) {
+                renderTile.accept(x, y);
+            }
+        }
+    }
+
+    /**
+     * Renders the pawns onto the board.
+     *
+     * @param board    GridPane representing the board.
+     * @param pawns    List of pawns to render.
+     * @param tileSize Size of each tile.
+     */
+    private void renderPawns(GridPane board, List<Pawn> pawns, float tileSize) {
+        double scaleFactor = 0.8;
+        
+        pawns.forEach(pawn -> {
+            ImageView pawnView = createPawnImageView(pawn, tileSize, scaleFactor);
+            setupPawnInteractions(pawnView, pawn, board, pawns, tileSize);
+            board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
+            GridPane.setHalignment(pawnView, HPos.CENTER);
+            GridPane.setValignment(pawnView, VPos.CENTER);
         });
-        pawnView.setOnMouseClicked(event -> {
-            // Clear previous highlights before showing new possible moves
-            clearHighlights(board, tileSize);
+    }
 
-            // Set the selected pawn
-            focusedPawn = pawn;
+    /**
+     * Creates an ImageView for a pawn.
+     *
+     * @param pawn       The pawn for which to create the ImageView.
+     * @param tileSize   Size of each tile.
+     * @param scaleFactor Scaling factor for the pawn image.
+     * @return ImageView representing the pawn.
+     */
+    private ImageView createPawnImageView(Pawn pawn, float tileSize, double scaleFactor) {
+        ImageView pawnView = new ImageView(pawn.getImage());
 
-            // Move the pawn to a new position and show possible moves
-            seePossibleMove(board, pawns, focusedPawn, tileSize);
-
-            // Re-render the board
-            renderPawn(board, pawns, tileSize);
-        });
-
-        // Set the pawn size to be smaller than the tile size
         pawnView.setFitWidth(tileSize * scaleFactor);
         pawnView.setFitHeight(tileSize * scaleFactor);
-
-        // Preserve the aspect ratio
         pawnView.setPreserveRatio(true);
 
-        // Add the pawn image to the GridPane at the pawn's position
-        board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
-
-        // Center the pawn within the tile
-        GridPane.setHalignment(pawnView, HPos.CENTER);
-        GridPane.setValignment(pawnView, VPos.CENTER);
-        }
-    }
-   public Pawn getPawnAtPosition(List<Pawn> pawns, Vector2i position) {
-        for (Pawn pawn : pawns) {
-            if (pawn.getPosition().equals(position)) {
-                return pawn;
-            }
-        }
-        return null;
+        return pawnView;
     }
 
-   public void seePossibleMove(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize) {
+    /**
+     * Sets up the interactions for a pawn ImageView.
+     *
+     * @param pawnView The ImageView of the pawn.
+     * @param pawn     The pawn object.
+     * @param board    GridPane representing the board.
+     * @param pawns    List of all pawns.
+     * @param tileSize Size of each tile.
+     */
+    private void setupPawnInteractions(ImageView pawnView, Pawn pawn, GridPane board, List<Pawn> pawns, float tileSize) {
+        pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
+            double scaleFactor = newValue ? 0.96 : 0.8; // Increase size on hover
+            pawnView.setFitWidth(tileSize * scaleFactor);
+            pawnView.setFitHeight(tileSize * scaleFactor);
+        });
+
+        pawnView.setOnMouseClicked(event -> {
+            clearHighlights(board, tileSize);
+            focusedPawn = pawn;
+            seePossibleMove(board, pawns, focusedPawn, tileSize);
+            renderPawns(board, pawns, tileSize);
+        });
+    }
+
+    /**
+     * Retrieves a pawn at a given position.
+     *
+     * @param pawns    List of all pawns.
+     * @param position Position to check.
+     * @return Pawn at the position, or null if none.
+     */
+    private Pawn getPawnAtPosition(List<Pawn> pawns, Vector2i position) {
+        return pawns.stream()
+                .filter(p -> p.getPosition().equals(position))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Highlights possible moves for the selected pawn.
+     *
+     * @param board    GridPane representing the board.
+     * @param pawns    List of all pawns.
+     * @param pawn     The selected pawn.
+     * @param tileSize Size of each tile.
+     */
+    private void seePossibleMove(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize) {
         possibleMoves.clear();
         Vector2i position = pawn.getPosition();
         int x = position.x;
         int y = position.y;
 
-        // Lambda to check if a position is within bounds
-        BiPredicate<Integer, Integer> inBounds = (newX, newY) -> newX >= 0 && newX < boardSize.x && newY >= 0 && newY < boardSize.y;
+        BiPredicate<Integer, Integer> inBounds = (newX, newY) ->
+                newX >= 0 && newX < boardSize.x && newY >= 0 && newY < boardSize.y;
 
-        // Lambda to handle highlighting and adding click handler to the tile
+        List<CapturePath> allPaths = new ArrayList<>();
+        Set<Vector2i> visitedPositions = new HashSet<>();
+        visitedPositions.add(new Vector2i(x, y));
+
+        captureCheck(pawns, pawn, inBounds, x, y, new CapturePath(), allPaths, visitedPositions);
+
+        if (!allPaths.isEmpty()) {
+            handleCaptureMoves(board, pawns, pawn, tileSize, allPaths);
+        } else {
+            handleNormalMoves(board, pawns, pawn, tileSize, inBounds, x, y);
+        }
+    }
+
+    /**
+     * Handles capture moves by highlighting them and setting up interactions.
+     *
+     * @param board    GridPane representing the board.
+     * @param pawns    List of all pawns.
+     * @param pawn     The selected pawn.
+     * @param tileSize Size of each tile.
+     * @param allPaths List of all possible capture paths.
+     */
+    private void handleCaptureMoves(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize, List<CapturePath> allPaths) {
+        int maxCaptures = allPaths.stream().mapToInt(CapturePath::getCaptureCount).max().orElse(0);
+
+        List<CapturePath> maxCapturePaths = allPaths.stream()
+                .filter(path -> path.getCaptureCount() == maxCaptures)
+                .collect(Collectors.toList());
+
+        BiConsumer<CapturePath, Vector2i> highlightCaptureMove = (path, landingPos) -> {
+            Rectangle square = createHighlightSquare(tileSize, Color.RED);
+            board.add(square, landingPos.x, landingPos.y);
+            possibleMoves.add(landingPos);
+
+            square.setOnMouseClicked(event -> {
+                pawn.setPosition(landingPos);
+                path.capturedPawns.forEach(capturedPawn -> removePawn(board, pawns, capturedPawn));
+                promotePawnIfNeeded(pawn, landingPos);
+                clearHighlights(board, tileSize);
+                renderPawns(board, pawns, tileSize);
+            });
+        }; 
+
+        maxCapturePaths.forEach(path -> {
+            Vector2i landingPos = path.getLastPosition();
+            highlightCaptureMove.accept(path, landingPos);
+        });
+    }
+
+    /**
+     * Handles normal moves when no captures are available.
+     *
+     * @param board    GridPane representing the board.
+     * @param pawns    List of all pawns.
+     * @param pawn     The selected pawn.
+     * @param tileSize Size of each tile.
+     * @param inBounds Predicate to check if a position is within bounds.
+     * @param x        Current x-coordinate of the pawn.
+     * @param y        Current y-coordinate of the pawn.
+     */
+    private void handleNormalMoves(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize,
+                                   BiPredicate<Integer, Integer> inBounds, int x, int y) {
         BiConsumer<Integer, Integer> highlightMove = (newX, newY) -> {
-            Rectangle square = new Rectangle(tileSize, tileSize);
-            square.setFill(Color.GREEN);
+            Rectangle square = createHighlightSquare(tileSize, Color.GREEN);
             board.add(square, newX, newY);
             possibleMoves.add(new Vector2i(newX, newY));
 
-            movePawnOnClick(square, board, pawns, pawn, tileSize, null);
+            square.setOnMouseClicked(event -> {
+                pawn.setPosition(new Vector2i(newX, newY));
+                clearHighlights(board, tileSize);
+                promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
+                renderPawns(board, pawns, tileSize);
+            });
         };
 
-        // Lambda to check capturing logic in any direction (including vertical, horizontal, diagonal)
-        TriConsumer<Integer, Integer, Integer> checkCapture = (dx, dy, distance) -> {
-        if (!pawn.isKing() && distance > 2) {
-            return; // Pawns can only capture adjacent pieces (distance == 2)
-        }
-
-        for (int i = 1; i < (pawn.isKing() ? boardSize.x : 2); i++) { // Pawns only check adjacent, kings can check further
-            int captureX = x + dx * i;
-            int captureY = y + dy * i;
-            int landingX = captureX + dx;
-            int landingY = captureY + dy;
-
-            if (!inBounds.test(captureX, captureY) || !inBounds.test(landingX, landingY)) {
-                break; // Out of bounds, stop checking in this direction
-            }
-
-            // Check if there's an opponent's pawn in the path
-            Pawn capturedPawn = getPawnAtPosition(pawns, new Vector2i(captureX, captureY));
-
-            if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite()) {
-                // Check if the square behind the opponent is empty
-                if (getPawnAtPosition(pawns, new Vector2i(landingX, landingY)) == null) {
-                    // Valid capture, highlight the move and add it to possibleMoves
-                    Rectangle square = new Rectangle(tileSize, tileSize);
-                    square.setFill(Color.RED);
-                    board.add(square, landingX, landingY);
-                    possibleMoves.add(new Vector2i(landingX, landingY));
-
-                    // Pass the captured pawn to movePawnOnClick for removal
-                    movePawnOnClick(square, board, pawns, pawn, tileSize, capturedPawn);
-
-                    // Stop after one capture in this direction
-                    break;
-                } else {
-                    break; // No valid landing square, stop
-                }
-            }
-        }
-    };
-
-        // Define diagonal directions for non-capturing moves
-        int[][] diagonalDirections = {
-            {-1, -1}, {1, -1},   // Diagonal (top-left, top-right)
-            {-1, 1}, {1, 1}      // Diagonal (bottom-left, bottom-right)
-        };
-
-        // Define all directions for capturing moves (including diagonal, vertical, horizontal)
-        int[][] captureDirections = {
-            {-1, -1}, {1, -1},   // Diagonal (top-left, top-right)
-            {-1, 1}, {1, 1},     // Diagonal (bottom-left, bottom-right)
-            {0, -2}, {0, 2},     // Vertical (up, down)
-            {-2, 0}, {2, 0}      // Horizontal (left, right)
-        };
-
-        // Regular pawn moves (only diagonal)
         if (!pawn.isKing()) {
             int direction = pawn.isWhite() ? -1 : 1;
+            int[][] moveDirections = {{-1, direction}, {1, direction}};
 
-            // Diagonal moves for regular pawns (they only move diagonally)
-            for (int[] moveDir : new int[][]{{-1, direction}, {1, direction}}) {
-                int newX = x + moveDir[0];
-                int newY = y + moveDir[1];
+            for (int[] dir : moveDirections) {
+                int newX = x + dir[0];
+                int newY = y + dir[1];
 
                 if (inBounds.test(newX, newY) && getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
                 }
             }
-
-            // Check capturing moves in all directions (diagonal, vertical, horizontal)
-            for (int[] direction_array : captureDirections) {
-                checkCapture.accept(direction_array[0], direction_array[1], 2); // Check two squares for capturing
-            }
         } else {
-            // **Non-capturing diagonal moves for the king**
-            for (int[] direction : diagonalDirections) {
-                int dx = direction[0];
-                int dy = direction[1];
+            int[][] diagonalDirections = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
+            for (int[] dir : diagonalDirections) {
+                int dx = dir[0];
+                int dy = dir[1];
+                int newX = x + dx;
+                int newY = y + dy;
 
-                // Check all possible positions along the diagonal direction
-                for (int i = 1; i < boardSize.x; i++) {
-                    int newX = x + dx * i;
-                    int newY = y + dy * i;
-
-                    if (!inBounds.test(newX, newY)) {
-                        break; // Out of bounds, stop checking in this direction
-                    }
-
-                    // Check if there's a pawn at the current position
-                    if (getPawnAtPosition(pawns, new Vector2i(newX, newY)) != null) {
-                        break; // Stop moving if there is a pawn
-                    }
-
-                    highlightMove.accept(newX, newY); // Valid diagonal move
-                }
-            }
-
-            // **Capturing moves in all directions (diagonal, vertical, horizontal)**
-            for (int[] direction : captureDirections) {
-                int dx = direction[0];
-                int dy = direction[1];
-
-                // Check for capturing possibilities in all directions
-                for (int i = 1; i < boardSize.x; i++) {
-                    checkCapture.accept(dx, dy, i);
+                while (inBounds.test(newX, newY) && getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
+                    highlightMove.accept(newX, newY);
+                    newX += dx;
+                    newY += dy;
                 }
             }
         }
     }
 
-    public void clearHighlights(GridPane board, float tileSize) {
-        for (int i = 0; i < boardSize.x; i++) {
-            for (int j = 0; j < boardSize.y; j++) {
-                Rectangle square = new Rectangle(tileSize, tileSize);
-                if ((i + j) % 2 == 0) {
-                    square.setFill(Color.WHITE);
-                } else {
-                    square.setFill(Color.BLACK);
-                }
-                board.add(square, i, j);
-            }
+    /**
+     * Creates a highlight square for possible moves.
+     *
+     * @param tileSize Size of each tile.
+     * @param color    Color of the highlight.
+     * @return Rectangle representing the highlight.
+     */
+    private Rectangle createHighlightSquare(float tileSize, Color color) {
+        Rectangle square = new Rectangle(tileSize, tileSize);
+        square.setFill(color);
+        return square;
+    }
+
+    /**
+     * Promotes a pawn to a king if it reaches the opposite end.
+     *
+     * @param pawn       The pawn to check for promotion.
+     * @param landingPos The landing position of the pawn.
+     */
+    private void promotePawnIfNeeded(Pawn pawn, Vector2i landingPos) {
+        if ((pawn.isWhite() && landingPos.y == 0) || (!pawn.isWhite() && landingPos.y == boardSize.y - 1)) {
+            pawn.setKing(true);
         }
     }
 
-    public void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
-        // Remove the captured pawn from the list
-        pawns.remove(capturedPawn); 
+    /**
+     * Clears any highlights from the board.
+     *
+     * @param board    GridPane representing the board.
+     * @param tileSize Size of each tile.
+     */
+    private void clearHighlights(GridPane board, float tileSize) {
+        board.getChildren().removeIf(node -> node instanceof Rectangle && !(node instanceof ImageView));
+        renderBoard(tileSize, board);
+    }
 
-        // Remove the captured pawn from the board visually
-        for (var node : board.getChildren()) {
+    /**
+     * Removes a captured pawn from the board and the list of pawns.
+     *
+     * @param board        GridPane representing the board.
+     * @param pawns        List of all pawns.
+     * @param capturedPawn The pawn to remove.
+     */
+    private void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
+        pawns.remove(capturedPawn);
+
+        board.getChildren().removeIf(node -> {
             if (node instanceof ImageView) {
                 ImageView imageView = (ImageView) node;
-                if (GridPane.getColumnIndex(imageView) == capturedPawn.getPosition().x
-                        && GridPane.getRowIndex(imageView) == capturedPawn.getPosition().y) {
-                    board.getChildren().remove(imageView); // Remove the pawn image from the board
-                    break;
+                Integer colIndex = GridPane.getColumnIndex(imageView);
+                Integer rowIndex = GridPane.getRowIndex(imageView);
+                return colIndex != null && rowIndex != null &&
+                        colIndex == capturedPawn.getPosition().x &&
+                        rowIndex == capturedPawn.getPosition().y;
+            }
+            return false;
+        });
+    }
+
+    /**
+     * Recursively explores all possible capture paths from a position.
+     *
+     * @param pawns            List of all pawns.
+     * @param pawn             The pawn to move.
+     * @param inBounds         Predicate to check if a position is within bounds.
+     * @param x                Current x-coordinate.
+     * @param y                Current y-coordinate.
+     * @param currentPath      The current capture path.
+     * @param allPaths         List to collect all capture paths.
+     * @param visitedPositions Set of positions visited in the current path.
+     */
+    private void captureCheck(List<Pawn> pawns, Pawn pawn,
+                              BiPredicate<Integer, Integer> inBounds, int x, int y,
+                              CapturePath currentPath, List<CapturePath> allPaths,
+                              Set<Vector2i> visitedPositions) {
+        boolean foundCapture = false;
+
+        int[][] directions = {
+                {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
+                {0, 2}, {0, -2}, {2, 0}, {-2, 0}
+        };
+
+        for (int[] dir : directions) {
+            int dx = dir[0];
+            int dy = dir[1];
+
+            int captureX = x + dx;
+            int captureY = y + dy;
+            int landingX = x + dx * 2;
+            int landingY = y + dy * 2;
+
+            Vector2i capturePos = new Vector2i(captureX, captureY);
+            Vector2i landingPos = new Vector2i(landingX, landingY);
+
+            if (!inBounds.test(captureX, captureY) || !inBounds.test(landingX, landingY)) {
+                continue;
+            }
+
+            if (visitedPositions.contains(landingPos)) {
+                continue;
+            }
+
+            Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
+
+            if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite()) {
+                if (getPawnAtPosition(pawns, landingPos) == null) {
+                    foundCapture = true;
+                    CapturePath newPath = new CapturePath(currentPath);
+                    newPath.addMove(landingPos, capturedPawn);
+
+                    Set<Vector2i> newVisitedPositions = new HashSet<>(visitedPositions);
+                    newVisitedPositions.add(landingPos);
+
+                    captureCheck(pawns, pawn, inBounds, landingX, landingY,
+                            newPath, allPaths, newVisitedPositions);
                 }
             }
         }
+
+        if (!foundCapture && currentPath.getCaptureCount() > 0) {
+            allPaths.add(currentPath);
+        }
+    }
+}
+
+/**
+ * Represents a capture path in the game.
+ */
+class CapturePath {
+    List<Vector2i> positions;       // Positions along the path
+    List<Pawn> capturedPawns;       // Pawns captured along the path
+
+    public CapturePath() {
+        positions = new ArrayList<>();
+        capturedPawns = new ArrayList<>();
     }
 
-    private void movePawnOnClick(Rectangle square, GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize, Pawn capturedPawn) {
-        square.setOnMouseClicked(event -> {
-            Vector2i position = new Vector2i(GridPane.getColumnIndex(square), GridPane.getRowIndex(square));
-            if (possibleMoves.contains(position)) {
-                // Move the selected pawn
-                pawn.setPosition(position);
-                clearHighlights(board, tileSize);
+    public CapturePath(CapturePath other) {
+        positions = new ArrayList<>(other.positions);
+        capturedPawns = new ArrayList<>(other.capturedPawns);
+    }
 
-                if (pawn.isWhite() && position.y == 0 || !pawn.isWhite() && position.y == boardSize.y - 1) {
-                    // Promote the pawn to a king
-                    pawn.setKing(true);
-                }
-                
-                // If a capture occurred, remove the captured pawn
-                if (capturedPawn != null) {
-                    removePawn(board, pawns, capturedPawn);
-                }
-                
-                renderPawn(board, pawns, tileSize);
-            }
-        });
+    public void addMove(Vector2i position, Pawn capturedPawn) {
+        positions.add(position);
+        if (capturedPawn != null) {
+            capturedPawns.add(capturedPawn);
+        }
+    }
+
+    public int getCaptureCount() {
+        return capturedPawns.size();
+    }
+
+    public Vector2i getLastPosition() {
+        return positions.get(positions.size() - 1);
     }
 }
