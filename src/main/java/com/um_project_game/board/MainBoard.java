@@ -170,12 +170,11 @@ public class MainBoard {
         return null;
     }
 
-    public void seePossibleMove(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize) {
+   public void seePossibleMove(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize) {
         possibleMoves.clear();
         Vector2i position = pawn.getPosition();
         int x = position.x;
         int y = position.y;
-        int direction = pawn.isWhite() ? -1 : 1;
 
         // Lambda to check if a position is within bounds
         BiPredicate<Integer, Integer> inBounds = (newX, newY) -> newX >= 0 && newX < boardSize.x && newY >= 0 && newY < boardSize.y;
@@ -183,84 +182,117 @@ public class MainBoard {
         // Lambda to handle highlighting and adding click handler to the tile
         BiConsumer<Integer, Integer> highlightMove = (newX, newY) -> {
             Rectangle square = new Rectangle(tileSize, tileSize);
-            square.setFill(newY == 0 || newY == boardSize.y - 1 ? Color.YELLOW : Color.GREEN);
+            square.setFill(Color.GREEN);
             board.add(square, newX, newY);
             possibleMoves.add(new Vector2i(newX, newY));
-            
+
             movePawnOnClick(square, board, pawns, pawn, tileSize, null);
         };
-        // Lambda to check capturing logic
+
+        // Lambda to check capturing logic in any direction (including vertical, horizontal, diagonal)
         TriConsumer<Integer, Integer, Integer> checkCapture = (dx, dy, distance) -> {
-            int newX = x + dx * distance;
-            int newY = y + dy * distance;
+        if (!pawn.isKing() && distance > 2) {
+            return; // Pawns can only capture adjacent pieces (distance == 2)
+        }
 
-            // Check if the move is within bounds
-            if (inBounds.test(newX, newY)) {
-                Vector2i capturePos = new Vector2i(x + dx, y + dy);
-                Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
-                if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite()) {
-                    Vector2i jumpPos = new Vector2i(newX, newY);
-                    if (getPawnAtPosition(pawns, jumpPos) == null) {
-                        // Capture move is possible
-                        Rectangle square = new Rectangle(tileSize, tileSize);
-                        square.setFill(Color.RED);
-                        board.add(square, newX, newY);
-                        possibleMoves.add(jumpPos);
+        for (int i = 1; i < (pawn.isKing() ? boardSize.x : 2); i++) { // Pawns only check adjacent, kings can check further
+            int captureX = x + dx * i;
+            int captureY = y + dy * i;
+            int landingX = captureX + dx;
+            int landingY = captureY + dy;
 
-                        // Pass the captured pawn to movePawnOnClick
-                        movePawnOnClick(square, board, pawns, pawn, tileSize, capturedPawn);
-                    }
+            if (!inBounds.test(captureX, captureY) || !inBounds.test(landingX, landingY)) {
+                break; // Out of bounds, stop checking in this direction
+            }
+
+            // Check if there's an opponent's pawn in the path
+            Pawn capturedPawn = getPawnAtPosition(pawns, new Vector2i(captureX, captureY));
+
+            if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite()) {
+                // Check if the square behind the opponent is empty
+                if (getPawnAtPosition(pawns, new Vector2i(landingX, landingY)) == null) {
+                    // Valid capture, highlight the move and add it to possibleMoves
+                    Rectangle square = new Rectangle(tileSize, tileSize);
+                    square.setFill(Color.RED);
+                    board.add(square, landingX, landingY);
+                    possibleMoves.add(new Vector2i(landingX, landingY));
+
+                    // Pass the captured pawn to movePawnOnClick for removal
+                    movePawnOnClick(square, board, pawns, pawn, tileSize, capturedPawn);
+
+                    // Stop after one capture in this direction
+                    break;
+                } else {
+                    break; // No valid landing square, stop
                 }
             }
+        }
+    };
+
+        // Define diagonal directions for non-capturing moves
+        int[][] diagonalDirections = {
+            {-1, -1}, {1, -1},   // Diagonal (top-left, top-right)
+            {-1, 1}, {1, 1}      // Diagonal (bottom-left, bottom-right)
         };
 
-        // Regular pawn moves (one diagonal step)
-        if (!pawn.isKing()) {
-            int[] moveDeltas = {-1, 1};
+        // Define all directions for capturing moves (including diagonal, vertical, horizontal)
+        int[][] captureDirections = {
+            {-1, -1}, {1, -1},   // Diagonal (top-left, top-right)
+            {-1, 1}, {1, 1},     // Diagonal (bottom-left, bottom-right)
+            {0, -2}, {0, 2},     // Vertical (up, down)
+            {-2, 0}, {2, 0}      // Horizontal (left, right)
+        };
 
-            for (int dx : moveDeltas) {
-                for (int dy : moveDeltas) {
-                    int newX = x + dx;
-                    int newY = y + direction;
-                    if (inBounds.test(newX, newY) && getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
-                        // Normal move
-                        highlightMove.accept(newX, newY);
-                    }
+        // Regular pawn moves (only diagonal)
+        if (!pawn.isKing()) {
+            int direction = pawn.isWhite() ? -1 : 1;
+
+            // Diagonal moves for regular pawns (they only move diagonally)
+            for (int[] moveDir : new int[][]{{-1, direction}, {1, direction}}) {
+                int newX = x + moveDir[0];
+                int newY = y + moveDir[1];
+
+                if (inBounds.test(newX, newY) && getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
+                    highlightMove.accept(newX, newY);
                 }
             }
 
-            // Check capturing moves for normal pawns
-            for (int dx : moveDeltas) {
-                for (int dy : moveDeltas) {
-                    checkCapture.accept(dx, dy, 2); // Check two squares for capturing
-                }
+            // Check capturing moves in all directions (diagonal, vertical, horizontal)
+            for (int[] direction_array : captureDirections) {
+                checkCapture.accept(direction_array[0], direction_array[1], 2); // Check two squares for capturing
             }
         } else {
-            // King moves (can move multiple squares in any diagonal direction)
-            int[] moveDeltas = {-1, 1};
+            // **Non-capturing diagonal moves for the king**
+            for (int[] direction : diagonalDirections) {
+                int dx = direction[0];
+                int dy = direction[1];
 
-            for (int dx : moveDeltas) {
-                for (int dy : moveDeltas) {
-                    // Check all possible positions along the diagonal
-                    for (int i = 1; i < boardSize.x; i++) {
-                        int newX = x + dx * i;
-                        int newY = y + dy * i;
-                        if (!inBounds.test(newX, newY)) {
-                            break; // Out of bounds, stop
-                        }
+                // Check all possible positions along the diagonal direction
+                for (int i = 1; i < boardSize.x; i++) {
+                    int newX = x + dx * i;
+                    int newY = y + dy * i;
 
-                        // Check if the position is empty
-                        if (getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
-                            highlightMove.accept(newX, newY); // Valid move
-                        } else {
-                            break; // Stop further moves if a pawn is blocking
-                        }
+                    if (!inBounds.test(newX, newY)) {
+                        break; // Out of bounds, stop checking in this direction
                     }
 
-                    // Check for captures for king
-                    for (int i = 1; i < boardSize.x - 1; i++) {
-                        checkCapture.accept(dx, dy, i + 2); // Check multiple squares for capturing
+                    // Check if there's a pawn at the current position
+                    if (getPawnAtPosition(pawns, new Vector2i(newX, newY)) != null) {
+                        break; // Stop moving if there is a pawn
                     }
+
+                    highlightMove.accept(newX, newY); // Valid diagonal move
+                }
+            }
+
+            // **Capturing moves in all directions (diagonal, vertical, horizontal)**
+            for (int[] direction : captureDirections) {
+                int dx = direction[0];
+                int dy = direction[1];
+
+                // Check for capturing possibilities in all directions
+                for (int i = 1; i < boardSize.x; i++) {
+                    checkCapture.accept(dx, dy, i);
                 }
             }
         }
@@ -282,7 +314,7 @@ public class MainBoard {
 
     public void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
         // Remove the captured pawn from the list
-        pawns.remove(capturedPawn);
+        pawns.remove(capturedPawn); 
 
         // Remove the captured pawn from the board visually
         for (var node : board.getChildren()) {
