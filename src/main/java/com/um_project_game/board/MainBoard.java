@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 import org.joml.Vector2i;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.image.ImageView;
@@ -237,8 +240,9 @@ public class MainBoard {
             possibleMoves.add(landingPos);
 
             square.setOnMouseClicked(event -> {
-                pawn.setPosition(landingPos);
-                path.capturedPawns.forEach(capturedPawn -> removePawn(board, pawns, capturedPawn));
+                List<Vector2i> pathPos = path.positions;
+                animatePawnMove(pawn, pathPos, board, tileSize);
+                path.capturedPawns.forEach(capturedPawn -> animatePawnRemoval(board, pawns, capturedPawn));
                 if (!pawn.isKing() && path.shouldPromote()) {
                     pawn.setKing(true);
                 }
@@ -272,7 +276,7 @@ public class MainBoard {
             possibleMoves.add(new Vector2i(newX, newY));
 
             square.setOnMouseClicked(event -> {
-                pawn.setPosition(new Vector2i(newX, newY));
+                animatePawnMove(pawn, List.of(new Vector2i(newX, newY)), board, tileSize);
                 clearHighlights(board, tileSize);
                 promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
                 renderPawns(board, pawns, tileSize);
@@ -306,65 +310,6 @@ public class MainBoard {
                 }
             }
         }
-    }
-
-    /**
-     * Creates a highlight square for possible moves.
-     *
-     * @param tileSize Size of each tile.
-     * @param color    Color of the highlight.
-     * @return Rectangle representing the highlight.
-     */
-    private Rectangle createHighlightSquare(float tileSize, Color color) {
-        Rectangle square = new Rectangle(tileSize, tileSize);
-        square.setFill(color);
-        return square;
-    }
-
-    /**
-     * Promotes a pawn to a king if it reaches the opposite end.
-     *
-     * @param pawn       The pawn to check for promotion.
-     * @param landingPos The landing position of the pawn.
-     */
-    private void promotePawnIfNeeded(Pawn pawn, Vector2i landingPos) {
-        if ((pawn.isWhite() && landingPos.y == 0) || (!pawn.isWhite() && landingPos.y == boardSize.y - 1)) {
-            pawn.setKing(true);
-        }
-    }
-
-    /**
-     * Clears any highlights from the board.
-     *
-     * @param board    GridPane representing the board.
-     * @param tileSize Size of each tile.
-     */
-    private void clearHighlights(GridPane board, float tileSize) {
-        board.getChildren().removeIf(node -> node instanceof Rectangle && !(node instanceof ImageView));
-        renderBoard(tileSize, board);
-    }
-
-    /**
-     * Removes a captured pawn from the board and the list of pawns.
-     *
-     * @param board        GridPane representing the board.
-     * @param pawns        List of all pawns.
-     * @param capturedPawn The pawn to remove.
-     */
-    private void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
-        pawns.remove(capturedPawn);
-
-        board.getChildren().removeIf(node -> {
-            if (node instanceof ImageView) {
-                ImageView imageView = (ImageView) node;
-                Integer colIndex = GridPane.getColumnIndex(imageView);
-                Integer rowIndex = GridPane.getRowIndex(imageView);
-                return colIndex != null && rowIndex != null &&
-                        colIndex == capturedPawn.getPosition().x &&
-                        rowIndex == capturedPawn.getPosition().y;
-            }
-            return false;
-        });
     }
 
     /**
@@ -439,6 +384,105 @@ public class MainBoard {
         if (!foundCapture && currentPath.getCaptureCount() > 0) {
             allPaths.add(currentPath);
         }
+    }
+
+
+    /**
+     * Creates a highlight square for possible moves.
+     *
+     * @param tileSize Size of each tile.
+     * @param color    Color of the highlight.
+     * @return Rectangle representing the highlight.
+     */
+    private Rectangle createHighlightSquare(float tileSize, Color color) {
+        Rectangle square = new Rectangle(tileSize, tileSize);
+        square.setFill(color);
+        return square;
+    }
+
+    /**
+     * Promotes a pawn to a king if it reaches the opposite end.
+     *
+     * @param pawn       The pawn to check for promotion.
+     * @param landingPos The landing position of the pawn.
+     */
+    private void promotePawnIfNeeded(Pawn pawn, Vector2i landingPos) {
+        if ((pawn.isWhite() && landingPos.y == 0) || (!pawn.isWhite() && landingPos.y == boardSize.y - 1)) {
+            pawn.setKing(true);
+        }
+    }
+
+    /**
+     * Clears any highlights from the board.
+     *
+     * @param board    GridPane representing the board.
+     * @param tileSize Size of each tile.
+     */
+    private void clearHighlights(GridPane board, float tileSize) {
+        board.getChildren().removeIf(node -> node instanceof Rectangle && !(node instanceof ImageView));
+        renderBoard(tileSize, board);
+    }
+
+    /**
+     * Removes a captured pawn from the board and the list of pawns.
+     *
+     * @param board        GridPane representing the board.
+     * @param pawns        List of all pawns.
+     * @param capturedPawn The pawn to remove.
+     */
+    private void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
+        pawns.remove(capturedPawn);
+    }
+
+    // Function to animate pawn movement
+    private void animatePawnMove(Pawn pawn, List<Vector2i> path, GridPane board, float tileSize) {
+        ImageView pawnView = getPawnView(board, pawn); // Assuming you have a method to retrieve the pawn ImageView
+        TranslateTransition move = new TranslateTransition(Duration.millis(1000), pawnView);
+        
+        for (Vector2i pos : path) {
+            move.setToX((pos.x - pawn.getPosition().x) * tileSize);
+            move.setToY((pos.y - pawn.getPosition().y) * tileSize);
+            move.play();
+            pawn.setPosition(pos); // Update pawn position after animation
+        }
+    }
+
+    // Function to animate pawn removal (fade out effect)
+    private void animatePawnRemoval(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
+        ImageView capturedPawnView = getPawnView(board, capturedPawn);
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(1000), capturedPawnView);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(event -> {
+            board.getChildren().remove(capturedPawnView); // Remove pawn from the board
+            pawns.remove(capturedPawn);
+            board.getChildren().removeIf(node -> {
+            if (node instanceof ImageView) {
+                ImageView imageView = (ImageView) node;
+                Integer colIndex = GridPane.getColumnIndex(imageView);
+                Integer rowIndex = GridPane.getRowIndex(imageView);
+                return colIndex != null && rowIndex != null &&
+                        colIndex == capturedPawn.getPosition().x &&
+                        rowIndex == capturedPawn.getPosition().y;
+            }
+            return false;
+            });
+        });
+        fadeOut.play();
+    }
+
+    // Helper method to retrieve ImageView of a pawn from the board
+    private ImageView getPawnView(GridPane board, Pawn pawn) {
+        for (var node : board.getChildren()) {
+            if (node instanceof ImageView) {
+                Integer colIndex = GridPane.getColumnIndex(node);
+                Integer rowIndex = GridPane.getRowIndex(node);
+                if (colIndex != null && rowIndex != null && colIndex == pawn.getPosition().x && rowIndex == pawn.getPosition().y) {
+                    return (ImageView) node;
+                }
+            }
+        }
+        return null; // Or handle appropriately
     }
 }
 
