@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.joml.Vector2i;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 import javafx.geometry.HPos;
@@ -436,15 +437,24 @@ public class MainBoard {
 
     // Function to animate pawn movement
     private void animatePawnMove(Pawn pawn, List<Vector2i> path, GridPane board, float tileSize) {
-        ImageView pawnView = getPawnView(board, pawn); // Assuming you have a method to retrieve the pawn ImageView
-        TranslateTransition move = new TranslateTransition(Duration.millis(1000), pawnView);
-        
-        for (Vector2i pos : path) {
-            move.setToX((pos.x - pawn.getPosition().x) * tileSize);
-            move.setToY((pos.y - pawn.getPosition().y) * tileSize);
-            move.play();
-            pawn.setPosition(pos); // Update pawn position after animation
+        ImageView pawnView = getPawnView(board, pawn);
+
+        SequentialTransition move = new SequentialTransition();
+
+        for (int i = 1; i < path.size(); i++) {
+            Vector2i startPos = path.get(i - 1);
+            Vector2i endPos = path.get(i);
+
+            TranslateTransition transition = new TranslateTransition(Duration.millis(1000), pawnView);
+            transition.setToX(endPos.x - startPos.x);
+            transition.setToY(endPos.y - startPos.y);
+            transition.setDelay(Duration.millis(1000 * i));
+            transition.setOnFinished(event -> pawn.setPosition(endPos));
+            move.getChildren().add(transition);
         }
+
+        move.play();
+        pawn.setPosition(path.get(path.size() - 1));
     }
 
     // Function to animate pawn removal (fade out effect)
