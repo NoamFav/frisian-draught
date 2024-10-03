@@ -1,9 +1,7 @@
 package com.um_project_game.board;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
@@ -207,10 +205,8 @@ public class MainBoard {
                 newX >= 0 && newX < boardSize.x && newY >= 0 && newY < boardSize.y;
 
         List<CapturePath> allPaths = new ArrayList<>();
-        Set<Vector2i> visitedPositions = new HashSet<>();
-        visitedPositions.add(new Vector2i(x, y));
 
-        captureCheck(pawns, pawn, inBounds, x, y, new CapturePath(), allPaths, visitedPositions);
+        captureCheck(pawns, pawn, inBounds, x, y, new CapturePath(), allPaths);
 
         if (!allPaths.isEmpty()) {
             handleCaptureMoves(board, pawns, pawn, tileSize, allPaths);
@@ -243,7 +239,9 @@ public class MainBoard {
             square.setOnMouseClicked(event -> {
                 pawn.setPosition(landingPos);
                 path.capturedPawns.forEach(capturedPawn -> removePawn(board, pawns, capturedPawn));
-                promotePawnIfNeeded(pawn, landingPos);
+                if (!pawn.isKing() && path.shouldPromote()) {
+                    pawn.setKing(true);
+                }
                 clearHighlights(board, tileSize);
                 renderPawns(board, pawns, tileSize);
             });
@@ -379,13 +377,18 @@ public class MainBoard {
      * @param y                Current y-coordinate.
      * @param currentPath      The current capture path.
      * @param allPaths         List to collect all capture paths.
-     * @param visitedPositions Set of positions visited in the current path.
      */
     private void captureCheck(List<Pawn> pawns, Pawn pawn,
                               BiPredicate<Integer, Integer> inBounds, int x, int y,
-                              CapturePath currentPath, List<CapturePath> allPaths,
-                              Set<Vector2i> visitedPositions) {
+                              CapturePath currentPath, List<CapturePath> allPaths) {
         boolean foundCapture = false;
+
+        for (Vector2i pos : currentPath.positions) {
+            if ((pawn.isWhite() && pos.y == 0) || (!pawn.isWhite() && pos.y == boardSize.y - 1)) {
+                currentPath.setShouldPromote(true);
+                break;
+            }
+        }
 
         int[][] directions = {
                 {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
@@ -396,36 +399,40 @@ public class MainBoard {
             int dx = dir[0];
             int dy = dir[1];
 
-            int captureX = x + dx;
-            int captureY = y + dy;
-            int landingX = x + dx * 2;
-            int landingY = y + dy * 2;
+            int maxSteps = pawn.isKing() ? boardSize.x : 1;
 
-            Vector2i capturePos = new Vector2i(captureX, captureY);
-            Vector2i landingPos = new Vector2i(landingX, landingY);
+            for (int i = 1; i <= maxSteps; i++) {
+                int captureX = x + dx * i;
+                int captureY = y + dy * i;
+                int landingX = captureX + dx;
+                int landingY = captureY + dy;
 
-            if (!inBounds.test(captureX, captureY) || !inBounds.test(landingX, landingY)) {
-                continue;
-            }
+                Vector2i capturePos = new Vector2i(captureX, captureY);
+                Vector2i landingPos = new Vector2i(landingX, landingY);
 
-            if (visitedPositions.contains(landingPos)) {
-                continue;
-            }
-
-            Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
-
-            if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite()) {
-                if (getPawnAtPosition(pawns, landingPos) == null) {
-                    foundCapture = true;
-                    CapturePath newPath = new CapturePath(currentPath);
-                    newPath.addMove(landingPos, capturedPawn);
-
-                    Set<Vector2i> newVisitedPositions = new HashSet<>(visitedPositions);
-                    newVisitedPositions.add(landingPos);
-
-                    captureCheck(pawns, pawn, inBounds, landingX, landingY,
-                            newPath, allPaths, newVisitedPositions);
+                if (!inBounds.test(captureX, captureY) || !inBounds.test(landingX, landingY)) {
+                    continue;
                 }
+
+                Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
+
+                if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite() && !currentPath.capturedPawns.contains(capturedPawn)) { 
+                    if (getPawnAtPosition(pawns, landingPos) == null) {
+                        foundCapture = true;
+                        CapturePath newPath = new CapturePath(currentPath);
+
+                        newPath.addMove(landingPos, capturedPawn);
+
+                        captureCheck(pawns, pawn, inBounds, landingX, landingY,
+                                newPath, allPaths);
+                    }
+                    break;
+                }
+
+                // If we find a piece but it's not capturable, stop checking in this direction
+                if (capturedPawn != null) {
+                    break;
+                }            
             }
         }
 
@@ -441,6 +448,7 @@ public class MainBoard {
 class CapturePath {
     List<Vector2i> positions;       // Positions along the path
     List<Pawn> capturedPawns;       // Pawns captured along the path
+    boolean shouldPromote;  // Whether the pawn should be promoted
 
     public CapturePath() {
         positions = new ArrayList<>();
@@ -465,5 +473,13 @@ class CapturePath {
 
     public Vector2i getLastPosition() {
         return positions.get(positions.size() - 1);
+    }
+
+    public boolean shouldPromote() {
+        return shouldPromote;
+    }
+
+    public void setShouldPromote(boolean shouldPromote) {
+        this.shouldPromote = shouldPromote;
     }
 }
