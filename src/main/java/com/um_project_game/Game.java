@@ -1,5 +1,7 @@
 package com.um_project_game;
 
+import java.util.Optional;
+import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -9,6 +11,10 @@ import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -127,9 +133,9 @@ public class Game {
         controlButtons.setLayoutY(controlButtonsY);
 
         Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> {});
-        Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> {});
+        Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> drawWarning());
         Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
-        Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> mainBoard.resetGame(board, mainBoardSize));
+        Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, () -> {});
         Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> Launcher.changeState(0));
 
@@ -150,6 +156,55 @@ public class Game {
         movesList.getChildren().add(movesListText);
 
         root.getChildren().add(movesList);
+    }
+
+    private void restartWarning() {
+        
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Restart Confirmation");
+        alert.setHeaderText("Are you sure you want to restart the game?");
+        alert.setContentText("All progress will be lost.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK){
+            mainBoard.resetGame(board, mainBoardSize);
+        }
+    }
+
+    private void drawWarning() {
+
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Draw Confirmation");
+        alert.setHeaderText("Are you sure you want to propose a draw?");
+        alert.setContentText("Both players will receive 1 point.");
+
+        ButtonType yesButton = new ButtonType("Yes", ButtonData.OK_DONE);
+        ButtonType noButton = new ButtonType("No", ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(yesButton, noButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.get() == yesButton){
+            String botDecision = "Bot is thinking...";
+            Alert botAlert = new Alert(AlertType.INFORMATION);
+            botAlert.setTitle("Bot Decision");
+            botAlert.setContentText(botDecision);
+            botAlert.showAndWait();
+            Random rand = new Random();
+            int n = rand.nextInt(2);
+            if (n == 0) {
+                botDecision = "Bot has accepted the draw!";
+                botAlert.setContentText("Game over - draw!");
+            } else {
+                botDecision = "Bot has declined the draw!";
+                botAlert.setContentText("Game continues!");
+            }
+            botAlert.setHeaderText(botDecision);
+            botAlert.showAndWait();
+            if (n == 0) {
+                mainBoard.resetGame(board, mainBoardSize);
+            }
+        }
     }
 
     public void onResize(Pane root, Scene scene) {

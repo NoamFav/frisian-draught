@@ -255,6 +255,26 @@ public class MainBoard {
                 .filter(path -> path.getCaptureCount() == maxCaptures)
                 .collect(Collectors.toList());
 
+        Text playerOne = (Text) root.lookup("#playerOneScore");
+        Text playerTwo = (Text) root.lookup("#playerTwoScore");
+        Consumer<Text> updatePlayerScore = (player) -> {
+            if (player != null) {
+                try {
+                    // Extract current score after "Score: "
+                    String[] scoreParts = player.getText().split(":");
+                    if (scoreParts.length == 2) {
+                        String playerScore = scoreParts[1].trim();
+                        int score = Integer.parseInt(playerScore) + maxCaptures;
+                        player.setText("Score: " + score);
+                    } else {
+                        System.out.println("Score format is invalid: " + player.getText());
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Failed to parse score: " + e.getMessage());
+                }
+            }
+        };
+
         BiConsumer<CapturePath, Vector2i> highlightCaptureMove = (path, landingPos) -> {
             Rectangle square = createHighlightSquare(tileSize, Color.RED);
             board.add(square, landingPos.x, landingPos.y);
@@ -271,8 +291,8 @@ public class MainBoard {
                 clearHighlights(board, tileSize);
                 renderPawns(board, pawns, tileSize);
                 switchTurn();
-                System.out.println("Is white turn: " + isWhiteTurn);
                 focusedPawn = null;
+                updatePlayerScore.accept(pawn.isWhite() ? playerOne : playerTwo);
             });
         }; 
 
@@ -310,7 +330,6 @@ public class MainBoard {
                 promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
                 renderPawns(board, pawns, tileSize);
                 switchTurn();
-                System.out.println("Is white turn: " + isWhiteTurn);
                 focusedPawn = null;
             });
         };
