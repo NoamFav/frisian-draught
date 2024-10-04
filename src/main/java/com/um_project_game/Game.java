@@ -9,7 +9,10 @@ import org.joml.Vector2i;
 
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
+import com.um_project_game.board.GameInfo;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -26,10 +29,9 @@ public class Game {
 
     private final MainBoard mainBoard = new MainBoard();
     private GridPane board;
-    private boolean isWhiteTurn = mainBoard.isWhiteTurn();
 
-    private int scorePlayerOne = 0;
-    private int scorePlayerTwo = 0;
+    private GameInfo gameInfo = new GameInfo();
+    private BooleanBinding isWhiteTurn;
 
     private int mainBoardSize = 614;
     private int mainBoardX = 376;
@@ -65,9 +67,19 @@ public class Game {
     }
 
     private void mainGameBoard(Pane root, Scene scene) {
-        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY));
+        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
+
+        isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
+    }
+
+    private void resizeBoard(Pane root) {
+        board = mainBoard.resizeBoard(mainBoardSize);
+        board.setLayoutX(mainBoardX);
+        board.setLayoutY(mainBoardY);
+        root.getChildren().add(board);
+
     }
 
     private void playerUI(Pane root, Scene scene, boolean isPlayerOne) {
@@ -80,7 +92,7 @@ public class Game {
 
         Consumer<Text> setPlayerStyle = (player) -> {
             if (player != null) {
-                boolean shouldBeBold = (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
+                boolean shouldBeBold = (isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne);
                 player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
                                 + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
             }
@@ -91,10 +103,12 @@ public class Game {
         setPlayerStyle.accept(playerText);
         playerText.setId(isPlayerOne ? "playerOneText" : "playerTwoText");
 
-        Text playerScore = new Text("Score: " + (isPlayerOne ? scorePlayerOne : scorePlayerTwo));
+        Text playerScore = new Text();
         playerScore.getStyleClass().add("playerScore");
-        setPlayerStyle.accept(playerScore);
         playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
+        if (isPlayerOne) {playerScore.textProperty().bind(Bindings.concat("Score: ", gameInfo.scorePlayerOneProperty()));
+        } else { playerScore.textProperty().bind(Bindings.concat("Score: ", gameInfo.scorePlayerTwoProperty()));}
+        setPlayerStyle.accept(playerScore);
 
         Text playerTime = new Text("Time: 10:00");
         playerTime.getStyleClass().add("playerTime");
@@ -167,7 +181,7 @@ public class Game {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK){
-            mainBoard.resetGame(board, mainBoardSize);
+            mainBoard.resetGame(mainBoardSize);
         }
     }
 
@@ -202,7 +216,7 @@ public class Game {
             botAlert.setHeaderText(botDecision);
             botAlert.showAndWait();
             if (n == 0) {
-                mainBoard.resetGame(board, mainBoardSize);
+                mainBoard.resetGame(mainBoardSize);
             }
         }
     }
@@ -210,7 +224,7 @@ public class Game {
     public void onResize(Pane root, Scene scene) {
         root.getChildren().clear();
         newDimension(scene);
-        mainGameBoard(root, scene);
+        resizeBoard(root);
         playerUI(root, scene, true);
         playerUI(root, scene, false);
         chatUI(root, scene);

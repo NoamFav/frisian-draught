@@ -11,6 +11,8 @@ module com.um_project_game {
     requires org.kordamp.ikonli.javafx;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+	requires javafx.media;
+	requires javafx.base;
 
     opens com.um_project_game to javafx.graphics;
     exports com.um_project_game;
