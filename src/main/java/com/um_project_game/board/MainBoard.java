@@ -1,15 +1,14 @@
 package com.um_project_game.board;
 
-import com.um_project_game.util.SoundPlayer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.joml.Vector2i;
+
+import com.um_project_game.util.SoundPlayer;
 
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -104,6 +103,8 @@ public class MainBoard {
         renderBoard();
         setupBoard(pawns);
         renderPawns(pawns);
+        gameInfo.scorePlayerOne.set(0);
+        gameInfo.scorePlayerTwo.set(0);
     }
 
     /**
