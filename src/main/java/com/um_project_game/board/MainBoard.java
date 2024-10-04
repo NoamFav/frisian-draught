@@ -8,10 +8,6 @@ import java.util.stream.Collectors;
 
 import org.joml.Vector2i;
 
-import javafx.animation.FadeTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.TranslateTransition;
-import javafx.util.Duration;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.image.ImageView;
@@ -241,12 +237,9 @@ public class MainBoard {
             possibleMoves.add(landingPos);
 
             square.setOnMouseClicked(event -> {
-                List<Vector2i> pathPos = path.positions;
-                animatePawnMove(pawn, pathPos, board, tileSize);
-                path.capturedPawns.forEach(capturedPawn -> animatePawnRemoval(board, pawns, capturedPawn));
-                if (!pawn.isKing() && path.shouldPromote()) {
-                    pawn.setKing(true);
-                }
+                pawn.setPosition(landingPos);
+                path.capturedPawns.forEach(capturedPawn -> removePawn(board, pawns, capturedPawn));
+                promotePawnIfNeeded(pawn, landingPos);
                 clearHighlights(board, tileSize);
                 renderPawns(board, pawns, tileSize);
             });
@@ -277,7 +270,7 @@ public class MainBoard {
             possibleMoves.add(new Vector2i(newX, newY));
 
             square.setOnMouseClicked(event -> {
-                animatePawnMove(pawn, List.of(new Vector2i(newX, newY)), board, tileSize);
+                pawn.setPosition(new Vector2i(newX, newY));
                 clearHighlights(board, tileSize);
                 promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
                 renderPawns(board, pawns, tileSize);
@@ -325,69 +318,80 @@ public class MainBoard {
      * @param allPaths         List to collect all capture paths.
      */
     private void captureCheck(List<Pawn> pawns, Pawn pawn,
-                              BiPredicate<Integer, Integer> inBounds, int x, int y,
-                              CapturePath currentPath, List<CapturePath> allPaths) {
-        boolean foundCapture = false;
+                          BiPredicate<Integer, Integer> inBounds, int x, int y,
+                          CapturePath currentPath, List<CapturePath> allPaths) {
+    boolean foundCapture = false;
 
-        for (Vector2i pos : currentPath.positions) {
-            if ((pawn.isWhite() && pos.y == 0) || (!pawn.isWhite() && pos.y == boardSize.y - 1)) {
-                currentPath.setShouldPromote(true);
-                break;
+    int[][] directions = {
+            {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
+            {0, 2}, {0, -2}, {2, 0}, {-2, 0}
+    };
+
+    for (int[] dir : directions) {
+        int dx = dir[0];
+        int dy = dir[1];
+
+        int maxSteps = pawn.isKing() ? boardSize.x : 1;
+
+        for (int i = 1; i <= maxSteps; i++) {
+            int captureX = x + dx * i;
+            int captureY = y + dy * i;
+
+            // Check if capture position is within bounds
+            if (!inBounds.test(captureX, captureY)) {
+                break; // Stop if out of bounds
             }
-        }
 
-        int[][] directions = {
-                {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
-                {0, 2}, {0, -2}, {2, 0}, {-2, 0}
-        };
+            Vector2i capturePos = new Vector2i(captureX, captureY);
+            Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
 
-        for (int[] dir : directions) {
-            int dx = dir[0];
-            int dy = dir[1];
+            // If we find a capturable opponent pawn
+            if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite() && !currentPath.capturedPawns.contains(capturedPawn)) {
 
-            int maxSteps = pawn.isKing() ? boardSize.x : 1;
+                // Check for landing positions after capturing the pawn
+                for (int j = 1; j <= maxSteps; j++) {
+                    int landingX = captureX + dx * j;
+                    int landingY = captureY + dy * j;
 
-            for (int i = 1; i <= maxSteps; i++) {
-                int captureX = x + dx * i;
-                int captureY = y + dy * i;
-                int landingX = captureX + dx;
-                int landingY = captureY + dy;
+                    if (!inBounds.test(landingX, landingY)) {
+                        break; // Stop if landing position is out of bounds
+                    }
 
-                Vector2i capturePos = new Vector2i(captureX, captureY);
-                Vector2i landingPos = new Vector2i(landingX, landingY);
+                    Vector2i landingPos = new Vector2i(landingX, landingY);
 
-                if (!inBounds.test(captureX, captureY) || !inBounds.test(landingX, landingY)) {
-                    continue;
-                }
-
-                Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
-
-                if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite() && !currentPath.capturedPawns.contains(capturedPawn)) { 
+                    // If landing position is empty, it's a valid move
                     if (getPawnAtPosition(pawns, landingPos) == null) {
                         foundCapture = true;
                         CapturePath newPath = new CapturePath(currentPath);
-
                         newPath.addMove(landingPos, capturedPawn);
 
-                        captureCheck(pawns, pawn, inBounds, landingX, landingY,
-                                newPath, allPaths);
+                        // Recursively check for further captures
+                        captureCheck(pawns, pawn, inBounds, landingX, landingY, newPath, allPaths);
+                    } else {
+                        break; // Stop if the landing position is blocked
                     }
-                    break;
                 }
 
-                // If we find a piece but it's not capturable, stop checking in this direction
-                if (capturedPawn != null) {
-                    break;
-                }            
+                // **Stop if two pawns are adjacent**: Check for a pawn directly next to the first one
+                int nextX = captureX + dx;
+                int nextY = captureY + dy;
+                if (inBounds.test(nextX, nextY) && getPawnAtPosition(pawns, new Vector2i(nextX, nextY)) != null) {
+                    break; // Stop if there's no gap between pawns
+                }
             }
-        }
 
-        if (!foundCapture && currentPath.getCaptureCount() > 0) {
-            allPaths.add(currentPath);
+            // If a non-capturable piece is found, stop checking this direction
+            if (capturedPawn != null) {
+                break;
+            }
         }
     }
 
-
+    // Add path to allPaths if a capture was made
+    if (!foundCapture && currentPath.getCaptureCount() > 0) {
+        allPaths.add(currentPath);
+    }
+}
     /**
      * Creates a highlight square for possible moves.
      *
@@ -433,40 +437,7 @@ public class MainBoard {
      */
     private void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
         pawns.remove(capturedPawn);
-    }
-
-    // Function to animate pawn movement
-    private void animatePawnMove(Pawn pawn, List<Vector2i> path, GridPane board, float tileSize) {
-        ImageView pawnView = getPawnView(board, pawn);
-
-        SequentialTransition move = new SequentialTransition();
-
-        for (int i = 1; i < path.size(); i++) {
-            Vector2i startPos = path.get(i - 1);
-            Vector2i endPos = path.get(i);
-
-            TranslateTransition transition = new TranslateTransition(Duration.millis(1000), pawnView);
-            transition.setToX(endPos.x - startPos.x);
-            transition.setToY(endPos.y - startPos.y);
-            transition.setDelay(Duration.millis(1000 * i));
-            transition.setOnFinished(event -> pawn.setPosition(endPos));
-            move.getChildren().add(transition);
-        }
-
-        move.play();
-        pawn.setPosition(path.get(path.size() - 1));
-    }
-
-    // Function to animate pawn removal (fade out effect)
-    private void animatePawnRemoval(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
-        ImageView capturedPawnView = getPawnView(board, capturedPawn);
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(1000), capturedPawnView);
-        fadeOut.setFromValue(1.0);
-        fadeOut.setToValue(0.0);
-        fadeOut.setOnFinished(event -> {
-            board.getChildren().remove(capturedPawnView); // Remove pawn from the board
-            pawns.remove(capturedPawn);
-            board.getChildren().removeIf(node -> {
+        board.getChildren().removeIf(node -> {
             if (node instanceof ImageView) {
                 ImageView imageView = (ImageView) node;
                 Integer colIndex = GridPane.getColumnIndex(imageView);
@@ -476,23 +447,9 @@ public class MainBoard {
                         rowIndex == capturedPawn.getPosition().y;
             }
             return false;
-            });
         });
-        fadeOut.play();
-    }
 
-    // Helper method to retrieve ImageView of a pawn from the board
-    private ImageView getPawnView(GridPane board, Pawn pawn) {
-        for (var node : board.getChildren()) {
-            if (node instanceof ImageView) {
-                Integer colIndex = GridPane.getColumnIndex(node);
-                Integer rowIndex = GridPane.getRowIndex(node);
-                if (colIndex != null && rowIndex != null && colIndex == pawn.getPosition().x && rowIndex == pawn.getPosition().y) {
-                    return (ImageView) node;
-                }
-            }
-        }
-        return null; // Or handle appropriately
+
     }
 }
 
@@ -502,7 +459,6 @@ public class MainBoard {
 class CapturePath {
     List<Vector2i> positions;       // Positions along the path
     List<Pawn> capturedPawns;       // Pawns captured along the path
-    boolean shouldPromote;  // Whether the pawn should be promoted
 
     public CapturePath() {
         positions = new ArrayList<>();
@@ -527,13 +483,5 @@ class CapturePath {
 
     public Vector2i getLastPosition() {
         return positions.get(positions.size() - 1);
-    }
-
-    public boolean shouldPromote() {
-        return shouldPromote;
-    }
-
-    public void setShouldPromote(boolean shouldPromote) {
-        this.shouldPromote = shouldPromote;
     }
 }
