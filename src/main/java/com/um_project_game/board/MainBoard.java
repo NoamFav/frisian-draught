@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.joml.Vector2i;
@@ -15,6 +16,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 
 /**
  * Represents the main board of the game.
@@ -25,6 +27,10 @@ public class MainBoard {
     private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
     private Pawn focusedPawn;
     private List<Vector2i> possibleMoves = new ArrayList<>();
+    private boolean isWhiteTurn = true; // White starts first
+    private List<Vector2i> listMoves = new ArrayList<>();
+    private boolean isActive = true;
+    private Pane root;
 
     /**
      * Creates and returns the main board, rendering it to the root pane.
@@ -38,6 +44,8 @@ public class MainBoard {
         float tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
         GridPane board = new GridPane();
+        isWhiteTurn = true;
+        this.root = root;
 
         board.setLayoutX(boardPosition.x);
         board.setLayoutY(boardPosition.y);
@@ -47,6 +55,16 @@ public class MainBoard {
         renderPawns(board, pawns, tileSize);
 
         return board;
+    }
+
+    public void resetGame(GridPane board, float boardPixelSize) {
+        float tileSize = boardPixelSize / BOARD_SIZE;
+        List<Pawn> pawns = new ArrayList<>();
+        isWhiteTurn = true;
+        board.getChildren().clear();
+        renderBoard(tileSize, board);
+        setupBoard(pawns);
+        renderPawns(board, pawns, tileSize);
     }
 
     /**
@@ -60,6 +78,8 @@ public class MainBoard {
         float tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
         GridPane board = new GridPane();
+
+        isActive = false;
 
         setupBoard(pawns);
         renderBoard(tileSize, board);
@@ -165,6 +185,10 @@ public class MainBoard {
             pawnView.setFitHeight(tileSize * scaleFactor);
         });
 
+        if (!isActive) {
+            return;
+        }
+
         pawnView.setOnMouseClicked(event -> {
             clearHighlights(board, tileSize);
             focusedPawn = pawn;
@@ -237,11 +261,18 @@ public class MainBoard {
             possibleMoves.add(landingPos);
 
             square.setOnMouseClicked(event -> {
+                if (isWhiteTurn != pawn.isWhite()) {
+                    System.out.println("Not your turn!");
+                    return;
+                }
                 pawn.setPosition(landingPos);
                 path.capturedPawns.forEach(capturedPawn -> removePawn(board, pawns, capturedPawn));
                 promotePawnIfNeeded(pawn, landingPos);
                 clearHighlights(board, tileSize);
                 renderPawns(board, pawns, tileSize);
+                switchTurn();
+                System.out.println("Is white turn: " + isWhiteTurn);
+                focusedPawn = null;
             });
         }; 
 
@@ -270,10 +301,17 @@ public class MainBoard {
             possibleMoves.add(new Vector2i(newX, newY));
 
             square.setOnMouseClicked(event -> {
+                if (isWhiteTurn != pawn.isWhite()) {
+                    System.out.println("Not your turn!");
+                    return;
+                }
                 pawn.setPosition(new Vector2i(newX, newY));
                 clearHighlights(board, tileSize);
                 promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
                 renderPawns(board, pawns, tileSize);
+                switchTurn();
+                System.out.println("Is white turn: " + isWhiteTurn);
+                focusedPawn = null;
             });
         };
 
@@ -448,8 +486,36 @@ public class MainBoard {
             }
             return false;
         });
+    }
 
+    public void switchTurn() {
+        isWhiteTurn = !isWhiteTurn;
+        BiConsumer<Text, Boolean> setPlayerStyle = (player, isPlayerOne) -> {
+            if (player != null) {
+                boolean shouldBeBold = (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
+                player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
+                                + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
+            }
+        };
 
+        Text playerOne = (Text) root.lookup("#playerOneText");
+        Text playerTwo = (Text) root.lookup("#playerTwoText");
+        Text playerOneScore = (Text) root.lookup("#playerOneScore");
+        Text playerTwoScore = (Text) root.lookup("#playerTwoScore");
+        Text playerOneTime = (Text) root.lookup("#playerOneTime");
+        Text playerTwoTime = (Text) root.lookup("#playerTwoTime");
+
+        setPlayerStyle.accept(playerOne, true);
+        setPlayerStyle.accept(playerTwo, false);
+        setPlayerStyle.accept(playerOneScore, true);
+        setPlayerStyle.accept(playerTwoScore, false);
+        setPlayerStyle.accept(playerOneTime, true);
+        setPlayerStyle.accept(playerTwoTime, false);
+        
+    }
+
+    public boolean isWhiteTurn() {
+        return isWhiteTurn;
     }
 }
 
