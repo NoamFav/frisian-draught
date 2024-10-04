@@ -1,5 +1,7 @@
 package com.um_project_game.board;
 
+import com.um_project_game.util.SoundPlayer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -23,6 +25,8 @@ import javafx.scene.text.Text;
  */
 public class MainBoard {
 
+    SoundPlayer soundPlayer = new SoundPlayer();
+
     private static final int BOARD_SIZE = 10;
     private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
     private Pawn focusedPawn;
@@ -32,6 +36,12 @@ public class MainBoard {
     private boolean isActive = true;
     private Pane root;
 
+    private GameInfo gameInfo;
+
+
+    private float tileSize;
+    private GridPane board;
+
     /**
      * Creates and returns the main board, rendering it to the root pane.
      *
@@ -40,31 +50,60 @@ public class MainBoard {
      * @param boardPosition Position where the board should be placed (x, y).
      * @return GridPane representing the board.
      */
-    public GridPane getMainBoard(Pane root, float boardPixelSize, Vector2i boardPosition) {
-        float tileSize = boardPixelSize / BOARD_SIZE;
+    public GridPane getMainBoard(Pane root, float boardPixelSize, Vector2i boardPosition, GameInfo gameInfo) {
+        tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
-        GridPane board = new GridPane();
+        board = new GridPane();
         isWhiteTurn = true;
         this.root = root;
+        this.gameInfo = gameInfo;
+        gameInfo.playerTurn.set(1);
 
         board.setLayoutX(boardPosition.x);
         board.setLayoutY(boardPosition.y);
 
         setupBoard(pawns);
-        renderBoard(tileSize, board);
-        renderPawns(board, pawns, tileSize);
+        renderBoard();
+        renderPawns(pawns);
 
         return board;
     }
 
-    public void resetGame(GridPane board, float boardPixelSize) {
-        float tileSize = boardPixelSize / BOARD_SIZE;
+    public GridPane resizeBoard(float boardPixelSize) {
+        tileSize = boardPixelSize / BOARD_SIZE;
+
+        // Resize the board tiles and pawns without recreating everything
+        for (var child : board.getChildren()) {
+            if (child instanceof Rectangle) {
+                // Resize each tile (Rectangle)
+                Rectangle square = (Rectangle) child;
+                square.setWidth(tileSize);
+                square.setHeight(tileSize);
+            } else if (child instanceof ImageView) {
+                // Resize each pawn (ImageView)
+                ImageView pawnView = (ImageView) child;
+                pawnView.setFitWidth(tileSize * 0.8);
+                pawnView.setFitHeight(tileSize * 0.8);
+                pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
+                    double scaleFactor = newValue ? 0.96 : 0.8; // Increase size on hover
+                    pawnView.setFitWidth(tileSize * scaleFactor);
+                    pawnView.setFitHeight(tileSize * scaleFactor);
+                });
+            }
+        }
+
+        // Avoid clearing and re-rendering the entire board to minimize lag
+        return board;
+    }
+
+    public void resetGame(float boardPixelSize) {
+        tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
         isWhiteTurn = true;
         board.getChildren().clear();
-        renderBoard(tileSize, board);
+        renderBoard();
         setupBoard(pawns);
-        renderPawns(board, pawns, tileSize);
+        renderPawns(pawns);
     }
 
     /**
@@ -75,15 +114,15 @@ public class MainBoard {
      * @return GridPane representing a random board.
      */
     public GridPane getRandomBoard(Pane root, float boardPixelSize) {
-        float tileSize = boardPixelSize / BOARD_SIZE;
+        tileSize = boardPixelSize / BOARD_SIZE;
         List<Pawn> pawns = new ArrayList<>();
-        GridPane board = new GridPane();
+        board = new GridPane();
 
         isActive = false;
 
         setupBoard(pawns);
-        renderBoard(tileSize, board);
-        renderPawns(board, pawns, tileSize);
+        renderBoard();
+        renderPawns(pawns);
         board.getStyleClass().add("board");
 
         return board;
@@ -118,7 +157,7 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      * @param board    GridPane to render the board onto.
      */
-    private void renderBoard(float tileSize, GridPane board) {
+    private void renderBoard() {
         BiConsumer<Integer, Integer> renderTile = (x, y) -> {
             Rectangle square = new Rectangle(tileSize, tileSize);
             square.setFill((x + y) % 2 == 0 ? Color.WHITE : Color.BLACK);
@@ -139,12 +178,12 @@ public class MainBoard {
      * @param pawns    List of pawns to render.
      * @param tileSize Size of each tile.
      */
-    private void renderPawns(GridPane board, List<Pawn> pawns, float tileSize) {
+    private void renderPawns(List<Pawn> pawns) {
         double scaleFactor = 0.8;
         
         pawns.forEach(pawn -> {
-            ImageView pawnView = createPawnImageView(pawn, tileSize, scaleFactor);
-            setupPawnInteractions(pawnView, pawn, board, pawns, tileSize);
+            ImageView pawnView = createPawnImageView(pawn, scaleFactor);
+            setupPawnInteractions(pawnView, pawn, pawns);
             board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
             GridPane.setHalignment(pawnView, HPos.CENTER);
             GridPane.setValignment(pawnView, VPos.CENTER);
@@ -159,12 +198,13 @@ public class MainBoard {
      * @param scaleFactor Scaling factor for the pawn image.
      * @return ImageView representing the pawn.
      */
-    private ImageView createPawnImageView(Pawn pawn, float tileSize, double scaleFactor) {
+    private ImageView createPawnImageView(Pawn pawn, double scaleFactor) {
         ImageView pawnView = new ImageView(pawn.getImage());
 
         pawnView.setFitWidth(tileSize * scaleFactor);
         pawnView.setFitHeight(tileSize * scaleFactor);
         pawnView.setPreserveRatio(true);
+        pawnView.setUserData(pawn);
 
         return pawnView;
     }
@@ -178,7 +218,7 @@ public class MainBoard {
      * @param pawns    List of all pawns.
      * @param tileSize Size of each tile.
      */
-    private void setupPawnInteractions(ImageView pawnView, Pawn pawn, GridPane board, List<Pawn> pawns, float tileSize) {
+    private void setupPawnInteractions(ImageView pawnView, Pawn pawn, List<Pawn> pawns) {
         pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
             double scaleFactor = newValue ? 0.96 : 0.8; // Increase size on hover
             pawnView.setFitWidth(tileSize * scaleFactor);
@@ -190,10 +230,10 @@ public class MainBoard {
         }
 
         pawnView.setOnMouseClicked(event -> {
-            clearHighlights(board, tileSize);
+            clearHighlights();
             focusedPawn = pawn;
-            seePossibleMove(board, pawns, focusedPawn, tileSize);
-            renderPawns(board, pawns, tileSize);
+            seePossibleMove(pawns, focusedPawn);
+            renderPawns(pawns);
         });
     }
 
@@ -219,7 +259,7 @@ public class MainBoard {
      * @param pawn     The selected pawn.
      * @param tileSize Size of each tile.
      */
-    private void seePossibleMove(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize) {
+    private void seePossibleMove(List<Pawn> pawns, Pawn pawn) {
         possibleMoves.clear();
         Vector2i position = pawn.getPosition();
         int x = position.x;
@@ -233,9 +273,9 @@ public class MainBoard {
         captureCheck(pawns, pawn, inBounds, x, y, new CapturePath(), allPaths);
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(board, pawns, pawn, tileSize, allPaths);
+            handleCaptureMoves(pawns, pawn,allPaths);
         } else {
-            handleNormalMoves(board, pawns, pawn, tileSize, inBounds, x, y);
+            handleNormalMoves(pawns, pawn, inBounds, x, y);
         }
     }
 
@@ -248,35 +288,15 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      * @param allPaths List of all possible capture paths.
      */
-    private void handleCaptureMoves(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize, List<CapturePath> allPaths) {
+    private void handleCaptureMoves(List<Pawn> pawns, Pawn pawn, List<CapturePath> allPaths) {
         int maxCaptures = allPaths.stream().mapToInt(CapturePath::getCaptureCount).max().orElse(0);
 
         List<CapturePath> maxCapturePaths = allPaths.stream()
                 .filter(path -> path.getCaptureCount() == maxCaptures)
                 .collect(Collectors.toList());
 
-        Text playerOne = (Text) root.lookup("#playerOneScore");
-        Text playerTwo = (Text) root.lookup("#playerTwoScore");
-        Consumer<Text> updatePlayerScore = (player) -> {
-            if (player != null) {
-                try {
-                    // Extract current score after "Score: "
-                    String[] scoreParts = player.getText().split(":");
-                    if (scoreParts.length == 2) {
-                        String playerScore = scoreParts[1].trim();
-                        int score = Integer.parseInt(playerScore) + maxCaptures;
-                        player.setText("Score: " + score);
-                    } else {
-                        System.out.println("Score format is invalid: " + player.getText());
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Failed to parse score: " + e.getMessage());
-                }
-            }
-        };
-
         BiConsumer<CapturePath, Vector2i> highlightCaptureMove = (path, landingPos) -> {
-            Rectangle square = createHighlightSquare(tileSize, Color.RED);
+            Rectangle square = createHighlightSquare(Color.RED);
             board.add(square, landingPos.x, landingPos.y);
             possibleMoves.add(landingPos);
 
@@ -285,14 +305,19 @@ public class MainBoard {
                     System.out.println("Not your turn!");
                     return;
                 }
+                soundPlayer.playMoveSound();
                 pawn.setPosition(landingPos);
-                path.capturedPawns.forEach(capturedPawn -> removePawn(board, pawns, capturedPawn));
+                path.capturedPawns.forEach(capturedPawn -> removePawn(pawns, capturedPawn));
                 promotePawnIfNeeded(pawn, landingPos);
-                clearHighlights(board, tileSize);
-                renderPawns(board, pawns, tileSize);
+                clearHighlights();
+                renderPawns(pawns);
                 switchTurn();
                 focusedPawn = null;
-                updatePlayerScore.accept(pawn.isWhite() ? playerOne : playerTwo);
+                if (pawn.isWhite()) {
+                    gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + maxCaptures);
+                } else {
+                    gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + maxCaptures);
+                }
             });
         }; 
 
@@ -313,10 +338,10 @@ public class MainBoard {
      * @param x        Current x-coordinate of the pawn.
      * @param y        Current y-coordinate of the pawn.
      */
-    private void handleNormalMoves(GridPane board, List<Pawn> pawns, Pawn pawn, float tileSize,
+    private void handleNormalMoves(List<Pawn> pawns, Pawn pawn, 
                                    BiPredicate<Integer, Integer> inBounds, int x, int y) {
         BiConsumer<Integer, Integer> highlightMove = (newX, newY) -> {
-            Rectangle square = createHighlightSquare(tileSize, Color.GREEN);
+            Rectangle square = createHighlightSquare(Color.GREEN);
             board.add(square, newX, newY);
             possibleMoves.add(new Vector2i(newX, newY));
 
@@ -325,12 +350,14 @@ public class MainBoard {
                     System.out.println("Not your turn!");
                     return;
                 }
+                soundPlayer.playMoveSound();
                 pawn.setPosition(new Vector2i(newX, newY));
-                clearHighlights(board, tileSize);
+                clearHighlights();
                 promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
-                renderPawns(board, pawns, tileSize);
+                renderPawns(pawns);
                 switchTurn();
                 focusedPawn = null;
+                
             });
         };
 
@@ -456,7 +483,7 @@ public class MainBoard {
      * @param color    Color of the highlight.
      * @return Rectangle representing the highlight.
      */
-    private Rectangle createHighlightSquare(float tileSize, Color color) {
+    private Rectangle createHighlightSquare(Color color) {
         Rectangle square = new Rectangle(tileSize, tileSize);
         square.setFill(color);
         return square;
@@ -480,9 +507,9 @@ public class MainBoard {
      * @param board    GridPane representing the board.
      * @param tileSize Size of each tile.
      */
-    private void clearHighlights(GridPane board, float tileSize) {
+    private void clearHighlights() {
         board.getChildren().removeIf(node -> node instanceof Rectangle && !(node instanceof ImageView));
-        renderBoard(tileSize, board);
+        renderBoard();
     }
 
     /**
@@ -492,7 +519,7 @@ public class MainBoard {
      * @param pawns        List of all pawns.
      * @param capturedPawn The pawn to remove.
      */
-    private void removePawn(GridPane board, List<Pawn> pawns, Pawn capturedPawn) {
+    private void removePawn(List<Pawn> pawns, Pawn capturedPawn) {
         pawns.remove(capturedPawn);
         board.getChildren().removeIf(node -> {
             if (node instanceof ImageView) {
@@ -509,6 +536,7 @@ public class MainBoard {
 
     public void switchTurn() {
         isWhiteTurn = !isWhiteTurn;
+        gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
         BiConsumer<Text, Boolean> setPlayerStyle = (player, isPlayerOne) -> {
             if (player != null) {
                 boolean shouldBeBold = (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
