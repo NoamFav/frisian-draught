@@ -1,12 +1,14 @@
 package com.um_project_game;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 import org.joml.Vector2i;
 
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -17,6 +19,8 @@ import javafx.scene.text.Text;
 public class Game {
 
     private final MainBoard mainBoard = new MainBoard();
+    private GridPane board;
+    private boolean isWhiteTurn = mainBoard.isWhiteTurn();
 
     private int scorePlayerOne = 0;
     private int scorePlayerTwo = 0;
@@ -41,9 +45,9 @@ public class Game {
     private int controlButtonsY = 99;
 
     private int movesListX = 1069;
-    private int movesListY = 363;
+    private int movesListY = 469;
     private int movesListWidth = buttonWidth;
-    private int movesListHeight = 328;
+    private int movesListHeight = 222;
 
     public Game(Pane root, Scene scene) {
         mainGameBoard(root, scene);
@@ -55,7 +59,7 @@ public class Game {
     }
 
     private void mainGameBoard(Pane root, Scene scene) {
-        GridPane board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY));
+        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY));
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
     }
@@ -66,15 +70,30 @@ public class Game {
         playerUI.setLayoutX(0);
         playerUI.setLayoutY(!isPlayerOne ? 0 : scene.getHeight() - playerUIHeight);
         playerUI.getStyleClass().add("playerUI");
+        playerUI.setId(isPlayerOne ? "playerOne" : "playerTwo");
+
+        Consumer<Text> setPlayerStyle = (player) -> {
+            if (player != null) {
+                boolean shouldBeBold = (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
+                player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
+                                + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
+            }
+        };
 
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
         playerText.getStyleClass().add("playerText");
+        setPlayerStyle.accept(playerText);
+        playerText.setId(isPlayerOne ? "playerOneText" : "playerTwoText");
 
         Text playerScore = new Text("Score: " + (isPlayerOne ? scorePlayerOne : scorePlayerTwo));
         playerScore.getStyleClass().add("playerScore");
+        setPlayerStyle.accept(playerScore);
+        playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
 
         Text playerTime = new Text("Time: 10:00");
         playerTime.getStyleClass().add("playerTime");
+        setPlayerStyle.accept(playerTime);
+        playerTime.setId(isPlayerOne ? "playerOneTime" : "playerTwoTime");
 
         HBox playerInfo = new HBox(playerText, playerScore, playerTime);
         playerInfo.getStyleClass().add("playerInfo");
@@ -109,10 +128,12 @@ public class Game {
 
         Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> {});
         Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> {});
-        Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> Launcher.changeState(0));
+        Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
+        Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> mainBoard.resetGame(board, mainBoardSize));
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, () -> {});
+        Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> Launcher.changeState(0));
 
-        controlButtons.getChildren().addAll(undoButton.getButton(), drawButton.getButton(), resignButton.getButton(), settingsButton.getButton());
+        controlButtons.getChildren().addAll(undoButton.getButton(), drawButton.getButton(), resignButton.getButton(), restartButton.getButton(), settingsButton.getButton(), exitButton.getButton());
         root.getChildren().addAll(controlButtons);
     }
 
@@ -169,9 +190,9 @@ public class Game {
         controlButtonsY = convertDimensions(99, newSceneHeight, referenceHeight);
 
         movesListX = controlButtonsX;
-        movesListY = convertDimensions(363, newSceneHeight, referenceHeight);
+        movesListY = convertDimensions(469, newSceneHeight, referenceHeight);
         movesListWidth = buttonWidth;
-        movesListHeight = convertDimensions(328, newSceneHeight, referenceHeight);
+        movesListHeight = convertDimensions(222, newSceneHeight, referenceHeight);
     }
 
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
