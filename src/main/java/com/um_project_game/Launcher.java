@@ -3,9 +3,9 @@ package com.um_project_game;
 import java.net.URL;
 import java.util.Optional;
 
-import javafx.util.Duration;
-
 import org.jetbrains.annotations.NotNull;
+
+import com.um_project_game.util.SoundPlayer;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
@@ -16,16 +16,19 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * Launcher for the app
  */
 public class Launcher extends Application {
 
+    static SoundPlayer soundPlayer = new SoundPlayer();
+
     private PauseTransition resizePause;
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
-    public static int GAME_STATE = 1; // 0 = Menu, 1 = Game, 2 = Settings
+    public static int GAME_STATE = 0; // 0 = Menu, 1 = Game, 2 = Settings
     private Stage primaryStage;
 
     @Override
@@ -140,6 +143,7 @@ public class Launcher extends Application {
     }
 
     public static void main(String[] args) {
+        soundPlayer.playBackgroundMusic();
         launch();
     }
 }
