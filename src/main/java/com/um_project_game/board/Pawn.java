@@ -9,7 +9,9 @@ import com.um_project_game.util.PawnImages;
 public class Pawn {
 
     private Vector2i position;
-    private boolean isKing;
+    private Vector2i initialPosition;
+
+	private boolean isKing;
     private boolean isWhite;
     private Image image;
 
@@ -17,6 +19,7 @@ public class Pawn {
 
     public Pawn(Vector2i position, boolean isWhite) {
         this.position = position;
+        this.initialPosition = new Vector2i(position);
         this.isKing = false;
         this.isWhite = isWhite;
         this.image = isWhite ? pawnImages.whitePawn() : pawnImages.blackPawn();
@@ -54,4 +57,8 @@ public class Pawn {
     public Image getImage() {
         return image;
     }
+
+    public Vector2i getInitialPosition() {
+		return initialPosition;
+	}
 }
