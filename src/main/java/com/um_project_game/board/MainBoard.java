@@ -1,6 +1,8 @@
 package com.um_project_game.board;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -12,6 +14,7 @@ import com.um_project_game.util.SoundPlayer;
 
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
+import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -34,6 +37,10 @@ public class MainBoard {
     private List<Vector2i> listMoves = new ArrayList<>();
     private boolean isActive = true;
     private Pane root;
+    private boolean boardInitialized = false;
+    private Node[][] boardTiles = new Node[BOARD_SIZE][BOARD_SIZE];
+    private Map<Pawn, ImageView> pawnViews = new HashMap<>();
+    private List<Node> highlightNodes = new ArrayList<>();
 
     private GameInfo gameInfo;
 
@@ -71,27 +78,41 @@ public class MainBoard {
     public GridPane resizeBoard(float boardPixelSize) {
         tileSize = boardPixelSize / BOARD_SIZE;
 
-        // Resize the board tiles and pawns without recreating everything
-        for (var child : board.getChildren()) {
-            if (child instanceof Rectangle) {
-                // Resize each tile (Rectangle)
-                Rectangle square = (Rectangle) child;
-                square.setWidth(tileSize);
-                square.setHeight(tileSize);
-            } else if (child instanceof ImageView) {
-                // Resize each pawn (ImageView)
-                ImageView pawnView = (ImageView) child;
-                pawnView.setFitWidth(tileSize * 0.8);
-                pawnView.setFitHeight(tileSize * 0.8);
-                pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
-                    double scaleFactor = newValue ? 0.96 : 0.8; // Increase size on hover
-                    pawnView.setFitWidth(tileSize * scaleFactor);
-                    pawnView.setFitHeight(tileSize * scaleFactor);
-                });
+        // Update the size of each tile
+        for (int y = 0; y < boardSize.y; y++) {
+            for (int x = 0; x < boardSize.x; x++) {
+                Node node = boardTiles[x][y];
+                if (node instanceof Rectangle) {
+                    Rectangle square = (Rectangle) node;
+                    square.setWidth(tileSize);
+                    square.setHeight(tileSize);
+                }
             }
         }
 
-        // Avoid clearing and re-rendering the entire board to minimize lag
+        // Update the size and hover effect of each pawn
+        double scaleFactor = 0.8;
+        for (Map.Entry<Pawn, ImageView> entry : pawnViews.entrySet()) {
+            ImageView pawnView = entry.getValue();
+            pawnView.setFitWidth(tileSize * scaleFactor);
+            pawnView.setFitHeight(tileSize * scaleFactor);
+            // Update the hover effect
+            pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
+                double hoverScaleFactor = newValue ? 0.96 : 0.8;
+                pawnView.setFitWidth(tileSize * hoverScaleFactor);
+                pawnView.setFitHeight(tileSize * hoverScaleFactor);
+            });
+        }
+
+        // Update the size of highlight nodes if necessary
+        for (Node highlightNode : highlightNodes) {
+            if (highlightNode instanceof Rectangle) {
+                Rectangle square = (Rectangle) highlightNode;
+                square.setWidth(tileSize);
+                square.setHeight(tileSize);
+            }
+        }
+
         return board;
     }
 
@@ -159,17 +180,17 @@ public class MainBoard {
      * @param board    GridPane to render the board onto.
      */
     private void renderBoard() {
-        BiConsumer<Integer, Integer> renderTile = (x, y) -> {
-            Rectangle square = new Rectangle(tileSize, tileSize);
-            square.setFill((x + y) % 2 == 0 ? Color.WHITE : Color.BLACK);
-            board.add(square, x, y);
-        };
+        if (boardInitialized) return; // Avoid re-initializing the board
 
         for (int y = 0; y < boardSize.y; y++) {
             for (int x = 0; x < boardSize.x; x++) {
-                renderTile.accept(x, y);
+                Rectangle square = new Rectangle(tileSize, tileSize);
+                square.setFill((x + y) % 2 == 0 ? Color.WHITE : Color.BLACK);
+                board.add(square, x, y);
+                boardTiles[x][y] = square; // Keep a reference to each tile
             }
         }
+        boardInitialized = true;
     }
 
     /**
@@ -180,15 +201,17 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      */
     private void renderPawns(List<Pawn> pawns) {
-        double scaleFactor = 0.8;
-        
-        pawns.forEach(pawn -> {
-            ImageView pawnView = createPawnImageView(pawn, scaleFactor);
-            setupPawnInteractions(pawnView, pawn, pawns);
-            board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
-            GridPane.setHalignment(pawnView, HPos.CENTER);
-            GridPane.setValignment(pawnView, VPos.CENTER);
-        });
+        // For new pawns, create ImageViews and add them to the board
+        for (Pawn pawn : pawns) {
+            if (!pawnViews.containsKey(pawn)) {
+                ImageView pawnView = createPawnImageView(pawn, 0.8);
+                setupPawnInteractions(pawnView, pawn, pawns);
+                board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
+                GridPane.setHalignment(pawnView, HPos.CENTER);
+                GridPane.setValignment(pawnView, VPos.CENTER);
+                pawnViews.put(pawn, pawnView);
+            }
+        }
     }
 
     /**
@@ -307,18 +330,30 @@ public class MainBoard {
                     return;
                 }
                 soundPlayer.playMoveSound();
+
+                // Update pawn position
                 pawn.setPosition(landingPos);
-                path.capturedPawns.forEach(capturedPawn -> removePawn(pawns, capturedPawn));
+
+                // Update the pawn's ImageView position
+                ImageView pawnView = pawnViews.get(pawn);
+                GridPane.setColumnIndex(pawnView, landingPos.x);
+                GridPane.setRowIndex(pawnView, landingPos.y);
+
+                // Remove captured pawns if any
+                if (path != null) {
+                    path.capturedPawns.forEach(capturedPawn -> removePawn(pawns, capturedPawn));
+                }
+
+                if (pawn.isWhite()) {
+                    gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + path.getCaptureCount());
+                } else {
+                    gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + path.getCaptureCount());
+                }
+
                 promotePawnIfNeeded(pawn, landingPos);
                 clearHighlights();
-                renderPawns(pawns);
                 switchTurn();
                 focusedPawn = null;
-                if (pawn.isWhite()) {
-                    gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + maxCaptures);
-                } else {
-                    gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + maxCaptures);
-                }
             });
         }; 
 
@@ -352,14 +387,21 @@ public class MainBoard {
                     return;
                 }
                 soundPlayer.playMoveSound();
-                pawn.setPosition(new Vector2i(newX, newY));
+                Vector2i landingPos = new Vector2i(newX, newY);
+
+                // Update pawn position
+                pawn.setPosition(landingPos);
+
+                // Update the pawn's ImageView position
+                ImageView pawnView = pawnViews.get(pawn);
+                GridPane.setColumnIndex(pawnView, landingPos.x);
+                GridPane.setRowIndex(pawnView, landingPos.y);
+
+                promotePawnIfNeeded(pawn, landingPos);
                 clearHighlights();
-                promotePawnIfNeeded(pawn, new Vector2i(newX, newY));
-                renderPawns(pawns);
                 switchTurn();
                 focusedPawn = null;
-                
-            });
+            });        
         };
 
         if (!pawn.isKing()) {
@@ -487,6 +529,7 @@ public class MainBoard {
     private Rectangle createHighlightSquare(Color color) {
         Rectangle square = new Rectangle(tileSize, tileSize);
         square.setFill(color);
+        highlightNodes.add(square); // Keep track of highlights
         return square;
     }
 
@@ -509,8 +552,8 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      */
     private void clearHighlights() {
-        board.getChildren().removeIf(node -> node instanceof Rectangle && !(node instanceof ImageView));
-        renderBoard();
+        board.getChildren().removeAll(highlightNodes);
+        highlightNodes.clear();
     }
 
     /**
@@ -522,18 +565,10 @@ public class MainBoard {
      */
     private void removePawn(List<Pawn> pawns, Pawn capturedPawn) {
         pawns.remove(capturedPawn);
-        board.getChildren().removeIf(node -> {
-            if (node instanceof ImageView) {
-                ImageView imageView = (ImageView) node;
-                Integer colIndex = GridPane.getColumnIndex(imageView);
-                Integer rowIndex = GridPane.getRowIndex(imageView);
-                return colIndex != null && rowIndex != null &&
-                        colIndex == capturedPawn.getPosition().x &&
-                        rowIndex == capturedPawn.getPosition().y;
-            }
-            return false;
-        });
+        ImageView capturedPawnView = pawnViews.remove(capturedPawn);
+        board.getChildren().remove(capturedPawnView);
     }
+
 
     public void switchTurn() {
         isWhiteTurn = !isWhiteTurn;
