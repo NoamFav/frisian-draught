@@ -12,6 +12,12 @@ import org.joml.Vector2i;
 
 import com.um_project_game.util.SoundPlayer;
 
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -21,32 +27,40 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 /**
  * Represents the main board of the game.
  */
 public class MainBoard {
 
-    SoundPlayer soundPlayer = new SoundPlayer();
+    // Constants
+private static final int BOARD_SIZE = 10;
 
-    private static final int BOARD_SIZE = 10;
-    private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
-    private Pawn focusedPawn;
-    private List<Vector2i> possibleMoves = new ArrayList<>();
+    // Game state variables
     private boolean isWhiteTurn = true; // White starts first
-    private List<Vector2i> listMoves = new ArrayList<>();
     private boolean isActive = true;
-    private Pane root;
     private boolean boardInitialized = false;
+    private boolean isAnimating = false;
+
+    // Board-related fields
+    private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
+    private float tileSize;
+    private GridPane board;
     private Node[][] boardTiles = new Node[BOARD_SIZE][BOARD_SIZE];
+    private Pane root;
+
+    // Pawn and move management
+    private Pawn focusedPawn;
+    private List<Pawn> allPawns = new ArrayList<>();
+    private List<Vector2i> possibleMoves = new ArrayList<>();
+    private List<Vector2i> listMoves = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
     private List<Node> highlightNodes = new ArrayList<>();
 
+    // Sound and game info
+    private SoundPlayer soundPlayer = new SoundPlayer();
     private GameInfo gameInfo;
-
-
-    private float tileSize;
-    private GridPane board;
 
     /**
      * Creates and returns the main board, rendering it to the root pane.
@@ -96,12 +110,6 @@ public class MainBoard {
             ImageView pawnView = entry.getValue();
             pawnView.setFitWidth(tileSize * scaleFactor);
             pawnView.setFitHeight(tileSize * scaleFactor);
-            // Update the hover effect
-            pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
-                double hoverScaleFactor = newValue ? 0.96 : 0.8;
-                pawnView.setFitWidth(tileSize * hoverScaleFactor);
-                pawnView.setFitHeight(tileSize * hoverScaleFactor);
-            });
         }
 
         // Update the size of highlight nodes if necessary
@@ -118,14 +126,51 @@ public class MainBoard {
 
     public void resetGame(float boardPixelSize) {
         tileSize = boardPixelSize / BOARD_SIZE;
-        List<Pawn> pawns = new ArrayList<>();
         isWhiteTurn = true;
-        board.getChildren().clear();
-        renderBoard();
-        setupBoard(pawns);
-        renderPawns(pawns);
         gameInfo.scorePlayerOne.set(0);
         gameInfo.scorePlayerTwo.set(0);
+        gameInfo.playerTurn.set(1);
+
+        // Reset the size of the tiles
+        for (int y = 0; y < boardSize.y; y++) {
+            for (int x = 0; x < boardSize.x; x++) {
+                Node node = boardTiles[x][y];
+                if (node instanceof Rectangle) {
+                    Rectangle square = (Rectangle) node;
+                    square.setWidth(tileSize);
+                    square.setHeight(tileSize);
+                }
+            }
+        }
+
+        // Clear highlights if any
+        clearHighlights();
+
+        // Reset pawns to initial positions
+        resetPawnsToInitialPositions();
+
+        // Update the size and position of each pawn
+        double scaleFactor = 0.8;
+        for (Map.Entry<Pawn, ImageView> entry : pawnViews.entrySet()) {
+            Pawn pawn = entry.getKey();
+            ImageView pawnView = entry.getValue();
+
+            // Update pawn image size
+            pawnView.setFitWidth(tileSize * scaleFactor);
+            pawnView.setFitHeight(tileSize * scaleFactor);
+
+            // Reset pawn properties
+            pawn.setKing(false);
+
+            // Set pawn to initial position
+            Vector2i initialPosition = pawn.getInitialPosition();
+            pawn.setPosition(initialPosition);
+            GridPane.setColumnIndex(pawnView, initialPosition.x);
+            GridPane.setRowIndex(pawnView, initialPosition.y);
+        }
+
+        // Reset the turn indicator
+        switchTurn();
     }
 
     /**
@@ -171,6 +216,9 @@ public class MainBoard {
         addPawns.accept(0, false);
         // Add black pawns
         addPawns.accept(6, true);
+
+        allPawns.clear();
+        allPawns.addAll(pawns);
     }
 
     /**
@@ -229,6 +277,16 @@ public class MainBoard {
         pawnView.setFitHeight(tileSize * scaleFactor);
         pawnView.setPreserveRatio(true);
         pawnView.setUserData(pawn);
+
+        // Add the hover listener here
+        pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
+            double endScale = newValue ? 1.1 : 1.0;
+
+            ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(200), pawnView);
+            scaleTransition.setToX(endScale);
+            scaleTransition.setToY(endScale);
+            scaleTransition.play();
+        });
 
         return pawnView;
     }
@@ -319,48 +377,39 @@ public class MainBoard {
                 .filter(path -> path.getCaptureCount() == maxCaptures)
                 .collect(Collectors.toList());
 
-        BiConsumer<CapturePath, Vector2i> highlightCaptureMove = (path, landingPos) -> {
+        for (CapturePath path : maxCapturePaths) {
+            Vector2i landingPos = path.getLastPosition();
+
             Rectangle square = createHighlightSquare(Color.RED);
             board.add(square, landingPos.x, landingPos.y);
             possibleMoves.add(landingPos);
 
             square.setOnMouseClicked(event -> {
-                if (isWhiteTurn != pawn.isWhite()) {
+                if (isWhiteTurn != pawn.isWhite() || isAnimating) {
                     System.out.println("Not your turn!");
                     return;
                 }
                 soundPlayer.playMoveSound();
 
-                // Update pawn position
-                pawn.setPosition(landingPos);
-
-                // Update the pawn's ImageView position
-                ImageView pawnView = pawnViews.get(pawn);
-                GridPane.setColumnIndex(pawnView, landingPos.x);
-                GridPane.setRowIndex(pawnView, landingPos.y);
-
-                // Remove captured pawns if any
-                if (path != null) {
-                    path.capturedPawns.forEach(capturedPawn -> removePawn(pawns, capturedPawn));
-                }
-
-                if (pawn.isWhite()) {
-                    gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + path.getCaptureCount());
-                } else {
-                    gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + path.getCaptureCount());
-                }
-
-                promotePawnIfNeeded(pawn, landingPos);
+                // Clear highlights before starting the animation
                 clearHighlights();
-                switchTurn();
-                focusedPawn = null;
-            });
-        }; 
 
-        maxCapturePaths.forEach(path -> {
-            Vector2i landingPos = path.getLastPosition();
-            highlightCaptureMove.accept(path, landingPos);
-        });
+                // Animate pawn movement along the capture path
+                animatePawnCaptureMovement(pawn,pawns, path, () -> {
+                    promotePawnIfNeeded(pawn, path.getLastPosition());
+                    switchTurn();
+                    focusedPawn = null;
+
+                    // Update scores
+                    int captures = path.getCaptureCount();
+                    if (pawn.isWhite()) {
+                        gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
+                    } else {
+                        gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
+                    }
+                });
+            });
+        }
     }
 
     /**
@@ -386,22 +435,27 @@ public class MainBoard {
                     System.out.println("Not your turn!");
                     return;
                 }
+                if (isAnimating) {
+                    System.out.println("Please wait for the current move to finish.");
+                    return;
+                }
                 soundPlayer.playMoveSound();
                 Vector2i landingPos = new Vector2i(newX, newY);
 
-                // Update pawn position
-                pawn.setPosition(landingPos);
+                // Animate pawn movement
+                animatePawnMovement(pawn, landingPos, () -> {
+                    // Update pawn position after animation
+                    pawn.setPosition(landingPos);
+                    ImageView pawnView = pawnViews.get(pawn);
+                    GridPane.setColumnIndex(pawnView, landingPos.x);
+                    GridPane.setRowIndex(pawnView, landingPos.y);
 
-                // Update the pawn's ImageView position
-                ImageView pawnView = pawnViews.get(pawn);
-                GridPane.setColumnIndex(pawnView, landingPos.x);
-                GridPane.setRowIndex(pawnView, landingPos.y);
-
-                promotePawnIfNeeded(pawn, landingPos);
-                clearHighlights();
-                switchTurn();
-                focusedPawn = null;
-            });        
+                    promotePawnIfNeeded(pawn, landingPos);
+                    clearHighlights();
+                    switchTurn();
+                    focusedPawn = null;
+                });
+            }); 
         };
 
         if (!pawn.isKing()) {
@@ -564,9 +618,22 @@ public class MainBoard {
      * @param capturedPawn The pawn to remove.
      */
     private void removePawn(List<Pawn> pawns, Pawn capturedPawn) {
-        pawns.remove(capturedPawn);
-        ImageView capturedPawnView = pawnViews.remove(capturedPawn);
-        board.getChildren().remove(capturedPawnView);
+        ImageView capturedPawnView = pawnViews.get(capturedPawn);
+
+        // Create a FadeTransition to fade out the captured pawn
+        FadeTransition fadeTransition = new FadeTransition(Duration.millis(300), capturedPawnView);
+        fadeTransition.setFromValue(1.0);
+        fadeTransition.setToValue(0.0);
+
+        // After the fade-out, remove the pawn from the board
+        fadeTransition.setOnFinished(e -> {
+            pawns.remove(capturedPawn);
+            board.getChildren().remove(capturedPawnView);
+            pawnViews.remove(capturedPawn);
+        });
+
+        // Play the animation
+        fadeTransition.play();
     }
 
 
@@ -599,6 +666,135 @@ public class MainBoard {
 
     public boolean isWhiteTurn() {
         return isWhiteTurn;
+    }
+
+    private void resetPawnsToInitialPositions() {
+        // Re-add any missing pawns
+        for (Pawn pawn : allPawns) { // allPawns is a list of all pawns at the start
+            if (!pawnViews.containsKey(pawn)) {
+                ImageView pawnView = createPawnImageView(pawn, 0.8);
+                setupPawnInteractions(pawnView, pawn, allPawns);
+                board.add(pawnView, pawn.getInitialPosition().x, pawn.getInitialPosition().y);
+                GridPane.setHalignment(pawnView, HPos.CENTER);
+                GridPane.setValignment(pawnView, VPos.CENTER);
+                pawnViews.put(pawn, pawnView);
+            }
+
+            // Reset pawn properties
+            pawn.setKing(false);
+            pawn.setPosition(pawn.getInitialPosition());
+
+            // Update the pawn's ImageView position
+            ImageView pawnView = pawnViews.get(pawn);
+            GridPane.setColumnIndex(pawnView, pawn.getPosition().x);
+            GridPane.setRowIndex(pawnView, pawn.getPosition().y);
+        }
+    }
+
+    private void animatePawnMovement(Pawn pawn, Vector2i landingPos, Runnable onFinished) {
+        if (isAnimating) return; // Prevent new animations during an ongoing one
+        isAnimating = true;
+        ImageView pawnView = pawnViews.get(pawn);
+
+        // Bring pawnView to front by moving it to the end of the children list
+        board.getChildren().remove(pawnView);
+        board.getChildren().add(pawnView);
+
+        // Calculate translation distances
+        double deltaX = (landingPos.x - pawn.getPosition().x) * tileSize;
+        double deltaY = (landingPos.y - pawn.getPosition().y) * tileSize;
+
+        // Create TranslateTransition
+        TranslateTransition transition = new TranslateTransition(Duration.millis(300), pawnView);
+        transition.setByX(deltaX);
+        transition.setByY(deltaY);
+        transition.setInterpolator(Interpolator.EASE_BOTH);
+
+        // When the animation finishes, reset the translate values and update the GridPane position
+        transition.setOnFinished(e -> {
+            // Reset translation
+            pawnView.setTranslateX(0);
+            pawnView.setTranslateY(0);
+
+            // Update the pawn's position in the GridPane
+            GridPane.setColumnIndex(pawnView, landingPos.x);
+            GridPane.setRowIndex(pawnView, landingPos.y);
+
+            // Optionally, bring the pawnView back to its original z-order
+            // (Not necessary unless you have specific z-order requirements)
+
+            isAnimating = false;
+
+            // Call the onFinished callback
+            onFinished.run();
+        });
+
+        // Play the animation
+        transition.play();
+    }
+
+    private void animatePawnCaptureMovement(Pawn pawn, List<Pawn> pawns, CapturePath path, Runnable onFinished) {
+        ImageView pawnView = pawnViews.get(pawn);
+        List<Vector2i> positions = path.positions;
+        List<Pawn> capturedPawns = path.capturedPawns;
+
+        List<Animation> animations = new ArrayList<>();
+
+        Vector2i currentPos = pawn.getPosition();
+        for (int i = 0; i < positions.size(); i++) {
+            Vector2i nextPos = positions.get(i);
+
+            double deltaX = (nextPos.x - currentPos.x) * tileSize;
+            double deltaY = (nextPos.y - currentPos.y) * tileSize;
+
+            TranslateTransition transition = new TranslateTransition(Duration.millis(300), pawnView);
+            transition.setByX(deltaX);
+            transition.setByY(deltaY);
+            transition.setInterpolator(Interpolator.EASE_BOTH);
+
+            // Create a final index variable for use in the lambda
+            int index = i;
+
+            transition.setOnFinished(e -> {
+                // Reset translation
+                pawnView.setTranslateX(0);
+                pawnView.setTranslateY(0);
+
+                // Update the pawn's position in the GridPane
+                GridPane.setColumnIndex(pawnView, nextPos.x);
+                GridPane.setRowIndex(pawnView, nextPos.y);
+
+                // Update the pawn's position
+                pawn.setPosition(nextPos);
+
+                // Remove captured pawn if any
+                if (index < capturedPawns.size()) {
+                    Pawn capturedPawn = capturedPawns.get(index);
+                    removePawn(pawns, capturedPawn);
+                }
+            });
+
+            animations.add(transition);
+
+            currentPos = nextPos;
+        }
+
+        // Create a SequentialTransition
+        SequentialTransition sequentialTransition = new SequentialTransition();
+        sequentialTransition.getChildren().addAll(animations);
+
+        sequentialTransition.setOnFinished(e -> {
+            isAnimating = false;
+            onFinished.run();
+        });
+
+        isAnimating = true;
+
+        // Bring pawnView to front
+        board.getChildren().remove(pawnView);
+        board.getChildren().add(pawnView);
+
+        sequentialTransition.play();
     }
 }
 
