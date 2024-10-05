@@ -445,7 +445,7 @@ public class MainBoard {
                     Vector2i landingPos = new Vector2i(landingX, landingY);
 
                     // If landing position is empty, it's a valid move
-                    if (getPawnAtPosition(pawns, landingPos) == null) {
+                    if (getPawnAtPosition(pawns, landingPos) == null || landingPos.equals(pawn.getPosition())) {
                         foundCapture = true;
                         CapturePath newPath = new CapturePath(currentPath);
                         newPath.addMove(landingPos, capturedPawn);
