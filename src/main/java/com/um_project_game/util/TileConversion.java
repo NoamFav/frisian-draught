@@ -21,12 +21,12 @@ public class TileConversion {
     }
 
     // returns the vector from portable draughts notation
-    public static Vector2i getVector(int tile) {
-        return new Vector2i(getRow(tile),getCol(tile));
+    public static Vector2i getTileVector(int tile) {
+        return new Vector2i(getCol(tile),getRow(tile));
     }
 
     // returns the tile in portable draughts notation ( 1 through 50 )
     public static int getTileNotation(Vector2i vector2i) {
-        return vector2i.x * 5 + vector2i.y / 2 + 1;
+        return vector2i.y * 5 + vector2i.x / 2 + 1;
     }
 }

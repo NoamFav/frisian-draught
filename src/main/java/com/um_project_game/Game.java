@@ -4,12 +4,15 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.joml.Vector2i;
 
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 import com.um_project_game.board.GameInfo;
+import com.um_project_game.board.Move;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -56,6 +59,7 @@ public class Game {
     private int movesListY = 469;
     private int movesListWidth = buttonWidth;
     private int movesListHeight = 222;
+    private VBox movesListVBox = new VBox();
 
     public Game(Pane root, Scene scene) {
         mainGameBoard(root, scene);
@@ -67,7 +71,7 @@ public class Game {
     }
 
     private void mainGameBoard(Pane root, Scene scene) {
-        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo);
+        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo, movesListVBox);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
 
@@ -146,7 +150,7 @@ public class Game {
         controlButtons.setLayoutX(controlButtonsX);
         controlButtons.setLayoutY(controlButtonsY);
 
-        Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> {});
+        Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> undoLastMove());
         Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> drawWarning());
         Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
         Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
@@ -167,8 +171,15 @@ public class Game {
         Text movesListText = new Text("Moves List");
         movesListText.getStyleClass().add("movesListText");
 
-        movesList.getChildren().add(movesListText);
+        movesListVBox = mainBoard.getMovesListVBox(); // Ensure this is not null
 
+        // Check if movesListVBox is null
+        if (movesListVBox == null) {
+            System.err.println("Error: movesListVBox is null. Please check getMovesListVBox() in MainBoard.");
+            return; // Exit the method if it's null
+        }
+
+        movesList.getChildren().addAll(movesListText, movesListVBox);
         root.getChildren().add(movesList);
     }
 
@@ -267,4 +278,9 @@ public class Game {
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
         return (int) ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
     }
+
+    public void undoLastMove() {
+        mainBoard.undoLastMove();
+    }
+
 }

@@ -13,7 +13,7 @@ public class Pawn {
     private boolean isWhite;
     private Image image;
 
-    private PawnImages pawnImages = PawnImages.getPawnImage();
+    private PawnImages pawnImages = PawnImages.getPawnImages();
 
     public Pawn(Vector2i position, boolean isWhite) {
         this.position = position;
