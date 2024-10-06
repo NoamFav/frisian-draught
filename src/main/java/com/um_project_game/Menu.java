@@ -16,8 +16,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 public class Menu {
-
-    private MainBoard mainBoard = new MainBoard();
  
     // Dimensions
     private int topBarHeight = 75;
@@ -119,7 +117,10 @@ public class Menu {
         float boardSize = recentBoardsSize;
         HBox recentGames = new HBox();
         recentGames.setSpacing(recentBoardsSpacingX);
-        for (int i = 0; i < 3; i++) recentGames.getChildren().add(mainBoard.getRandomBoard(root, boardSize));
+        for (int i = 0; i < 3; i++) {
+            MainBoard mainBoard = new MainBoard();
+            recentGames.getChildren().add(mainBoard.getRandomBoard(root, boardSize));
+        }
 
         recentBoards.getChildren().addAll(recentBoardsTitle, recentGames);
         recentBoards.setId("recent-boards");
@@ -131,6 +132,7 @@ public class Menu {
 
         Text liveGameTitle = new Text("Live Game");
 
+        MainBoard mainBoard = new MainBoard();
         GridPane liveboard = mainBoard.getRandomBoard(root, liveGameSize);
 
         VBox liveGame = new VBox();
