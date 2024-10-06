@@ -285,6 +285,7 @@ private static final int BOARD_SIZE = 10;
             ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(200), pawnView);
             scaleTransition.setToX(endScale);
             scaleTransition.setToY(endScale);
+            scaleTransition.setInterpolator(Interpolator.EASE_BOTH);
             scaleTransition.play();
         });
 
