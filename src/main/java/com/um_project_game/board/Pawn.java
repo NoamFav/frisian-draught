@@ -46,7 +46,11 @@ public class Pawn {
     }
 
     public void setKing(boolean king) {
-        image = isWhite ? pawnImages.whiteKing() : pawnImages.blackKing();
+        if (king) {
+            this.image = isWhite ? pawnImages.whiteKing() : pawnImages.blackKing();
+        } else {
+            this.image = isWhite ? pawnImages.whitePawn() : pawnImages.blackPawn();
+        }
         isKing = king;
     }
 
