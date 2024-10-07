@@ -374,16 +374,11 @@ private static final int BOARD_SIZE = 10;
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
 
-        requiredPawns.removeAll(pawnCapturePaths.entrySet().stream()
-            .filter(entry -> !required.contains(entry.getKey()))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toList()));
 
         // **Ensure only active pawns are added to `requiredPawns`**
         requiredPawns = required.stream()
                                 .filter(pawns::contains)
                                 .collect(Collectors.toList());
-        System.out.println("Required pawns: " + requiredPawns.stream().map(Pawn::getPosition).collect(Collectors.toList()));
 
 
         return requiredPawns;
@@ -687,7 +682,6 @@ private static final int BOARD_SIZE = 10;
         fadeTransition.setOnFinished(e -> {
             board.getChildren().remove(capturedPawnView);
             pawnViews.remove(capturedPawn);
-            System.out.println("Captured pawn removed from board.");
         });
 
         fadeTransition.play();
