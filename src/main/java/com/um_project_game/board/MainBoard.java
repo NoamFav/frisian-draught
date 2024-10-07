@@ -53,6 +53,7 @@ private static final int BOARD_SIZE = 10;
     // Pawn and move management
     private Pawn focusedPawn;
     private List<Pawn> allPawns = new ArrayList<>();
+    private List<Pawn> pawns = new ArrayList<>();
     private List<Vector2i> possibleMoves = new ArrayList<>();
     private List<Vector2i> listMoves = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
@@ -72,7 +73,7 @@ private static final int BOARD_SIZE = 10;
      */
     public GridPane getMainBoard(Pane root, float boardPixelSize, Vector2i boardPosition, GameInfo gameInfo) {
         tileSize = boardPixelSize / BOARD_SIZE;
-        List<Pawn> pawns = new ArrayList<>();
+        pawns = new ArrayList<>();
         board = new GridPane();
         isWhiteTurn = true;
         this.root = root;
@@ -82,9 +83,9 @@ private static final int BOARD_SIZE = 10;
         board.setLayoutX(boardPosition.x);
         board.setLayoutY(boardPosition.y);
 
-        setupBoard(pawns);
+        setupBoard();
         renderBoard();
-        renderPawns(pawns);
+        renderPawns();
 
         return board;
     }
@@ -168,9 +169,6 @@ private static final int BOARD_SIZE = 10;
             GridPane.setColumnIndex(pawnView, initialPosition.x);
             GridPane.setRowIndex(pawnView, initialPosition.y);
         }
-
-        // Reset the turn indicator
-        switchTurn();
     }
 
     /**
@@ -182,14 +180,14 @@ private static final int BOARD_SIZE = 10;
      */
     public GridPane getRandomBoard(Pane root, float boardPixelSize) {
         tileSize = boardPixelSize / BOARD_SIZE;
-        List<Pawn> pawns = new ArrayList<>();
+        pawns = new ArrayList<>();
         board = new GridPane();
 
         isActive = false;
 
-        setupBoard(pawns);
+        setupBoard();
         renderBoard();
-        renderPawns(pawns);
+        renderPawns();
         board.getStyleClass().add("board");
 
         return board;
@@ -200,7 +198,7 @@ private static final int BOARD_SIZE = 10;
      *
      * @param pawns List to populate with the initial pawns.
      */
-    private void setupBoard(List<Pawn> pawns) {
+    private void setupBoard() {
         // Function to add pawns to the board
         BiConsumer<Integer, Boolean> addPawns = (startRow, isWhite) -> {
             for (int y = startRow; y < startRow + 4; y++) {
@@ -248,12 +246,12 @@ private static final int BOARD_SIZE = 10;
      * @param pawns    List of pawns to render.
      * @param tileSize Size of each tile.
      */
-    private void renderPawns(List<Pawn> pawns) {
+    private void renderPawns() {
         // For new pawns, create ImageViews and add them to the board
         for (Pawn pawn : pawns) {
             if (!pawnViews.containsKey(pawn)) {
                 ImageView pawnView = createPawnImageView(pawn, 0.8);
-                setupPawnInteractions(pawnView, pawn, pawns);
+                setupPawnInteractions(pawnView, pawn);
                 board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
                 GridPane.setHalignment(pawnView, HPos.CENTER);
                 GridPane.setValignment(pawnView, VPos.CENTER);
@@ -301,7 +299,7 @@ private static final int BOARD_SIZE = 10;
      * @param pawns    List of all pawns.
      * @param tileSize Size of each tile.
      */
-    private void setupPawnInteractions(ImageView pawnView, Pawn pawn, List<Pawn> pawns) {
+    private void setupPawnInteractions(ImageView pawnView, Pawn pawn) {
         pawnView.hoverProperty().addListener((observable, oldValue, newValue) -> {
             double scaleFactor = newValue ? 0.96 : 0.8; // Increase size on hover
             pawnView.setFitWidth(tileSize * scaleFactor);
@@ -315,8 +313,8 @@ private static final int BOARD_SIZE = 10;
         pawnView.setOnMouseClicked(event -> {
             clearHighlights();
             focusedPawn = pawn;
-            seePossibleMove(pawns, focusedPawn);
-            renderPawns(pawns);
+            seePossibleMove(focusedPawn);
+            renderPawns();
         });
     }
 
@@ -327,7 +325,7 @@ private static final int BOARD_SIZE = 10;
      * @param position Position to check.
      * @return Pawn at the position, or null if none.
      */
-    private Pawn getPawnAtPosition(List<Pawn> pawns, Vector2i position) {
+    private Pawn getPawnAtPosition(Vector2i position) {
         return pawns.stream()
                 .filter(p -> p.getPosition().equals(position))
                 .findFirst()
@@ -342,7 +340,7 @@ private static final int BOARD_SIZE = 10;
      * @param pawn     The selected pawn.
      * @param tileSize Size of each tile.
      */
-    private void seePossibleMove(List<Pawn> pawns, Pawn pawn) {
+    private void seePossibleMove(Pawn pawn) {
         possibleMoves.clear();
         Vector2i position = pawn.getPosition();
         int x = position.x;
@@ -353,12 +351,12 @@ private static final int BOARD_SIZE = 10;
 
         List<CapturePath> allPaths = new ArrayList<>();
 
-        captureCheck(pawns, pawn, inBounds, x, y, new CapturePath(), allPaths);
+        captureCheck(pawn, inBounds, x, y, new CapturePath(), allPaths);
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(pawns, pawn,allPaths);
+            handleCaptureMoves(pawn,allPaths);
         } else {
-            handleNormalMoves(pawns, pawn, inBounds, x, y);
+            handleNormalMoves( pawn, inBounds, x, y);
         }
     }
 
@@ -371,7 +369,7 @@ private static final int BOARD_SIZE = 10;
      * @param tileSize Size of each tile.
      * @param allPaths List of all possible capture paths.
      */
-    private void handleCaptureMoves(List<Pawn> pawns, Pawn pawn, List<CapturePath> allPaths) {
+    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths) {
         int maxCaptures = allPaths.stream().mapToInt(CapturePath::getCaptureCount).max().orElse(0);
 
         List<CapturePath> maxCapturePaths = allPaths.stream()
@@ -396,7 +394,7 @@ private static final int BOARD_SIZE = 10;
                 clearHighlights();
 
                 // Animate pawn movement along the capture path
-                animatePawnCaptureMovement(pawn,pawns, path, () -> {
+                animatePawnCaptureMovement(pawn, path, () -> {
                     promotePawnIfNeeded(pawn, path.getLastPosition());
                     switchTurn();
                     focusedPawn = null;
@@ -424,7 +422,7 @@ private static final int BOARD_SIZE = 10;
      * @param x        Current x-coordinate of the pawn.
      * @param y        Current y-coordinate of the pawn.
      */
-    private void handleNormalMoves(List<Pawn> pawns, Pawn pawn, 
+    private void handleNormalMoves(Pawn pawn, 
                                    BiPredicate<Integer, Integer> inBounds, int x, int y) {
         BiConsumer<Integer, Integer> highlightMove = (newX, newY) -> {
             Rectangle square = createHighlightSquare(Color.GREEN);
@@ -467,7 +465,7 @@ private static final int BOARD_SIZE = 10;
                 int newX = x + dir[0];
                 int newY = y + dir[1];
 
-                if (inBounds.test(newX, newY) && getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
+                if (inBounds.test(newX, newY) && getPawnAtPosition(new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
                 }
             }
@@ -479,7 +477,7 @@ private static final int BOARD_SIZE = 10;
                 int newX = x + dx;
                 int newY = y + dy;
 
-                while (inBounds.test(newX, newY) && getPawnAtPosition(pawns, new Vector2i(newX, newY)) == null) {
+                while (inBounds.test(newX, newY) && getPawnAtPosition(new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
                     newX += dx;
                     newY += dy;
@@ -499,7 +497,7 @@ private static final int BOARD_SIZE = 10;
      * @param currentPath      The current capture path.
      * @param allPaths         List to collect all capture paths.
      */
-    private void captureCheck(List<Pawn> pawns, Pawn pawn,
+    private void captureCheck(Pawn pawn,
                           BiPredicate<Integer, Integer> inBounds, int x, int y,
                           CapturePath currentPath, List<CapturePath> allPaths) {
     boolean foundCapture = false;
@@ -525,7 +523,7 @@ private static final int BOARD_SIZE = 10;
             }
 
             Vector2i capturePos = new Vector2i(captureX, captureY);
-            Pawn capturedPawn = getPawnAtPosition(pawns, capturePos);
+            Pawn capturedPawn = getPawnAtPosition(capturePos);
 
             // If we find a capturable opponent pawn
             if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite() && !currentPath.capturedPawns.contains(capturedPawn)) {
@@ -542,13 +540,13 @@ private static final int BOARD_SIZE = 10;
                     Vector2i landingPos = new Vector2i(landingX, landingY);
 
                     // If landing position is empty, it's a valid move
-                    if (getPawnAtPosition(pawns, landingPos) == null || landingPos.equals(pawn.getPosition())) {
+                    if (getPawnAtPosition(landingPos) == null || landingPos.equals(pawn.getPosition())) {
                         foundCapture = true;
                         CapturePath newPath = new CapturePath(currentPath);
                         newPath.addMove(landingPos, capturedPawn);
 
                         // Recursively check for further captures
-                        captureCheck(pawns, pawn, inBounds, landingX, landingY, newPath, allPaths);
+                        captureCheck(pawn, inBounds, landingX, landingY, newPath, allPaths);
                     } else {
                         break; // Stop if the landing position is blocked
                     }
@@ -557,7 +555,7 @@ private static final int BOARD_SIZE = 10;
                 // **Stop if two pawns are adjacent**: Check for a pawn directly next to the first one
                 int nextX = captureX + dx;
                 int nextY = captureY + dy;
-                if (inBounds.test(nextX, nextY) && getPawnAtPosition(pawns, new Vector2i(nextX, nextY)) != null) {
+                if (inBounds.test(nextX, nextY) && getPawnAtPosition(new Vector2i(nextX, nextY)) != null) {
                     break; // Stop if there's no gap between pawns
                 }
             }
@@ -618,7 +616,7 @@ private static final int BOARD_SIZE = 10;
      * @param pawns        List of all pawns.
      * @param capturedPawn The pawn to remove.
      */
-    private void removePawn(List<Pawn> pawns, Pawn capturedPawn) {
+    private void removePawn(Pawn capturedPawn) {
         ImageView capturedPawnView = pawnViews.get(capturedPawn);
 
         // Create a FadeTransition to fade out the captured pawn
@@ -674,7 +672,8 @@ private static final int BOARD_SIZE = 10;
         for (Pawn pawn : allPawns) { // allPawns is a list of all pawns at the start
             if (!pawnViews.containsKey(pawn)) {
                 ImageView pawnView = createPawnImageView(pawn, 0.8);
-                setupPawnInteractions(pawnView, pawn, allPawns);
+                pawns = new ArrayList<>(allPawns);
+                setupPawnInteractions(pawnView, pawn);
                 board.add(pawnView, pawn.getInitialPosition().x, pawn.getInitialPosition().y);
                 GridPane.setHalignment(pawnView, HPos.CENTER);
                 GridPane.setValignment(pawnView, VPos.CENTER);
@@ -684,6 +683,10 @@ private static final int BOARD_SIZE = 10;
             // Reset pawn properties
             pawn.setKing(false);
             pawn.setPosition(pawn.getInitialPosition());
+
+            if (!pawns.contains(pawn)) {
+                pawns.add(pawn);
+            }
 
             // Update the pawn's ImageView position
             ImageView pawnView = pawnViews.get(pawn);
@@ -734,7 +737,7 @@ private static final int BOARD_SIZE = 10;
         transition.play();
     }
 
-    private void animatePawnCaptureMovement(Pawn pawn, List<Pawn> pawns, CapturePath path, Runnable onFinished) {
+    private void animatePawnCaptureMovement(Pawn pawn, CapturePath path, Runnable onFinished) {
         ImageView pawnView = pawnViews.get(pawn);
         List<Vector2i> positions = path.positions;
         List<Pawn> capturedPawns = path.capturedPawns;
@@ -771,7 +774,7 @@ private static final int BOARD_SIZE = 10;
                 // Remove captured pawn if any
                 if (index < capturedPawns.size()) {
                     Pawn capturedPawn = capturedPawns.get(index);
-                    removePawn(pawns, capturedPawn);
+                    removePawn(capturedPawn);
                 }
             });
 
