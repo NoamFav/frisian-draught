@@ -1,6 +1,7 @@
 package com.um_project_game.board;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ private static final int BOARD_SIZE = 10;
     private Pawn focusedPawn;
     private List<Pawn> allPawns = new ArrayList<>();
     private List<Pawn> pawns = new ArrayList<>();
+    private List<Pawn> requiredPawns = new ArrayList<>();
     private List<Vector2i> possibleMoves = new ArrayList<>();
     private List<Vector2i> listMoves = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
@@ -332,6 +334,60 @@ private static final int BOARD_SIZE = 10;
                 .orElse(null);
     }
 
+    private List<Pawn> findPawnsWithMaxCaptures() {
+        Map<Pawn, List<CapturePath>> pawnCapturePaths = new HashMap<>();
+
+        for (Pawn pawn : pawns) { // Ensure only active pawns are iterated
+            // Only consider pawns belonging to the current player
+            if (pawn.isWhite() != isWhiteTurn) continue;
+
+            List<CapturePath> paths = new ArrayList<>();
+            captureCheck(
+                pawn,
+                (x, y) -> x >= 0 && x < boardSize.x && y >= 0 && y < boardSize.y,
+                pawn.getPosition().x,
+                pawn.getPosition().y,
+                new CapturePath(),
+                paths
+            );
+
+            if (!paths.isEmpty()) {
+                pawnCapturePaths.put(pawn, paths);
+            }
+        }
+
+        if (pawnCapturePaths.isEmpty()) {
+            requiredPawns.clear();
+            return Collections.emptyList();
+        }
+
+        // Determine maxCaptures after collecting all paths
+        int maxCaptures = pawnCapturePaths.values().stream()
+            .flatMap(List::stream)
+            .mapToInt(CapturePath::getCaptureCount)
+            .max()
+            .orElse(0);
+
+        // Identify pawns with capture paths equal to maxCaptures
+        List<Pawn> required = pawnCapturePaths.entrySet().stream()
+            .filter(entry -> entry.getValue().stream().anyMatch(path -> path.getCaptureCount() == maxCaptures))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+
+        requiredPawns.removeAll(pawnCapturePaths.entrySet().stream()
+            .filter(entry -> !required.contains(entry.getKey()))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList()));
+
+        // **Ensure only active pawns are added to `requiredPawns`**
+        requiredPawns = required.stream()
+                                .filter(pawns::contains)
+                                .collect(Collectors.toList());
+        System.out.println("Required pawns: " + requiredPawns.stream().map(Pawn::getPosition).collect(Collectors.toList()));
+
+
+        return requiredPawns;
+    }
     /**
      * Highlights possible moves for the selected pawn.
      *
@@ -354,9 +410,9 @@ private static final int BOARD_SIZE = 10;
         captureCheck(pawn, inBounds, x, y, new CapturePath(), allPaths);
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(pawn,allPaths);
-        } else {
-            handleNormalMoves( pawn, inBounds, x, y);
+            handleCaptureMoves(pawn, allPaths);
+        } else if (requiredPawns.isEmpty()) { 
+            handleNormalMoves(pawn, inBounds, x, y);
         }
     }
 
@@ -405,6 +461,7 @@ private static final int BOARD_SIZE = 10;
                         gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
                     } else {
                         gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
+
                     }
                 });
             });
@@ -454,6 +511,7 @@ private static final int BOARD_SIZE = 10;
                     switchTurn();
                     focusedPawn = null;
                 });
+                
             }); 
         };
 
@@ -617,59 +675,38 @@ private static final int BOARD_SIZE = 10;
      * @param capturedPawn The pawn to remove.
      */
     private void removePawn(Pawn capturedPawn) {
+        pawns.remove(capturedPawn);
+        requiredPawns.remove(capturedPawn);
+
         ImageView capturedPawnView = pawnViews.get(capturedPawn);
 
-        // Create a FadeTransition to fade out the captured pawn
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(300), capturedPawnView);
         fadeTransition.setFromValue(1.0);
         fadeTransition.setToValue(0.0);
 
-        // After the fade-out, remove the pawn from the board
         fadeTransition.setOnFinished(e -> {
-            pawns.remove(capturedPawn);
             board.getChildren().remove(capturedPawnView);
             pawnViews.remove(capturedPawn);
+            System.out.println("Captured pawn removed from board.");
         });
 
-        // Play the animation
         fadeTransition.play();
     }
 
-
     public void switchTurn() {
+        requiredPawns.clear();
         isWhiteTurn = !isWhiteTurn;
         gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
-        BiConsumer<Text, Boolean> setPlayerStyle = (player, isPlayerOne) -> {
-            if (player != null) {
-                boolean shouldBeBold = (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
-                player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
-                                + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
-            }
-        };
-
-        Text playerOne = (Text) root.lookup("#playerOneText");
-        Text playerTwo = (Text) root.lookup("#playerTwoText");
-        Text playerOneScore = (Text) root.lookup("#playerOneScore");
-        Text playerTwoScore = (Text) root.lookup("#playerTwoScore");
-        Text playerOneTime = (Text) root.lookup("#playerOneTime");
-        Text playerTwoTime = (Text) root.lookup("#playerTwoTime");
-
-        setPlayerStyle.accept(playerOne, true);
-        setPlayerStyle.accept(playerTwo, false);
-        setPlayerStyle.accept(playerOneScore, true);
-        setPlayerStyle.accept(playerTwoScore, false);
-        setPlayerStyle.accept(playerOneTime, true);
-        setPlayerStyle.accept(playerTwoTime, false);
-        
+        updatePlayerStyles();
+        findPawnsWithMaxCaptures();
     }
-
     public boolean isWhiteTurn() {
         return isWhiteTurn;
     }
 
     private void resetPawnsToInitialPositions() {
         // Re-add any missing pawns
-        for (Pawn pawn : allPawns) { // allPawns is a list of all pawns at the start
+        for (Pawn pawn : allPawns) { 
             if (!pawnViews.containsKey(pawn)) {
                 ImageView pawnView = createPawnImageView(pawn, 0.8);
                 pawns = new ArrayList<>(allPawns);
@@ -799,6 +836,30 @@ private static final int BOARD_SIZE = 10;
         board.getChildren().add(pawnView);
 
         sequentialTransition.play();
+    }
+
+    private void updatePlayerStyles() {
+        BiConsumer<Text, Boolean> setPlayerStyle = (player, isPlayerOne) -> {
+            if (player != null) {
+                boolean shouldBeBold = (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
+                player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
+                                + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
+            }
+        };
+
+        Text playerOne = (Text) root.lookup("#playerOneText");
+        Text playerTwo = (Text) root.lookup("#playerTwoText");
+        Text playerOneScore = (Text) root.lookup("#playerOneScore");
+        Text playerTwoScore = (Text) root.lookup("#playerTwoScore");
+        Text playerOneTime = (Text) root.lookup("#playerOneTime");
+        Text playerTwoTime = (Text) root.lookup("#playerTwoTime");
+
+        setPlayerStyle.accept(playerOne, true);
+        setPlayerStyle.accept(playerTwo, false);
+        setPlayerStyle.accept(playerOneScore, true);
+        setPlayerStyle.accept(playerTwoScore, false);
+        setPlayerStyle.accept(playerOneTime, true);
+        setPlayerStyle.accept(playerTwoTime, false);
     }
 }
 
