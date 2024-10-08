@@ -1,0 +1,56 @@
+.root {
+    --background-color: #f4f4f4;
+}
+
+.button {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 15;
+    -fx-text-fill: #333333;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+}
+
+.button:hover {
+    -fx-background-color: #333333;
+    -fx-text-fill: #ffffff;
+}
+
+.version-status {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 15;
+    -fx-text-fill: #333333;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+}
+
+.board {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 15;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+    -fx-padding: 5;
+}
+
+.board:hover {
+    -fx-background-color: #333333;
+}
+
+.playerUI {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+    -fx-padding: 5;
+}
+
+.chatUI {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}
+
+.movesList {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #333333;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}
