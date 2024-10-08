@@ -19,9 +19,11 @@ import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -446,6 +448,7 @@ private static final int BOARD_SIZE = 10;
 
                 // Animate pawn movement along the capture path
                 animatePawnCaptureMovement(pawn, path, () -> {
+                    checkGameOver();
                     promotePawnIfNeeded(pawn, path.getLastPosition());
                     switchTurn();
                     focusedPawn = null;
@@ -462,7 +465,7 @@ private static final int BOARD_SIZE = 10;
             });
         }
     }
-
+  
     /**
      * Handles normal moves when no captures are available.
      *
@@ -502,6 +505,7 @@ private static final int BOARD_SIZE = 10;
                     GridPane.setRowIndex(pawnView, landingPos.y);
 
                     promotePawnIfNeeded(pawn, landingPos);
+                    checkGameOver();
                     clearHighlights();
                     switchTurn();
                     focusedPawn = null;
@@ -553,78 +557,98 @@ private static final int BOARD_SIZE = 10;
     private void captureCheck(Pawn pawn,
                           BiPredicate<Integer, Integer> inBounds, int x, int y,
                           CapturePath currentPath, List<CapturePath> allPaths) {
-    boolean foundCapture = false;
+        boolean foundCapture = false;
 
-    int[][] directions = {
-            {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
-            {0, 2}, {0, -2}, {2, 0}, {-2, 0}
-    };
+        int[][] directions = {
+                {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
+                {0, 2}, {0, -2}, {2, 0}, {-2, 0}
+        };
 
-    for (int[] dir : directions) {
-        int dx = dir[0];
-        int dy = dir[1];
+        for (int[] dir : directions) {
+            int dx = dir[0];
+            int dy = dir[1];
 
-        int maxSteps = pawn.isKing() ? boardSize.x : 1;
+            int maxSteps = pawn.isKing() ? boardSize.x : 1;
 
-        for (int i = 1; i <= maxSteps; i++) {
-            int captureX = x + dx * i;
-            int captureY = y + dy * i;
+            for (int i = 1; i <= maxSteps; i++) {
+                int captureX = x + dx * i;
+                int captureY = y + dy * i;
 
-            // Check if capture position is within bounds
-            if (!inBounds.test(captureX, captureY)) {
-                break; // Stop if out of bounds
-            }
+                // Check if capture position is within bounds
+                if (!inBounds.test(captureX, captureY)) {
+                    break; // Stop if out of bounds
+                }
 
-            Vector2i capturePos = new Vector2i(captureX, captureY);
-            Pawn capturedPawn = getPawnAtPosition(capturePos);
+                Vector2i capturePos = new Vector2i(captureX, captureY);
+                Pawn capturedPawn = getPawnAtPosition(capturePos);
 
-            // If we find a capturable opponent pawn
-            if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite() && !currentPath.capturedPawns.contains(capturedPawn)) {
+                // If we find a capturable opponent pawn
+                if (capturedPawn != null && capturedPawn.isWhite() != pawn.isWhite() && !currentPath.capturedPawns.contains(capturedPawn)) {
 
-                // Check for landing positions after capturing the pawn
-                for (int j = 1; j <= maxSteps; j++) {
-                    int landingX = captureX + dx * j;
-                    int landingY = captureY + dy * j;
+                    // Check for landing positions after capturing the pawn
+                    for (int j = 1; j <= maxSteps; j++) {
+                        int landingX = captureX + dx * j;
+                        int landingY = captureY + dy * j;
 
-                    if (!inBounds.test(landingX, landingY)) {
-                        break; // Stop if landing position is out of bounds
+                        if (!inBounds.test(landingX, landingY)) {
+                            break; // Stop if landing position is out of bounds
+                        }
+
+                        Vector2i landingPos = new Vector2i(landingX, landingY);
+
+                        // If landing position is empty, it's a valid move
+                        if (getPawnAtPosition(landingPos) == null || landingPos.equals(pawn.getPosition())) {
+                            foundCapture = true;
+                            CapturePath newPath = new CapturePath(currentPath);
+                            newPath.addMove(landingPos, capturedPawn);
+
+                            // Recursively check for further captures
+                            captureCheck(pawn, inBounds, landingX, landingY, newPath, allPaths);
+                        } else {
+                            break; // Stop if the landing position is blocked
+                        }
                     }
 
-                    Vector2i landingPos = new Vector2i(landingX, landingY);
-
-                    // If landing position is empty, it's a valid move
-                    if (getPawnAtPosition(landingPos) == null || landingPos.equals(pawn.getPosition())) {
-                        foundCapture = true;
-                        CapturePath newPath = new CapturePath(currentPath);
-                        newPath.addMove(landingPos, capturedPawn);
-
-                        // Recursively check for further captures
-                        captureCheck(pawn, inBounds, landingX, landingY, newPath, allPaths);
-                    } else {
-                        break; // Stop if the landing position is blocked
+                    // **Stop if two pawns are adjacent**: Check for a pawn directly next to the first one
+                    int nextX = captureX + dx;
+                    int nextY = captureY + dy;
+                    if (inBounds.test(nextX, nextY) && getPawnAtPosition(new Vector2i(nextX, nextY)) != null) {
+                        break; // Stop if there's no gap between pawns
                     }
                 }
 
-                // **Stop if two pawns are adjacent**: Check for a pawn directly next to the first one
-                int nextX = captureX + dx;
-                int nextY = captureY + dy;
-                if (inBounds.test(nextX, nextY) && getPawnAtPosition(new Vector2i(nextX, nextY)) != null) {
-                    break; // Stop if there's no gap between pawns
+                // If a non-capturable piece is found, stop checking this direction
+                if (capturedPawn != null) {
+                    break;
                 }
             }
+        }
 
-            // If a non-capturable piece is found, stop checking this direction
-            if (capturedPawn != null) {
-                break;
-            }
+        // Add path to allPaths if a capture was made
+        if (!foundCapture && currentPath.getCaptureCount() > 0) {
+            allPaths.add(currentPath);
         }
     }
 
-    // Add path to allPaths if a capture was made
-    if (!foundCapture && currentPath.getCaptureCount() > 0) {
-        allPaths.add(currentPath);
+    public void checkGameOver() {
+        // Check if the current player has any pawns
+        boolean oppositePlayerHasPawns = pawns.stream().anyMatch(p -> p.isWhite() == !isWhiteTurn);
+        
+        Platform.runLater(() -> {
+            if (!oppositePlayerHasPawns) {
+                Alert gameOverAlert = new Alert(Alert.AlertType.INFORMATION);
+                gameOverAlert.setTitle("Game Over");
+                gameOverAlert.setHeaderText("Game Over!");
+                gameOverAlert.setContentText("Player " + (isWhiteTurn ? 2 : 1) + " wins!");
+                gameOverAlert.showAndWait();
+                resetGame(tileSize * BOARD_SIZE);
+                
+                // Optionally, disable further interactions
+                isActive = false;
+            }
+        });
     }
-}
+
     /**
      * Creates a highlight square for possible moves.
      *
@@ -648,6 +672,8 @@ private static final int BOARD_SIZE = 10;
     private void promotePawnIfNeeded(Pawn pawn, Vector2i landingPos) {
         if ((pawn.isWhite() && landingPos.y == 0) || (!pawn.isWhite() && landingPos.y == boardSize.y - 1)) {
             pawn.setKing(true);
+            ImageView pawnView = pawnViews.get(pawn);
+            pawnView.setImage(pawn.getImage());
         }
     }
 

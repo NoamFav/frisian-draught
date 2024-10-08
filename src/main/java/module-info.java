@@ -16,8 +16,4 @@ module com.um_project_game {
 
     opens com.um_project_game to javafx.graphics;
     exports com.um_project_game;
-    exports com.um_project_game.util;
-    exports com.um_project_game.board;
-    opens com.um_project_game.board to javafx.graphics;
-    opens com.um_project_game.util to javafx.graphics;
 }
