@@ -1,4 +1,0 @@
---patch-module
-com.um_project_game=_
---add-reads
-com.um_project_game=ALL-UNNAMED
