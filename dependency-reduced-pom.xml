@@ -12,8 +12,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
+          <source>22</source>
+          <target>22</target>
         </configuration>
       </plugin>
       <plugin>
@@ -56,16 +56,6 @@
             </goals>
             <configuration>
               <createDependencyReducedPom>true</createDependencyReducedPom>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
               <transformers>
                 <transformer>
                   <mainClass>com.um_project_game.Launcher</mainClass>
@@ -78,26 +68,6 @@
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>mac</id>
-      <properties>
-        <javafx.platform>mac</javafx.platform>
-      </properties>
-    </profile>
-    <profile>
-      <id>windows</id>
-      <properties>
-        <javafx.platform>win</javafx.platform>
-      </properties>
-    </profile>
-    <profile>
-      <id>linux</id>
-      <properties>
-        <javafx.platform>linux</javafx.platform>
-      </properties>
-    </profile>
-  </profiles>
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -119,29 +89,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.10.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>junit-platform-engine</artifactId>
-          <groupId>org.junit.platform</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>apiguardian-api</artifactId>
-          <groupId>org.apiguardian</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
   <properties>
-    <javafx.platform>mac</javafx.platform>
-    <java.version>17</java.version>
-    <joml-primitives.version>1.10.0</joml-primitives.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <joml.version>1.10.5</joml.version>
     <junit.version>5.10.0</junit.version>
+    <joml-primitives.version>1.10.0</joml-primitives.version>
   </properties>
 </project>
