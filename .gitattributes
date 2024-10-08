@@ -1,3 +1,4 @@
 target/original-um-project-game-1.0-SNAPSHOT.jar filter=lfs diff=lfs merge=lfs -text
 target/um-project-game-1.0-SNAPSHOT.jar filter=lfs diff=lfs merge=lfs -text
 *.jar filter=lfs diff=lfs merge=lfs -text
+target/*.jar filter=lfs diff=lfs merge=lfs -text
