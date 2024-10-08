@@ -14,6 +14,8 @@
 
     <joml.version>1.10.5</joml.version>
     <joml-primitives.version>1.10.0</joml-primitives.version>
+    <maven.compiler.source>21</maven.compiler.source> <!-- Assuming Java version 21 is valid -->
+    <maven.compiler.target>21</maven.compiler.target> 
   </properties>
 
   <dependencies>
@@ -138,30 +140,34 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-shade-plugin</artifactId>
-      <version>3.4.1</version>
-      <executions>
-        <execution>
-          <phase>package</phase>
-          <goals>
-            <goal>shade</goal>
-          </goals>
-          <configuration>
-            <createDependencyReducedPom>true</createDependencyReducedPom>
-            <transformers>
-              <!-- Ensures that the manifest includes the Main-Class -->
-              <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                <mainClass>com.um_project_game.Launcher</mainClass>
-              </transformer>
-              <!-- Merges service files (useful for some libraries) -->
-              <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-            </transformers>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.11.0</version>
+            <configuration>
+                <source>${maven.compiler.source}</source>
+                <target>${maven.compiler.target}</target>
+            </configuration>
+        </plugin>
+        <plugin>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.2.1</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <transformers>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>com.um_project_game.Launcher</mainClass>
+                            </transformer>
+                        </transformers>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
     </plugins>
   </build>
 </project>

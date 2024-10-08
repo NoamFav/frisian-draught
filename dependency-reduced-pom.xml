@@ -46,8 +46,16 @@
         </executions>
       </plugin>
       <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.4.1</version>
+        <version>3.2.1</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -55,12 +63,10 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <createDependencyReducedPom>true</createDependencyReducedPom>
               <transformers>
                 <transformer>
                   <mainClass>com.um_project_game.Launcher</mainClass>
                 </transformer>
-                <transformer />
               </transformers>
             </configuration>
           </execution>
@@ -91,9 +97,11 @@
     </dependency>
   </dependencies>
   <properties>
+    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
+    <joml-primitives.version>1.10.0</joml-primitives.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <joml.version>1.10.5</joml.version>
     <junit.version>5.10.0</junit.version>
-    <joml-primitives.version>1.10.0</joml-primitives.version>
   </properties>
 </project>
