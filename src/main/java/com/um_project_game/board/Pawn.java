@@ -15,6 +15,8 @@ public class Pawn {
     private boolean isWhite;
     private Image image;
 
+    private int numberOfNonCapturingMoves = 0;
+
     private PawnImages pawnImages = PawnImages.getPawnImage();
 
     public Pawn(Vector2i position, boolean isWhite) {
@@ -65,4 +67,16 @@ public class Pawn {
     public Vector2i getInitialPosition() {
 		return initialPosition;
 	}
+
+    public int getNumberOfNonCapturingMoves() {
+        return numberOfNonCapturingMoves;
+    }
+
+    public void incrementNumberOfNonCapturingMoves() {
+        numberOfNonCapturingMoves++;
+    }
+
+    public void resetNumberOfNonCapturingMoves() {
+        numberOfNonCapturingMoves = 0;
+    }
 }

@@ -38,7 +38,7 @@ import javafx.util.Duration;
 public class MainBoard {
 
     // Constants
-private static final int BOARD_SIZE = 10;
+    private static final int BOARD_SIZE = 10;
 
     // Game state variables
     private boolean isWhiteTurn = true; // White starts first
@@ -59,7 +59,7 @@ private static final int BOARD_SIZE = 10;
     private List<Pawn> pawns = new ArrayList<>();
     private List<Pawn> requiredPawns = new ArrayList<>();
     private List<Vector2i> possibleMoves = new ArrayList<>();
-    private List<Vector2i> listMoves = new ArrayList<>();
+    private List<GameState> pastStates = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
     private List<Node> highlightNodes = new ArrayList<>();
 
@@ -93,7 +93,13 @@ private static final int BOARD_SIZE = 10;
 
         return board;
     }
-
+    
+    /**
+     * Resizes the board and its components.
+     *
+     * @param boardPixelSize New size of the board in pixels.
+     * @return GridPane representing the resized board.
+     */
     public GridPane resizeBoard(float boardPixelSize) {
         tileSize = boardPixelSize / BOARD_SIZE;
 
@@ -129,6 +135,11 @@ private static final int BOARD_SIZE = 10;
         return board;
     }
 
+    /**
+     * Resets the game to its initial state.
+     *
+     * @param boardPixelSize Size of the board in pixels.
+     */
     public void resetGame(float boardPixelSize) {
         tileSize = boardPixelSize / BOARD_SIZE;
         isWhiteTurn = true;
@@ -336,6 +347,12 @@ private static final int BOARD_SIZE = 10;
                 .orElse(null);
     }
 
+    /**
+     * Finds pawns with the maximum number of captures.
+     *
+     * @param pawns List of all pawns.
+     * @return List of pawns with the maximum number of captures.
+     */
     private List<Pawn> findPawnsWithMaxCaptures() {
         Map<Pawn, List<CapturePath>> pawnCapturePaths = new HashMap<>();
 
@@ -363,21 +380,18 @@ private static final int BOARD_SIZE = 10;
             return Collections.emptyList();
         }
 
-        // Determine maxCaptures after collecting all paths
-        int maxCaptures = pawnCapturePaths.values().stream()
+        double maxCaptureValue = pawnCapturePaths.values().stream()
             .flatMap(List::stream)
-            .mapToInt(CapturePath::getCaptureCount)
+            .mapToDouble(CapturePath::getCaptureValue)
             .max()
             .orElse(0);
 
-        // Identify pawns with capture paths equal to maxCaptures
+        // Identify pawns with capture paths equal to maxCaptureValue
         List<Pawn> required = pawnCapturePaths.entrySet().stream()
-            .filter(entry -> entry.getValue().stream().anyMatch(path -> path.getCaptureCount() == maxCaptures))
+            .filter(entry -> entry.getValue().stream().anyMatch(path -> path.getCaptureValue() == maxCaptureValue))
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
 
-
-        // **Ensure only active pawns are added to `requiredPawns`**
         requiredPawns = required.stream()
                                 .filter(pawns::contains)
                                 .collect(Collectors.toList());
@@ -423,10 +437,11 @@ private static final int BOARD_SIZE = 10;
      * @param allPaths List of all possible capture paths.
      */
     private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths) {
-        int maxCaptures = allPaths.stream().mapToInt(CapturePath::getCaptureCount).max().orElse(0);
+        double maxCaptureValue = allPaths.stream().mapToDouble(CapturePath::getCaptureValue).max().orElse(0);
 
+        // Filter paths that have the maximum capture value
         List<CapturePath> maxCapturePaths = allPaths.stream()
-                .filter(path -> path.getCaptureCount() == maxCaptures)
+                .filter(path -> path.getCaptureValue() == maxCaptureValue)
                 .collect(Collectors.toList());
 
         for (CapturePath path : maxCapturePaths) {
@@ -445,6 +460,8 @@ private static final int BOARD_SIZE = 10;
 
                 // Clear highlights before starting the animation
                 clearHighlights();
+
+                pawn.resetNumberOfNonCapturingMoves();
 
                 // Animate pawn movement along the capture path
                 animatePawnCaptureMovement(pawn, path, () -> {
@@ -527,6 +544,15 @@ private static final int BOARD_SIZE = 10;
                 }
             }
         } else {
+
+            if (pawn.getNumberOfNonCapturingMoves() >= 3 && !onlyKingsLeft()) {
+                System.out.println("King cannot move more than 3 times without capturing.");
+                return;
+            }
+
+            // After a successful non-capturing move:
+            pawn.incrementNumberOfNonCapturingMoves();
+
             int[][] diagonalDirections = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
             for (int[] dir : diagonalDirections) {
                 int dx = dir[0];
@@ -630,6 +656,41 @@ private static final int BOARD_SIZE = 10;
         }
     }
 
+    /**
+     * Records the current state of the board.
+     *
+     */
+    private void recordBoardState() {
+        Map<Vector2i, Pawn> currentState = new HashMap<>();
+        for (Pawn pawn : pawns) {
+            currentState.put(pawn.getPosition(), pawn);
+        }
+        GameState newState = new GameState(currentState, isWhiteTurn);
+
+        pastStates.add(newState);
+
+        // Check for threefold repetition
+        long repetitionCount = pastStates.stream()
+                .filter(state -> state.equals(newState))
+                .count();
+
+        if (repetitionCount >= 3) {
+            // Declare a draw
+            Platform.runLater(() -> {
+                Alert drawAlert = new Alert(Alert.AlertType.INFORMATION);
+                drawAlert.setTitle("Draw!");
+                drawAlert.setHeaderText("Threefold Repetition Rule");
+                drawAlert.setContentText("The game is a draw due to repeated board positions.");
+                drawAlert.showAndWait();
+                resetGame(tileSize * BOARD_SIZE);
+            });
+        }
+    }
+    
+    /**
+     * Checks if the game is over.
+     *
+     */
     public void checkGameOver() {
         // Check if the current player has any pawns
         boolean oppositePlayerHasPawns = pawns.stream().anyMatch(p -> p.isWhite() == !isWhiteTurn);
@@ -713,17 +774,31 @@ private static final int BOARD_SIZE = 10;
         fadeTransition.play();
     }
 
-    public void switchTurn() {
+    /**
+     * Switches the turn to the opposite player.
+     *
+     */
+    private void switchTurn() {
+        recordBoardState();  // Save the current state after each turn
         requiredPawns.clear();
         isWhiteTurn = !isWhiteTurn;
         gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
     }
+
+    /**
+     * Checks if it is the white player's turn.
+     *
+     */
     public boolean isWhiteTurn() {
         return isWhiteTurn;
     }
 
+    /**
+     * Resets the pawns to their initial positions.
+     *
+     */
     private void resetPawnsToInitialPositions() {
         // Re-add any missing pawns
         for (Pawn pawn : allPawns) { 
@@ -752,6 +827,13 @@ private static final int BOARD_SIZE = 10;
         }
     }
 
+    /**
+     * Animates the movement of a pawn to a new position.
+     *
+     * @param pawn       The pawn to move.
+     * @param landingPos The landing position of the pawn.
+     * @param onFinished Callback to run after the animation finishes.
+     */
     private void animatePawnMovement(Pawn pawn, Vector2i landingPos, Runnable onFinished) {
         if (isAnimating) return; // Prevent new animations during an ongoing one
         isAnimating = true;
@@ -794,6 +876,13 @@ private static final int BOARD_SIZE = 10;
         transition.play();
     }
 
+    /**
+     * Animates the movement of a pawn along a capture path.
+     *
+     * @param pawn       The pawn to move.
+     * @param path       The capture path to follow.
+     * @param onFinished Callback to run after the animation finishes.
+     */
     private void animatePawnCaptureMovement(Pawn pawn, CapturePath path, Runnable onFinished) {
         ImageView pawnView = pawnViews.get(pawn);
         List<Vector2i> positions = path.positions;
@@ -858,6 +947,18 @@ private static final int BOARD_SIZE = 10;
         sequentialTransition.play();
     }
 
+    /**
+     * Checks if only kings are left on the board.
+     *
+     */
+    private boolean onlyKingsLeft() {
+        return pawns.stream().allMatch(Pawn::isKing);
+    }
+
+    /**
+     * Updates the styles of the player names based on the current turn.
+     *
+     */
     private void updatePlayerStyles() {
         BiConsumer<Text, Boolean> setPlayerStyle = (player, isPlayerOne) -> {
             if (player != null) {
@@ -880,38 +981,5 @@ private static final int BOARD_SIZE = 10;
         setPlayerStyle.accept(playerTwoScore, false);
         setPlayerStyle.accept(playerOneTime, true);
         setPlayerStyle.accept(playerTwoTime, false);
-    }
-}
-
-/**
- * Represents a capture path in the game.
- */
-class CapturePath {
-    List<Vector2i> positions;       // Positions along the path
-    List<Pawn> capturedPawns;       // Pawns captured along the path
-
-    public CapturePath() {
-        positions = new ArrayList<>();
-        capturedPawns = new ArrayList<>();
-    }
-
-    public CapturePath(CapturePath other) {
-        positions = new ArrayList<>(other.positions);
-        capturedPawns = new ArrayList<>(other.capturedPawns);
-    }
-
-    public void addMove(Vector2i position, Pawn capturedPawn) {
-        positions.add(position);
-        if (capturedPawn != null) {
-            capturedPawns.add(capturedPawn);
-        }
-    }
-
-    public int getCaptureCount() {
-        return capturedPawns.size();
-    }
-
-    public Vector2i getLastPosition() {
-        return positions.get(positions.size() - 1);
     }
 }
