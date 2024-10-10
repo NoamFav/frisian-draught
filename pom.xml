@@ -14,8 +14,8 @@
 
     <joml.version>1.10.5</joml.version>
     <joml-primitives.version>1.10.0</joml-primitives.version>
-    <maven.compiler.source>21</maven.compiler.source> <!-- Assuming Java version 21 is valid -->
-    <maven.compiler.target>21</maven.compiler.target> 
+    <maven.compiler.source>22</maven.compiler.source> <!-- Assuming Java version 21 is valid -->
+    <maven.compiler.target>22</maven.compiler.target> 
   </properties>
 
   <dependencies>
