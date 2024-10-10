@@ -409,6 +409,7 @@ public class MainBoard {
      */
     private void seePossibleMove(Pawn pawn) {
         possibleMoves.clear();
+        clearHighlights();
         Vector2i position = pawn.getPosition();
         int x = position.x;
         int y = position.y;
@@ -437,12 +438,21 @@ public class MainBoard {
      * @param allPaths List of all possible capture paths.
      */
     private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths) {
-        double maxCaptureValue = allPaths.stream().mapToDouble(CapturePath::getCaptureValue).max().orElse(0);
+        double maxCaptureValue = allPaths.stream()
+                                     .mapToDouble(CapturePath::getCaptureValue)
+                                     .max()
+                                     .orElse(0);
+
+        // Log the maximum capture value to confirm it's working as expected
+        System.out.println("Max capture value: " + maxCaptureValue);
 
         // Filter paths that have the maximum capture value
         List<CapturePath> maxCapturePaths = allPaths.stream()
-                .filter(path -> path.getCaptureValue() == maxCaptureValue)
-                .collect(Collectors.toList());
+                                                    .filter(path -> path.getCaptureValue() == maxCaptureValue)
+                                                    .collect(Collectors.toList());
+
+        // Log the number of valid capture paths (should only include maximum captures)
+        System.out.println("Number of valid capture paths: " + maxCapturePaths.size());
 
         for (CapturePath path : maxCapturePaths) {
             Vector2i landingPos = path.getLastPosition();
@@ -814,6 +824,7 @@ public class MainBoard {
 
             // Reset pawn properties
             pawn.setKing(false);
+            pawnViews.get(pawn).setImage(pawn.getImage());
             pawn.setPosition(pawn.getInitialPosition());
 
             if (!pawns.contains(pawn)) {
