@@ -22,6 +22,7 @@ public class CapturePath {
     public CapturePath(CapturePath other) {
         positions = new ArrayList<>(other.positions);
         capturedPawns = new ArrayList<>(other.capturedPawns);
+        score = other.score;
     }
 
     public void addMove(Vector2i position, Pawn capturedPawn) {
