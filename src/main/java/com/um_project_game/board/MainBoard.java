@@ -202,7 +202,7 @@ public class MainBoard {
 
         setupBoard();
         renderBoard();
-        renderPawns();
+        //renderPawns();
         board.getStyleClass().add("board");
 
         return board;
