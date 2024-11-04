@@ -1,9 +1,12 @@
 package com.um_project_game;
 
 import com.um_project_game.util.SoundPlayer;
+
+import java.net.URL;
+
+import com.um_project_game.util.Buttons;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
@@ -59,6 +62,17 @@ public class Settings {
         Slider captureVolumeSlider = new Slider(0, 1, captureRelativeVolume * mainVolume);
         setupSlider(captureVolumeSlider);
 
+        mainVolumeLabel.getStyleClass().add("settings-label");
+        backgroundVolumeLabel.getStyleClass().add("settings-label");
+        moveVolumeLabel.getStyleClass().add("settings-label");
+        captureVolumeLabel.getStyleClass().add("settings-label");
+
+        // Adding style classes to sliders
+        mainVolumeSlider.getStyleClass().add("settings-slider");
+        backgroundVolumeSlider.getStyleClass().add("settings-slider");
+        moveVolumeSlider.getStyleClass().add("settings-slider");
+        captureVolumeSlider.getStyleClass().add("settings-slider");
+
         // Add controls to the grid
         grid.add(mainVolumeLabel, 0, 0);
         grid.add(mainVolumeSlider, 1, 0);
@@ -70,17 +84,14 @@ public class Settings {
         grid.add(captureVolumeSlider, 1, 3);
 
         // Add Save and Cancel buttons
-        Button saveButton = new Button("Save");
-        Button cancelButton = new Button("Cancel");
-
-        saveButton.setOnAction(e -> settingsStage.close());
-        cancelButton.setOnAction(e -> {
+        Buttons saveButton = new Buttons("Save", 100, 30, () -> settingsStage.close());
+        Buttons cancelButton = new Buttons("Cancel", 100, 30, () -> {
             // Optionally revert changes if needed
             settingsStage.close();
         });
 
         // Add buttons to a horizontal box
-        HBox buttonBox = new HBox(10, saveButton, cancelButton);
+        HBox buttonBox = new HBox(10, saveButton.getButton(), cancelButton.getButton());
         buttonBox.setPadding(new Insets(10));
 
         // Create a VBox to hold all elements
@@ -88,6 +99,13 @@ public class Settings {
 
         // Create the scene and stage
         Scene scene = new Scene(content);
+        URL cssUrl = getClass().getResource("/stylesheet.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.err.println("Stylesheet not found");
+        }
+
         settingsStage = new Stage();
         settingsStage.setTitle("Settings");
         settingsStage.setScene(scene);
