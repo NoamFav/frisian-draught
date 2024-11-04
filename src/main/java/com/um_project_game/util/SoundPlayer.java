@@ -23,13 +23,29 @@ public class SoundPlayer {
         playBackgroundMusic();
 
         // Add listeners to monitor volume changes
-        mainVolume.addListener((obs, oldVal, newVal) -> updateBackgroundMusicVolume());
+        mainVolume.addListener((obs, oldVal, newVal) -> {
+            updateBackgroundMusicVolume();
+            updateMoveSoundVolume();
+            updateCaptureSoundVolume();
+        });
         backgroundVolume.addListener((obs, oldVal, newVal) -> updateBackgroundMusicVolume());
+        moveVolume.addListener((obs, oldVal, newVal) -> updateMoveSoundVolume());
+        captureVolume.addListener((obs, oldVal, newVal) -> updateCaptureSoundVolume());
     }
 
     private void updateBackgroundMusicVolume() {
         double volume = mainVolume.get() * backgroundVolume.get();
         volumeCheck(backgroundMusic, volume);
+    }
+
+    private void updateMoveSoundVolume() {
+        double volume = mainVolume.get() * moveVolume.get();
+        volumeCheck(moveSound, volume);
+    }
+
+    private void updateCaptureSoundVolume() {
+        double volume = mainVolume.get() * captureVolume.get();
+        volumeCheck(captureSound, volume);
     }
 
     private void volumeCheck(AudioClip sound, double volume) {

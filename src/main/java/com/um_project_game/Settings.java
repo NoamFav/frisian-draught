@@ -113,9 +113,9 @@ public class Settings {
             soundPlayer.setMainVolume(mainVolume);
 
             // Adjust other sliders
-            backgroundVolumeSlider.setValue(backgroundRelativeVolume * mainVolume);
-            moveVolumeSlider.setValue(moveRelativeVolume * mainVolume);
-            captureVolumeSlider.setValue(captureRelativeVolume * mainVolume);
+            backgroundVolumeSlider.setValue(mainVolume);
+            moveVolumeSlider.setValue(mainVolume);
+            captureVolumeSlider.setValue(mainVolume);
         });
 
         // Listener for Background Volume Slider
