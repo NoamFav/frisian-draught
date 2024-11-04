@@ -1,24 +1,7 @@
 package com.um_project_game.board;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
-
-import org.joml.Vector2i;
-
 import com.um_project_game.util.SoundPlayer;
-
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
-import javafx.animation.ScaleTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -31,6 +14,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import org.joml.Vector2i;
+
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 /**
  * Represents the main board of the game.
@@ -59,6 +48,9 @@ public class MainBoard {
     private List<Pawn> pawns = new ArrayList<>();
     private List<Pawn> requiredPawns = new ArrayList<>();
     private List<Vector2i> possibleMoves = new ArrayList<>();
+
+    private List<Move> takenMoves = new ArrayList<>();
+    private MovesListManager movesListManager;
     private List<GameState> pastStates = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
     private List<Node> highlightNodes = new ArrayList<>();
@@ -75,7 +67,7 @@ public class MainBoard {
      * @param boardPosition Position where the board should be placed (x, y).
      * @return GridPane representing the board.
      */
-    public GridPane getMainBoard(Pane root, float boardPixelSize, Vector2i boardPosition, GameInfo gameInfo) {
+    public GridPane getMainBoard(Pane root, float boardPixelSize, Vector2i boardPosition, GameInfo gameInfo, GridPane movesListGridPane) {
         tileSize = boardPixelSize / BOARD_SIZE;
         pawns = new ArrayList<>();
         board = new GridPane();
@@ -83,6 +75,7 @@ public class MainBoard {
         this.root = root;
         this.gameInfo = gameInfo;
         gameInfo.playerTurn.set(1);
+        movesListManager = new MovesListManager(movesListGridPane);
 
         board.setLayoutX(boardPosition.x);
         board.setLayoutY(boardPosition.y);
@@ -240,6 +233,14 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      * @param board    GridPane to render the board onto.
      */
+
+    public GridPane getMovesListGridPane() {
+        return movesListManager.getMovesListGridPane(); // Reference to the VBox for moves
+    }
+
+    private void updateMovesListUI() {
+        movesListManager.updateMovesListUI(takenMoves);
+    }
     private void renderBoard() {
         if (boardInitialized) return; // Avoid re-initializing the board
 
@@ -477,6 +478,8 @@ public class MainBoard {
                 animatePawnCaptureMovement(pawn, path, () -> {
                     checkGameOver();
                     promotePawnIfNeeded(pawn, path.getLastPosition());
+                    updateMovesListUI();
+                    recordBoardState();
                     switchTurn();
                     focusedPawn = null;
 
@@ -534,6 +537,8 @@ public class MainBoard {
                     promotePawnIfNeeded(pawn, landingPos);
                     checkGameOver();
                     clearHighlights();
+                    updateMovesListUI();
+                    recordBoardState();
                     switchTurn();
                     focusedPawn = null;
                 });
@@ -789,7 +794,6 @@ public class MainBoard {
      *
      */
     private void switchTurn() {
-        recordBoardState();  // Save the current state after each turn
         requiredPawns.clear();
         isWhiteTurn = !isWhiteTurn;
         gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
@@ -803,6 +807,54 @@ public class MainBoard {
      */
     public boolean isWhiteTurn() {
         return isWhiteTurn;
+    }
+
+    /**
+     * Method to undo the last move
+     * @param move Move to be undone
+     */
+    public void undoMove(Move move) {
+        // Retrieve the pawn that was moved
+        Vector2i initialPos = move.getStartPosition();
+        Vector2i finalPos = move.getEndPosition();
+
+        // Find the pawn that needs to be moved back
+        Pawn movedPawn = getPawnAtPosition(finalPos);
+        if (movedPawn != null) {
+            // Move the pawn back to its original position
+            movedPawn.setPosition(initialPos);
+
+            // Clear the existing pawn view for the moved pawn
+            ImageView movedPawnView = pawnViews.remove(movedPawn);
+            if (movedPawnView != null) {
+                board.getChildren().remove(movedPawnView); // Remove the existing ImageView
+            }
+        }
+
+        List<Vector2i> capturedPostions = move.getCapturedPositions();
+        // If a capture occurred during the move, restore the captured pawn
+        if (capturedPostions != null) {
+            // Create a new captured pawn object
+            for (Vector2i capturedPostion : capturedPostions) {
+                Pawn capturedPawn = new Pawn(capturedPostion, !movedPawn.isWhite());
+
+                // Restore the captured pawn to its original position
+                pawns.add(capturedPawn);
+            }
+        }
+        updateMovesListUI();
+        switchTurn();
+        // Clear any highlights and re-render the board
+        clearHighlights();
+        renderPawns();
+    }
+
+    public void undoLastMove() {
+        if (takenMoves.size() > 0) {
+            pastStates.removeLast();
+            undoMove(takenMoves.removeLast());
+            updateMovesListUI();
+        }
     }
 
     /**
@@ -849,6 +901,9 @@ public class MainBoard {
         if (isAnimating) return; // Prevent new animations during an ongoing one
         isAnimating = true;
         ImageView pawnView = pawnViews.get(pawn);
+
+        takenMoves.add(new Move(pawn.getPosition(), landingPos));
+        System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front by moving it to the end of the children list
         board.getChildren().remove(pawnView);
@@ -898,6 +953,8 @@ public class MainBoard {
         ImageView pawnView = pawnViews.get(pawn);
         List<Vector2i> positions = path.positions;
         List<Pawn> capturedPawns = path.capturedPawns;
+
+        System.out.println("Animating moves");
 
         List<Animation> animations = new ArrayList<>();
 
@@ -950,6 +1007,14 @@ public class MainBoard {
         });
 
         isAnimating = true;
+
+        // Add whole CapturePath to takenMoves list
+        List<Vector2i> capturedPositions = new ArrayList<>();
+        path.capturedPawns.forEach(capturedPawn -> {
+            capturedPositions.add(capturedPawn.getPosition());
+        });
+        takenMoves.add(new Move(pawn.getPosition(), positions.get(positions.size() - 1), capturedPositions));
+        System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front
         board.getChildren().remove(pawnView);
