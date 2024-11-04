@@ -14,8 +14,11 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+
 import org.joml.Vector2i;
 
+import java.net.URL;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -27,6 +30,10 @@ public class Game {
 
     private GameInfo gameInfo = new GameInfo();
     private BooleanBinding isWhiteTurn;
+
+    private Pane gameRoot;
+    private Launcher launcher;
+    private Stage gameStage;
 
     private int mainBoardSize = 614;
     private int mainBoardX = 376;
@@ -53,17 +60,52 @@ public class Game {
     private int movesListHeight = 222;
     private GridPane movesListGridPane = new GridPane();
 
-    public Game(Pane root, Scene scene, boolean isMultiplayer) {
-        if (isMultiplayer) {
-            mainGameBoardMultiplayer(root, scene);
+    public Game(boolean isMultiplayer, Launcher launcher) {
+        this.launcher = launcher;
+        this.gameStage = new Stage();
+        this.gameStage.setTitle("Frisian Draughts - Game");
+
+        this.gameRoot = new Pane();
+        Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
+
+        // Load CSS
+        URL cssUrl = getClass().getResource("/stylesheet.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
         } else {
-            mainGameBoard(root, scene);
+            System.err.println("Stylesheet not found");
         }
-        playerUI(root, scene, true);
-        playerUI(root, scene, false);
-        chatUI(root, scene);
-        buttonGameLogic(root, scene);
-        moveList(root, scene);
+
+        this.gameStage.setScene(scene);
+
+        // Initialize game UI
+        if (isMultiplayer) {
+            mainGameBoardMultiplayer(gameRoot, scene);
+        } else {
+            mainGameBoard(gameRoot, scene);
+        }
+        playerUI(gameRoot, scene, true);
+        playerUI(gameRoot, scene, false);
+        chatUI(gameRoot, scene);
+        buttonGameLogic(gameRoot, scene);
+        moveList(gameRoot, scene);
+
+        // Handle close event
+        this.gameStage.setOnCloseRequest(e -> {
+            // Check if the menu window exists
+            if (Launcher.menuStage == null) {
+                // Recreate the menu
+                launcher.showMenu();
+            }
+        });
+    }
+
+    public void showGameWindow() {
+        this.gameStage.show();
+    }
+
+    public Pane getGameRoot() {
+        return gameRoot;
     }
 
     private void mainGameBoard(Pane root, Scene scene) {
@@ -158,7 +200,7 @@ public class Game {
         Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
         Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, () -> {});
-        Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> Launcher.changeState(0));
+        Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> gameStage.close());
 
         controlButtons.getChildren().addAll(undoButton.getButton(), drawButton.getButton(), resignButton.getButton(), restartButton.getButton(), settingsButton.getButton(), exitButton.getButton());
         root.getChildren().addAll(controlButtons);

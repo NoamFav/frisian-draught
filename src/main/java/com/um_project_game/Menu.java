@@ -16,6 +16,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 public class Menu {
+
+    private Pane menuRoot;
+    private Launcher launcher;
  
     // Dimensions
     private int topBarHeight = 75;
@@ -46,13 +49,19 @@ public class Menu {
     /**
      * @param root
      */
-    public Menu(Pane root, Scene scene) {
-        setTopBar(scene, root);
-        setBottomBar(scene, root);
-        setMenuButtons(scene, root);
-        setRecentGames(scene, root);
-        setLiveGame(scene, root);
-        setVersionStatus(scene, root);
+    public Menu(Pane root, Scene scene, Launcher launcher) {
+        this.launcher = launcher;
+        this.menuRoot = root; // Use the root passed in
+        setTopBar(scene, menuRoot);
+        setBottomBar(scene, menuRoot);
+        setMenuButtons(scene, menuRoot);
+        setRecentGames(scene, menuRoot);
+        setLiveGame(scene, menuRoot);
+        setVersionStatus(scene, menuRoot);
+    }
+
+    public Pane getMenuRoot() {
+        return menuRoot;
     }
 
     private void setTopBar(Scene scene, Pane root) {
@@ -95,8 +104,8 @@ public class Menu {
 
         Runnable nill = () -> {};
 
-        Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, () -> Launcher.changeState(1));
-        Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, () -> Launcher.changeState(2));
+        Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, () -> launcher.startNewGame(false));
+        Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, () -> launcher.startNewGame(true));
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, nill);
 
