@@ -44,8 +44,12 @@ public class Move {
         return !capturedPositions.isEmpty();
     }
 
+    //PGN Notation used for Export/Import and Visualization in MovesList
     @Override
     public String toString() {
-        return TileConversion.getTileNotation(startPosition) + "-" + TileConversion.getTileNotation(endPosition);
+
+        return TileConversion.getTileNotation(startPosition) +
+                (capturedPositions.isEmpty() ? "-" : "x") +
+                TileConversion.getTileNotation(endPosition);
     }
 }
