@@ -199,7 +199,7 @@ public class Game {
         Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> drawWarning());
         Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
         Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
-        Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, () -> {});
+        Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
         Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> gameStage.close());
 
         controlButtons.getChildren().addAll(undoButton.getButton(), drawButton.getButton(), resignButton.getButton(), restartButton.getButton(), settingsButton.getButton(), exitButton.getButton());

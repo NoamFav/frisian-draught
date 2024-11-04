@@ -19,6 +19,7 @@ public class Menu {
 
     private Pane menuRoot;
     private Launcher launcher;
+    private Settings settings;
  
     // Dimensions
     private int topBarHeight = 75;
@@ -107,7 +108,7 @@ public class Menu {
         Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, () -> launcher.startNewGame(false));
         Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, () -> launcher.startNewGame(true));
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
-        Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, nill);
+        Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
 
         controlButtons.getChildren().addAll(startGameButton.getButton(), multiplayerButton.getButton(), tutorialButton.getButton(), settingsButton.getButton());
         controlButtons.setId("control-buttons");
