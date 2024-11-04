@@ -18,7 +18,16 @@ public class MovesListManager {
     public void updateMovesListUI(List<Move> moves) {
         if (movesListGridPane != null) {
             movesListGridPane.getChildren().clear(); // Clear previous moves
-            int row = 0; // Initialize row index
+            // Add header row
+            Text turnHeader = new Text("Turn");
+            Text whiteHeader = new Text("White");
+            Text blackHeader = new Text("Black");
+
+            movesListGridPane.add(turnHeader, 0, 0); // Column 0, Row 0
+            movesListGridPane.add(whiteHeader, 1, 0); // Column 1, Row 0
+            movesListGridPane.add(blackHeader, 2, 0); // Column 2, Row 0
+
+            int row = 1; // Start with row 1 for moves, since row 0 is the header
 
             for (int i = 0; i < moves.size(); i++) {
                 Move move = moves.get(i);

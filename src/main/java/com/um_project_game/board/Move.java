@@ -6,41 +6,46 @@ import org.joml.Vector2i;
 import java.util.Collections;
 import java.util.List;
 
+public class Move {
 
-public record Move(int initial, int next, List<Vector2i> capturedPositions) {
+    private Vector2i startPosition;
+    private Vector2i endPosition;
+    private List<Vector2i> capturedPositions;
 
-    // Primary constructor with all fields
-    public Move(Vector2i initialPosition, Vector2i nextPosition, List<Vector2i> capturedPositions) {
-        this(TileConversion.getTileNotation(initialPosition), TileConversion.getTileNotation(nextPosition), capturedPositions);
+    // Primary constructor with capturing positions
+    public Move(Vector2i startPosition, Vector2i endPosition, List<Vector2i> capturedPositions) {
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.capturedPositions = capturedPositions;
     }
 
-    // Private constructor to handle non-capturing moves
-    public Move(Vector2i initialPosition, Vector2i nextPosition) {
-        this(TileConversion.getTileNotation(initialPosition), TileConversion.getTileNotation(nextPosition), Collections.emptyList());
+    // Secondary constructor for non-capturing moves
+    public Move(Vector2i startPosition, Vector2i endPosition) {
+        this(startPosition, endPosition, Collections.emptyList());
     }
 
-
-    // Getter for the initial position as a Vector2i
-    public Vector2i getInitialPosition() {
-        return TileConversion.getTileVector(initial);
+    // Getter for the start position as a Vector2i
+    public Vector2i getStartPosition() {
+        return startPosition;
     }
 
-    // Getter for the next position as a Vector2i
-    public Vector2i getFinalPosition() {
-        return TileConversion.getTileVector(next);
+    // Getter for the end position as a Vector2i
+    public Vector2i getEndPosition() {
+        return endPosition;
     }
 
-    // Getter for the captured position (returns null for non-capturing moves)
+    // Getter for captured positions
     public List<Vector2i> getCapturedPositions() {
         return capturedPositions;
     }
 
-    @Override
-    public String toString() {
-        return initial + "-" + next;
+    // Checks if the move is a capturing move
+    public boolean isCapture() {
+        return !capturedPositions.isEmpty();
     }
 
-    public boolean isCapture() {
-        return capturedPositions.size() == 0;
+    @Override
+    public String toString() {
+        return TileConversion.getTileNotation(startPosition) + "-" + TileConversion.getTileNotation(endPosition);
     }
 }
