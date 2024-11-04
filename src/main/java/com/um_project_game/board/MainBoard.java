@@ -1,7 +1,25 @@
 package com.um_project_game.board;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
+
+import org.joml.Vector2i;
+
+import com.um_project_game.Launcher;
 import com.um_project_game.util.SoundPlayer;
-import javafx.animation.*;
+
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -14,12 +32,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import org.joml.Vector2i;
-
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
 
 /**
  * Represents the main board of the game.
@@ -57,7 +69,7 @@ public class MainBoard {
     private List<Node> highlightNodes = new ArrayList<>();
 
     // Sound and game info
-    private SoundPlayer soundPlayer = new SoundPlayer();
+    private SoundPlayer soundPlayer = Launcher.soundPlayer;
     private GameInfo gameInfo;
 
     /**
@@ -936,9 +948,6 @@ public class MainBoard {
             // Update the pawn's position in the GridPane
             GridPane.setColumnIndex(pawnView, landingPos.x);
             GridPane.setRowIndex(pawnView, landingPos.y);
-
-            // Optionally, bring the pawnView back to its original z-order
-            // (Not necessary unless you have specific z-order requirements)
 
             isAnimating = false;
 

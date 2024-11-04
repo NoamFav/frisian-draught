@@ -18,6 +18,7 @@ import java.util.Optional;
 public class Launcher extends Application {
 
     public static SoundPlayer soundPlayer = new SoundPlayer();
+    public static Settings settings;
 
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
@@ -28,6 +29,7 @@ public class Launcher extends Application {
     @Override
     public void start(Stage stage) {
         menuStage = stage;
+        settings = new Settings(soundPlayer);
         setupMenuStage(menuStage);
     }
 
@@ -121,7 +123,6 @@ public class Launcher extends Application {
     }
 
     public static void main(String[] args) {
-        soundPlayer.playBackgroundMusic();
         launch();
     }
 }
