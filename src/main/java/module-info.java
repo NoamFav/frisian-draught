@@ -16,4 +16,8 @@ module com.um_project_game {
 
     opens com.um_project_game to javafx.graphics;
     exports com.um_project_game;
+    exports com.um_project_game.board;
+    exports com.um_project_game.AI;
+    exports com.um_project_game.util;
+    exports com.um_project_game.Server;
 }
