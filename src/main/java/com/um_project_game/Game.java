@@ -1,29 +1,24 @@
 package com.um_project_game;
 
-import java.util.Optional;
-import java.util.Random;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-import org.joml.Vector2i;
-
+import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
-import com.um_project_game.board.GameInfo;
-
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
+import org.joml.Vector2i;
+
+import java.util.Optional;
+import java.util.Random;
+import java.util.function.Consumer;
 
 public class Game {
 
@@ -56,6 +51,7 @@ public class Game {
     private int movesListY = 469;
     private int movesListWidth = buttonWidth;
     private int movesListHeight = 222;
+    private GridPane movesListGridPane = new GridPane();
 
     public Game(Pane root, Scene scene) {
         mainGameBoard(root, scene);
@@ -67,7 +63,7 @@ public class Game {
     }
 
     private void mainGameBoard(Pane root, Scene scene) {
-        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo);
+        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo, movesListGridPane);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
 
@@ -146,7 +142,7 @@ public class Game {
         controlButtons.setLayoutX(controlButtonsX);
         controlButtons.setLayoutY(controlButtonsY);
 
-        Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> {});
+        Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> {mainBoard.undoLastMove();});
         Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> drawWarning());
         Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
         Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
@@ -160,6 +156,7 @@ public class Game {
     private void moveList(Pane root, Scene scene) {
         StackPane movesList = new StackPane();
         movesList.setPrefSize(movesListWidth, movesListHeight);
+        movesList.setMaxWidth(movesListWidth);
         movesList.setLayoutX(movesListX);
         movesList.setLayoutY(movesListY);
         movesList.getStyleClass().add("movesList");
@@ -167,10 +164,44 @@ public class Game {
         Text movesListText = new Text("Moves List");
         movesListText.getStyleClass().add("movesListText");
 
-        movesList.getChildren().add(movesListText);
+        // Fetch the moves list grid pane
+        movesListGridPane = mainBoard.getMovesListGridPane();
 
+        // Check if movesListGridPane is null
+        if (movesListGridPane == null) {
+            System.err.println("Error: movesListGridPane is null. Please check getMovesListGridPane() in MainBoard.");
+            return;
+        }
+
+        // Three columns: Turn - White - Black
+        int numColumns = 3;
+
+        // Calculated width of columns
+        double columnWidth = movesListWidth / numColumns;
+
+        // Add column constraints
+        for (int i = 0; i < numColumns; i++) {
+            movesListGridPane.getColumnConstraints().add(new ColumnConstraints(columnWidth));
+        }
+
+        // Create a ScrollPane and add movesListGridPane to it
+        ScrollPane scrollPane = new ScrollPane(movesListGridPane);
+        scrollPane.setStyle("-fx-background: white; -fx-background-color: white;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        // Wrap ScrollPane in a VBox with padding for better visibility
+        VBox scrollPaneWrapper = new VBox(scrollPane);
+        scrollPaneWrapper.setPadding(new Insets(10));
+        scrollPaneWrapper.setPrefSize(movesListWidth, movesListHeight);
+
+        // Add to StackPane
+        movesList.getChildren().add(scrollPaneWrapper);
         root.getChildren().add(movesList);
     }
+
+
+
+
 
     private void restartWarning() {
         
