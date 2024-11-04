@@ -3,22 +3,31 @@ package com.um_project_game.Server;
 import java.io.*;
 import java.net.*;
 
-public class MainServer {
+public class MainServer implements Runnable {
 
     private ServerSocket serverSocket;
 
-    public void start() {
+    @Override
+    public void run() {
         int port = 9000;
 
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Server is listening on port " + port);
 
-            while (true) {
-                Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
-
-                new ClientHandler(socket).start();
+            while (!serverSocket.isClosed()) {
+                try {
+                    Socket socket = serverSocket.accept();
+                    System.out.println("New client connected");
+                    new ClientHandler(socket).start();
+                } catch (SocketException ex) {
+                    if (serverSocket.isClosed()) {
+                        System.out.println("Server socket closed, exiting loop.");
+                        break; 
+                    } else {
+                        throw ex;
+                    }
+                }
             }
         } catch (IOException ex) {
             System.out.println("Server exception: " + ex.getMessage());
@@ -28,7 +37,10 @@ public class MainServer {
 
     public void close() {
         try {
-            serverSocket.close();
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+                System.out.println("Server closed");
+            }
         } catch (IOException ex) {
             System.out.println("Server exception: " + ex.getMessage());
             ex.printStackTrace();
