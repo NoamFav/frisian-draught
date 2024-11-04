@@ -1,16 +1,8 @@
 package com.um_project_game;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.um_project_game.util.SoundPlayer;
 import com.um_project_game.Server.MainServer;
+import com.um_project_game.util.SoundPlayer;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -19,36 +11,30 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
-/**
- * Launcher for the app
- */
+import java.net.URL;
+import java.util.Optional;
+
 public class Launcher extends Application {
 
-    static SoundPlayer soundPlayer = new SoundPlayer();
+    public static SoundPlayer soundPlayer = new SoundPlayer();
 
-    private PauseTransition resizePause;
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
     public static final MainServer server = new MainServer();
-    public static int GAME_STATE = 0; // 0 = Menu, 1 = Game, 2 = Multiplayer
-    private Stage primaryStage;
-    private Menu menu;
-    private List<Game> activeGames = new ArrayList<>();
+
+    public static Stage menuStage;
 
     @Override
-    public void start(@NotNull Stage stage) {
-        this.primaryStage = stage;
-        setupStage();
+    public void start(Stage stage) {
+        menuStage = stage;
+        setupMenuStage(menuStage);
     }
 
-    private void setupStage() {
+    private void setupMenuStage(Stage stage) {
         Pane root = new Pane();
-        Scene scene = new Scene(root, 1366, 768);
-        primaryStage.setTitle("Hello!");
-
-        gameStateSwitch(root, scene);
+        Scene scene = new Scene(root, REF_WIDTH, REF_HEIGHT);
+        stage.setTitle("Frisian Draughts - Menu");
 
         URL cssUrl = getClass().getResource("/stylesheet.css");
         if (cssUrl != null) {
@@ -67,94 +53,47 @@ public class Launcher extends Application {
             }
         });
 
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setScene(scene);
+
+        // Create and display the menu
+        Menu menu = new Menu(root, scene, this);
+
+        // Handle close event
+        stage.setOnCloseRequest(e -> {
+            // If there are no other windows open, exit the application
+            if (Stage.getWindows().size() <= 1) {
+                // This is the last window, so exit
+                Platform.exit();
+            } else {
+                // Just hide the menu window
+                menuStage = null;
+                stage.hide();
+            }
+        });
+
+        stage.show();
     }
 
-    private void gameStateSwitch(Pane root, Scene scene) {
-        switch (GAME_STATE) {
-            case 0:
-                menu = new Menu(root, scene);
+    public void startNewGame(boolean isMultiplayer) {
+        Game game = new Game(isMultiplayer, this);
+        game.showGameWindow();
+    }
 
-
-                if (server.isRunning()) {
-                    server.close();
-                }
-
-                resizePause = new PauseTransition(Duration.millis(50));
-                resizePause.setOnFinished(event -> {
-                    menu.onResize(root, scene);
-                });
-
-                // Add resize listeners
-                scene.widthProperty().addListener((observable, oldValue, newValue) -> {
-                    resizePause.playFromStart(); // Restart the pause every time the size changes
-                });
-
-                scene.heightProperty().addListener((observable, oldValue, newValue) -> {
-                    resizePause.playFromStart(); // Restart the pause every time the size changes
-                });
-
-                break;
-            case 1:
-                if (server.isRunning()) {
-                    server.close();
-                }
-
-                Game game = new Game(root, scene, false);
-                activeGames.add(game);
-                resizePause = new PauseTransition(Duration.millis(50));
-                resizePause.setOnFinished(event -> {
-                    game.onResize(root, scene);
-                });
-
-                // Add resize listeners
-                scene.widthProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
-                scene.heightProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
-
-                break;
-            case 2:
-                Game gameMultiplayer = new Game(root, scene, true);
-                activeGames.add(gameMultiplayer);
-
-                if (server.isRunning()) {
-                    server.close();
-                }
-
-                Thread serverThread = new Thread(server);
-                serverThread.setDaemon(true);
-                serverThread.start();
-
-                resizePause = new PauseTransition(Duration.millis(50));
-                resizePause.setOnFinished(event -> {
-                    gameMultiplayer.onResize(root, scene);
-                });
-
-                // Add resize listeners
-                scene.widthProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
-                scene.heightProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
-                break;
-            default:
-                break;
+    public void closeMenu() {
+        if (menuStage != null) {
+            menuStage.close();
+            menuStage = null;
         }
     }
 
-    public void closeGame(Game gameToClose) {
-        activeGames.remove(gameToClose); // Remove the game from the list
-        Platform.runLater(() -> {
-            changeState(0); // Switch back to the menu
-            setupStage(); // Refresh the stage with the menu
-        });
-    }
-
-    public static void changeState(int newState) {
-        GAME_STATE = newState;
-
-        Platform.runLater(() -> {
-            Launcher instance = new Launcher();
-            Stage newStage = new Stage();
-            instance.start(newStage);
-        });
+    public void showMenu() {
+        if (menuStage == null) {
+            Stage newMenuStage = new Stage();
+            menuStage = newMenuStage;
+            setupMenuStage(menuStage);
+        } else {
+            menuStage.show();
+        }
     }
 
     private void showExitConfirmation() {
