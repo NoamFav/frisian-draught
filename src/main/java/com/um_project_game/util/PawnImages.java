@@ -6,16 +6,27 @@ import javafx.scene.image.Image;
 
 public record PawnImages(Image whitePawn, Image blackPawn, Image whiteKing, Image blackKing, Image whitePawnHover, Image blackPawnHover, Image whiteKingHover, Image blackKingHover) {
 
-    public static PawnImages getPawnImage() {
-        Image whitePawn = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_pawn.png")));
-        Image blackPawn = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_pawn.png")));
-        Image whiteKing = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_king.png")));
-        Image blackKing = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_king.png")));
-        Image whitePawnHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_focused_pawn.png")));
-        Image blackPawnHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_focused_pawn.png")));
-        Image whiteKingHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_focused_king.png")));
-        Image blackKingHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_focused_king.png")));
+    private static Image cachedWhitePawn;
+    private static Image cachedBlackPawn;
+    private static Image cachedWhiteKing;
+    private static Image cachedBlackKing;
+    private static Image cachedWhitePawnHover;
+    private static Image cachedBlackPawnHover;
+    private static Image cachedWhiteKingHover;
+    private static Image cachedBlackKingHover;
 
-        return new PawnImages(whitePawn, blackPawn, whiteKing, blackKing, whitePawnHover, blackPawnHover, whiteKingHover, blackKingHover);
+    public static PawnImages getPawnImage() {
+        if (cachedWhitePawn == null) {
+            cachedWhitePawn = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_pawn.png")));
+            cachedBlackPawn = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_pawn.png")));
+            cachedWhiteKing = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_king.png")));
+            cachedBlackKing = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_king.png")));
+            cachedWhitePawnHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_focused_pawn.png")));
+            cachedBlackPawnHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_focused_pawn.png")));
+            cachedWhiteKingHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_focused_king.png")));
+            cachedBlackKingHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_focused_king.png")));
+        }
+        return new PawnImages(cachedWhitePawn, cachedBlackPawn, cachedWhiteKing, cachedBlackKing,
+                cachedWhitePawnHover, cachedBlackPawnHover, cachedWhiteKingHover, cachedBlackKingHover);
     }
 }
