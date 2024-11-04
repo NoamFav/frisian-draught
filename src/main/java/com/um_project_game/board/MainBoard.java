@@ -815,8 +815,8 @@ public class MainBoard {
      */
     public void undoMove(Move move) {
         // Retrieve the pawn that was moved
-        Vector2i initialPos = move.getInitialPosition();
-        Vector2i finalPos = move.getFinalPosition();
+        Vector2i initialPos = move.getStartPosition();
+        Vector2i finalPos = move.getEndPosition();
 
         // Find the pawn that needs to be moved back
         Pawn movedPawn = getPawnAtPosition(finalPos);
