@@ -54,3 +54,42 @@
     -fx-border-radius: 15;
     -fx-background-radius: 15;
 }
+
+.settings-label {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-padding: 5 0 5 0;
+}
+
+.settings-slider {
+    -fx-padding: 0 0 0 0;
+}
+
+/* Correct selectors for subnodes */
+
+/* Track */
+.settings-slider .track {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 5;
+}
+
+/* Thumb */
+.settings-slider .thumb {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 0, 1);
+}
+
+/* Thumb when hovered */
+.settings-slider .thumb:hover {
+    -fx-background-color: #333333;
+}
+
+/* Hide Increment and Decrement Buttons */
+.settings-slider .increment-button,
+.settings-slider .decrement-button {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
