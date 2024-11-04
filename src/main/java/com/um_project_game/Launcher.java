@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 import com.um_project_game.util.SoundPlayer;
+import com.um_project_game.Server.MainServer;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
@@ -28,6 +29,7 @@ public class Launcher extends Application {
     private PauseTransition resizePause;
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
+    public static final MainServer server = new MainServer();
     public static int GAME_STATE = 0; // 0 = Menu, 1 = Game, 2 = Settings
     private Stage primaryStage;
 
@@ -70,6 +72,10 @@ public class Launcher extends Application {
             case 0:
                 Menu menu = new Menu(root, scene);
 
+                if (server.isRunning()) {
+                    server.close();
+                }
+
                 resizePause = new PauseTransition(Duration.millis(50));
                 resizePause.setOnFinished(event -> {
                     menu.onResize(root, scene);
@@ -86,7 +92,7 @@ public class Launcher extends Application {
 
                 break;
             case 1:
-                Game game = new Game(root, scene);
+                Game game = new Game(root, scene, false);
 
                 resizePause = new PauseTransition(Duration.millis(50));
                 resizePause.setOnFinished(event -> {
@@ -104,7 +110,22 @@ public class Launcher extends Application {
 
                 break;
             case 2:
-                // Settings
+                Game gameMultiplayer = new Game(root, scene, true);
+                server.start();
+
+                resizePause = new PauseTransition(Duration.millis(50));
+                resizePause.setOnFinished(event -> {
+                    gameMultiplayer.onResize(root, scene);
+                });
+
+                // Add resize listeners
+                scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+                    resizePause.playFromStart(); // Restart the pause every time the size changes
+                });
+
+                scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+                    resizePause.playFromStart(); // Restart the pause every time the size changes
+                });
                 break;
             default:
                 break;

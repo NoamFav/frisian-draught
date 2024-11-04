@@ -34,6 +34,7 @@ public class MainBoard {
     private boolean isActive = true;
     private boolean boardInitialized = false;
     private boolean isAnimating = false;
+    private boolean isMultiplayer = false;
 
     // Board-related fields
     private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
@@ -84,7 +85,14 @@ public class MainBoard {
         renderBoard();
         renderPawns();
 
+        System.out.println("isMultiplayer: " + isMultiplayer);
+
         return board;
+    }
+
+    public GridPane getMainBoardMultiplayer(Pane root, float boardPixelSize, Vector2i boardPosition, GameInfo gameInfo, GridPane movesListGridPane, boolean isMultiplayer) {
+        this.isMultiplayer = isMultiplayer;
+        return getMainBoard(root, boardPixelSize, boardPosition, gameInfo, movesListGridPane);
     }
     
     /**

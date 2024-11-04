@@ -53,8 +53,12 @@ public class Game {
     private int movesListHeight = 222;
     private GridPane movesListGridPane = new GridPane();
 
-    public Game(Pane root, Scene scene) {
-        mainGameBoard(root, scene);
+    public Game(Pane root, Scene scene, boolean isMultiplayer) {
+        if (isMultiplayer) {
+            mainGameBoardMultiplayer(root, scene);
+        } else {
+            mainGameBoard(root, scene);
+        }
         playerUI(root, scene, true);
         playerUI(root, scene, false);
         chatUI(root, scene);
@@ -70,12 +74,19 @@ public class Game {
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
     }
 
+    private void mainGameBoardMultiplayer(Pane root, Scene scene) {
+        board = mainBoard.getMainBoardMultiplayer(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo, movesListGridPane, true);
+        board.getStyleClass().add("mainboard");
+        root.getChildren().add(board);
+
+        isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
+    }
+
     private void resizeBoard(Pane root) {
         board = mainBoard.resizeBoard(mainBoardSize);
         board.setLayoutX(mainBoardX);
         board.setLayoutY(mainBoardY);
         root.getChildren().add(board);
-
     }
 
     private void playerUI(Pane root, Scene scene, boolean isPlayerOne) {

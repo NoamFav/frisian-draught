@@ -93,10 +93,10 @@ public class Menu {
         controlButtons.setLayoutX(controlButtonsX);
         controlButtons.setLayoutY(controlButtonsY);
 
-        Runnable nill = () -> {}; // TODO: Implement the actions for the buttons
+        Runnable nill = () -> {};
 
         Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, () -> Launcher.changeState(1));
-        Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, nill);
+        Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, () -> Launcher.changeState(2));
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, nill);
 
