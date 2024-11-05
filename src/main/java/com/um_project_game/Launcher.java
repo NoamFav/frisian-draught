@@ -3,6 +3,7 @@ package com.um_project_game;
 import com.um_project_game.Server.MainServer;
 import com.um_project_game.util.SoundPlayer;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -11,18 +12,20 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.Optional;
 
 public class Launcher extends Application {
 
+    private PauseTransition resizePause;
     public static SoundPlayer soundPlayer = new SoundPlayer();
     public static Settings settings;
 
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
-    public static final MainServer server = new MainServer();
+    public static final ViewManager viewManager = new ViewManager(new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
 
     public static Stage menuStage;
 
@@ -60,6 +63,13 @@ public class Launcher extends Application {
         // Create and display the menu
         Menu menu = new Menu(root, scene, this);
 
+        resizePause = new PauseTransition(Duration.millis(50));
+        resizePause.setOnFinished(event -> menu.onResize(root, scene));
+
+        // Add resize listeners
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
+
         // Handle close event
         stage.setOnCloseRequest(e -> {
             // If there are no other windows open, exit the application
@@ -73,12 +83,13 @@ public class Launcher extends Application {
             }
         });
 
+
+
         stage.show();
     }
 
     public void startNewGame(boolean isMultiplayer) {
-        Game game = new Game(isMultiplayer, this);
-        game.showGameWindow();
+        viewManager.gameStateSwitch(isMultiplayer ? 2 : 1);
     }
 
     public void closeMenu() {
@@ -89,6 +100,7 @@ public class Launcher extends Application {
     }
 
     public void showMenu() {
+        viewManager.gameStateSwitch(0);
         if (menuStage == null) {
             Stage newMenuStage = new Stage();
             menuStage = newMenuStage;
@@ -115,8 +127,10 @@ public class Launcher extends Application {
         Optional<ButtonType> result = alert.showAndWait();
 
         if (result.isPresent() && result.get() == yesButton) {
+            MainServer server = viewManager.getServer();
             if (server.isRunning()) {
                 server.close();
+                System.out.println("Server closed");
             }
             Platform.exit(); // Close the application
         }
