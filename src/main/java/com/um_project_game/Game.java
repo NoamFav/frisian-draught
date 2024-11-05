@@ -3,6 +3,8 @@ package com.um_project_game;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
+
+import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.geometry.Insets;
@@ -15,6 +17,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import org.joml.Vector2i;
 
@@ -30,6 +33,8 @@ public class Game {
 
     private GameInfo gameInfo = new GameInfo();
     private BooleanBinding isWhiteTurn;
+
+    private PauseTransition resizePause;
 
     private Pane gameRoot;
     private Launcher launcher;
@@ -89,6 +94,20 @@ public class Game {
         chatUI(gameRoot, scene);
         buttonGameLogic(gameRoot, scene);
         moveList(gameRoot, scene);
+
+        resizePause = new PauseTransition(Duration.millis(50));
+        resizePause.setOnFinished(event -> {
+            onResize(gameRoot, scene);
+        });
+
+        // Add resize listeners
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+            resizePause.playFromStart(); // Restart the pause every time the size changes
+        });
+
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+            resizePause.playFromStart(); // Restart the pause every time the size changes
+        });
 
         // Handle close event
         this.gameStage.setOnCloseRequest(e -> {

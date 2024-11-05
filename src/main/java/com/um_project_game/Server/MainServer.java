@@ -39,6 +39,7 @@ public class MainServer implements Runnable {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
+                serverSocket = null; // Reset the serverSocket
                 System.out.println("Server closed");
             }
         } catch (IOException ex) {
