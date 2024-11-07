@@ -9,6 +9,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
+import com.um_project_game.util.GameExporter;
 import org.joml.Vector2i;
 
 import com.um_project_game.Launcher;
@@ -70,6 +71,7 @@ public class MainBoard {
 
     // Sound and game info
     private SoundPlayer soundPlayer = Launcher.soundPlayer;
+
     private GameInfo gameInfo;
 
     /**
@@ -159,6 +161,9 @@ public class MainBoard {
         gameInfo.scorePlayerOne.set(0);
         gameInfo.scorePlayerTwo.set(0);
         gameInfo.playerTurn.set(1);
+        // Clear moves list
+        takenMoves.clear();
+        updateMovesListUI();
 
         // Reset the size of the tiles
         for (int y = 0; y < boardSize.y; y++) {
@@ -443,9 +448,9 @@ public class MainBoard {
         captureCheck(pawn, inBounds, x, y, new CapturePath(), allPaths);
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(pawn, allPaths);
+            handleCaptureMoves(pawn, allPaths, false, false);
         } else if (requiredPawns.isEmpty()) { 
-            handleNormalMoves(pawn, inBounds, x, y);
+            handleNormalMoves(pawn, inBounds, x, y, false, false);
         }
     }
 
@@ -458,23 +463,26 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      * @param allPaths List of all possible capture paths.
      */
-    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths) {
+    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths, boolean isAutomatic, boolean isAnimated) {
         double maxCaptureValue = allPaths.stream()
-                                     .mapToDouble(CapturePath::getCaptureValue)
-                                     .max()
-                                     .orElse(0);
-
-        // Log the maximum capture value to confirm it's working as expected
-        System.out.println("Max capture value: " + maxCaptureValue);
+                .mapToDouble(CapturePath::getCaptureValue)
+                .max()
+                .orElse(0);
 
         // Filter paths that have the maximum capture value
         List<CapturePath> maxCapturePaths = allPaths.stream()
-                                                    .filter(path -> path.getCaptureValue() == maxCaptureValue)
-                                                    .collect(Collectors.toList());
+                .filter(path -> path.getCaptureValue() == maxCaptureValue)
+                .collect(Collectors.toList());
 
-        // Log the number of valid capture paths (should only include maximum captures)
-        System.out.println("Number of valid capture paths: " + maxCapturePaths.size());
+        if (isAutomatic) {
+            // Execute the first maximum capture path automatically
+            if (!maxCapturePaths.isEmpty()) {
+                executeCaptureMove(pawn, maxCapturePaths.get(0), isAnimated);
+            }
+            return; // Exit after executing automatic move
+        }
 
+        // If not automatic, set up click listeners for manual move handling
         for (CapturePath path : maxCapturePaths) {
             Vector2i landingPos = path.getLastPosition();
 
@@ -482,37 +490,80 @@ public class MainBoard {
             board.add(square, landingPos.x, landingPos.y);
             possibleMoves.add(landingPos);
 
+            // Set up manual click event
             square.setOnMouseClicked(event -> {
                 if (isWhiteTurn != pawn.isWhite() || isAnimating) {
-                    System.out.println("Not your turn!");
+                    System.out.println("Not your turn or animation in progress!");
                     return;
                 }
-                soundPlayer.playMoveSound();
+                soundPlayer.playCaptureSound();
 
-                // Clear highlights before starting the animation
+                // Clear highlights and reset move count
                 clearHighlights();
-
                 pawn.resetNumberOfNonCapturingMoves();
 
-                // Animate pawn movement along the capture path
-                animatePawnCaptureMovement(pawn, path, () -> {
-                    checkGameOver();
-                    promotePawnIfNeeded(pawn, path.getLastPosition());
-                    updateMovesListUI();
-                    recordBoardState();
-                    switchTurn();
-                    focusedPawn = null;
-
-                    // Update scores
-                    int captures = path.getCaptureCount();
-                    if (pawn.isWhite()) {
-                        gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
-                    } else {
-                        gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
-
-                    }
-                });
+                // Execute capture move
+                executeCaptureMove(pawn, path, isAnimated);
             });
+        }
+    }
+
+    private void executeCaptureMove(Pawn pawn, CapturePath path, boolean isAnimated) {
+        // Writing here what happens. If animated, then
+        if (isAnimated) {
+            animatePawnCaptureMovement(pawn, path, () -> processAfterCaptureMove(pawn, path));
+            addMoveToHistory(pawn, path);
+        } else {
+            // Directly process the capture steps without animation
+            addMoveToHistory(pawn, path);
+            processCaptureSteps(pawn, path);
+            processAfterCaptureMove(pawn, path);  // Finalize the move
+        }
+    }
+    private void processCaptureSteps(Pawn pawn, CapturePath path) {
+        List<Vector2i> positions = path.positions;
+        List<Pawn> capturedPawns = path.capturedPawns;
+
+        for (int i = 0; i < positions.size(); i++) {
+            Vector2i nextPos = positions.get(i);
+
+            // Update the pawn position and capture any pawns in the path
+            processCaptureStep(pawn, nextPos, capturedPawns, i);
+        }
+    }
+
+    private void processCaptureStep(Pawn pawn, Vector2i nextPos, List<Pawn> capturedPawns, int stepIndex) {
+        ImageView pawnView = pawnViews.get(pawn);
+
+        // Update the pawn's position in the GridPane
+        GridPane.setColumnIndex(pawnView, nextPos.x);
+        GridPane.setRowIndex(pawnView, nextPos.y);
+
+        // Update the pawn's position in the data model
+        pawn.setPosition(nextPos);
+
+        // Capture any pawn at this step if one exists
+        if (stepIndex < capturedPawns.size()) {
+            Pawn capturedPawn = capturedPawns.get(stepIndex);
+            removePawn(capturedPawn); // This should handle removal from the board and updating the game state
+        }
+    }
+
+    private void processAfterCaptureMove(Pawn pawn, CapturePath path) {
+        checkGameOver();
+        promotePawnIfNeeded(pawn, path.getLastPosition());
+        updateMovesListUI();
+        recordBoardState();
+        switchTurn();
+        focusedPawn = null;
+        renderPawns();
+
+        // Update scores
+        int captures = path.getCaptureCount();
+        if (pawn.isWhite()) {
+            gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
+        } else {
+            gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
         }
     }
   
@@ -527,8 +578,11 @@ public class MainBoard {
      * @param x        Current x-coordinate of the pawn.
      * @param y        Current y-coordinate of the pawn.
      */
-    private void handleNormalMoves(Pawn pawn, 
-                                   BiPredicate<Integer, Integer> inBounds, int x, int y) {
+    private void handleNormalMoves(Pawn pawn,
+                                   BiPredicate<Integer, Integer> inBounds,
+                                   int x, int y,
+                                   boolean isAutomatic,
+                                   boolean isAnimated) {
         BiConsumer<Integer, Integer> highlightMove = (newX, newY) -> {
             Rectangle square = createHighlightSquare(Color.GREEN);
             board.add(square, newX, newY);
@@ -546,24 +600,14 @@ public class MainBoard {
                 soundPlayer.playMoveSound();
                 Vector2i landingPos = new Vector2i(newX, newY);
 
-                // Animate pawn movement
-                animatePawnMovement(pawn, landingPos, () -> {
-                    // Update pawn position after animation
-                    pawn.setPosition(landingPos);
-                    ImageView pawnView = pawnViews.get(pawn);
-                    GridPane.setColumnIndex(pawnView, landingPos.x);
-                    GridPane.setRowIndex(pawnView, landingPos.y);
+                takenMoves.add(new Move(pawn.getPosition(), landingPos));
 
-                    promotePawnIfNeeded(pawn, landingPos);
-                    checkGameOver();
-                    clearHighlights();
-                    updateMovesListUI();
-                    recordBoardState();
-                    switchTurn();
-                    focusedPawn = null;
-                });
-                
-            }); 
+                if (isAnimated) {
+                    animatePawnMovement(pawn, landingPos, () -> executeMove(pawn, landingPos));
+                } else {
+                    executeMove(pawn, landingPos);
+                }
+            });
         };
 
         if (!pawn.isKing()) {
@@ -576,16 +620,18 @@ public class MainBoard {
 
                 if (inBounds.test(newX, newY) && getPawnAtPosition(new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
+                    if (isAutomatic) {
+                        executeMove(pawn, new Vector2i(newX, newY));
+                        return; // Stop after the first automatic move
+                    }
                 }
             }
         } else {
-
             if (pawn.getNumberOfNonCapturingMoves() >= 3 && !onlyKingsLeft()) {
                 System.out.println("King cannot move more than 3 times without capturing.");
                 return;
             }
 
-            // After a successful non-capturing move:
             pawn.incrementNumberOfNonCapturingMoves();
 
             int[][] diagonalDirections = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
@@ -597,11 +643,41 @@ public class MainBoard {
 
                 while (inBounds.test(newX, newY) && getPawnAtPosition(new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
+                    if (isAutomatic) {
+                        executeMove(pawn, new Vector2i(newX, newY));
+                        return;
+                    }
                     newX += dx;
                     newY += dy;
                 }
             }
         }
+    }
+
+    private void executeMove(Pawn pawn, Vector2i landingPos) {
+        pawn.setPosition(landingPos);
+        ImageView pawnView = pawnViews.get(pawn);
+        GridPane.setColumnIndex(pawnView, landingPos.x);
+        GridPane.setRowIndex(pawnView, landingPos.y);
+
+        promotePawnIfNeeded(pawn, landingPos);
+        checkGameOver();
+        clearHighlights();
+        updateMovesListUI();
+        recordBoardState();
+        switchTurn();
+        focusedPawn = null;
+    }
+
+    private void addMoveToHistory(Pawn pawn, CapturePath path) {
+        Vector2i landingPos = path.getLastPosition();
+        List<Vector2i> capturedPositions = path.capturedPawns.stream()
+                .map(Pawn::getPosition)
+                .collect(Collectors.toList());
+
+        // Create the Move object with the start and end positions
+        takenMoves.add(new Move(pawn.getPosition(), landingPos, capturedPositions));
+        System.out.println("Move recorded: " + takenMoves.getLast());
     }
 
     /**
@@ -849,19 +925,20 @@ public class MainBoard {
             if (movedPawnView != null) {
                 board.getChildren().remove(movedPawnView); // Remove the existing ImageView
             }
-        }
+            List<Vector2i> capturedPostions = move.getCapturedPositions();
+            // If a capture occurred during the move, restore the captured pawn
+            if (capturedPostions != null) {
+                // Create a new captured pawn object
+                for (Vector2i capturedPostion : capturedPostions) {
+                    Pawn capturedPawn = new Pawn(capturedPostion, !movedPawn.isWhite());
 
-        List<Vector2i> capturedPostions = move.getCapturedPositions();
-        // If a capture occurred during the move, restore the captured pawn
-        if (capturedPostions != null) {
-            // Create a new captured pawn object
-            for (Vector2i capturedPostion : capturedPostions) {
-                Pawn capturedPawn = new Pawn(capturedPostion, !movedPawn.isWhite());
-
-                // Restore the captured pawn to its original position
-                pawns.add(capturedPawn);
+                    // Restore the captured pawn to its original position
+                    pawns.add(capturedPawn);
+                }
             }
         }
+        System.out.println(move.getCapturedPositions());
+
         updateMovesListUI();
         switchTurn();
         // Clear any highlights and re-render the board
@@ -871,7 +948,9 @@ public class MainBoard {
 
     public void undoLastMove() {
         if (takenMoves.size() > 0) {
-            pastStates.removeLast();
+            if(pastStates.size() > 0) {
+                pastStates.removeLast();
+            }
             undoMove(takenMoves.removeLast());
             updateMovesListUI();
         }
@@ -921,9 +1000,6 @@ public class MainBoard {
         if (isAnimating) return; // Prevent new animations during an ongoing one
         isAnimating = true;
         ImageView pawnView = pawnViews.get(pawn);
-
-        takenMoves.add(new Move(pawn.getPosition(), landingPos));
-        System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front by moving it to the end of the children list
         board.getChildren().remove(pawnView);
@@ -995,18 +1071,9 @@ public class MainBoard {
                 pawnView.setTranslateX(0);
                 pawnView.setTranslateY(0);
 
-                // Update the pawn's position in the GridPane
-                GridPane.setColumnIndex(pawnView, nextPos.x);
-                GridPane.setRowIndex(pawnView, nextPos.y);
+                // Process each step to handle captures and update positions
+                processCaptureStep(pawn, nextPos, capturedPawns, index);
 
-                // Update the pawn's position
-                pawn.setPosition(nextPos);
-
-                // Remove captured pawn if any
-                if (index < capturedPawns.size()) {
-                    Pawn capturedPawn = capturedPawns.get(index);
-                    removePawn(capturedPawn);
-                }
             });
 
             animations.add(transition);
@@ -1030,8 +1097,6 @@ public class MainBoard {
         path.capturedPawns.forEach(capturedPawn -> {
             capturedPositions.add(capturedPawn.getPosition());
         });
-        takenMoves.add(new Move(pawn.getPosition(), positions.get(positions.size() - 1), capturedPositions));
-        System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front
         board.getChildren().remove(pawnView);
