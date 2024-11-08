@@ -1,17 +1,17 @@
 package com.um_project_game.board;
 
-import org.joml.Vector2i;
+import com.um_project_game.util.PawnImages;
 
 import javafx.scene.image.Image;
 
-import com.um_project_game.util.PawnImages;
+import org.joml.Vector2i;
 
 public class Pawn {
 
     private Vector2i position;
     private Vector2i initialPosition;
 
-	private boolean isKing;
+    private boolean isKing;
     private boolean isWhite;
     private Image image;
 
@@ -65,8 +65,8 @@ public class Pawn {
     }
 
     public Vector2i getInitialPosition() {
-		return initialPosition;
-	}
+        return initialPosition;
+    }
 
     public int getNumberOfNonCapturingMoves() {
         return numberOfNonCapturingMoves;

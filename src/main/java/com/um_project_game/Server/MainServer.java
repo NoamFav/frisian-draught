@@ -23,7 +23,7 @@ public class MainServer implements Runnable {
                 } catch (SocketException ex) {
                     if (serverSocket.isClosed()) {
                         System.out.println("Server socket closed, exiting loop.");
-                        break; 
+                        break;
                     } else {
                         throw ex;
                     }
@@ -62,9 +62,9 @@ class ClientHandler extends Thread {
 
     public void run() {
         try (InputStream input = socket.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-             OutputStream output = socket.getOutputStream();
-             PrintWriter writer = new PrintWriter(output, true)) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                OutputStream output = socket.getOutputStream();
+                PrintWriter writer = new PrintWriter(output, true)) {
 
             String text;
             while ((text = reader.readLine()) != null) {

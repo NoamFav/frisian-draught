@@ -17,12 +17,12 @@ public class TileConversion {
         }
 
         // odd tiles from 1 to 9
-        return remainder == 0 ?  9 : (remainder*2) - 1;
+        return remainder == 0 ? 9 : (remainder * 2) - 1;
     }
 
     // returns the vector from portable draughts notation
     public static Vector2i getTileVector(int tile) {
-        return new Vector2i(getCol(tile),getRow(tile));
+        return new Vector2i(getCol(tile), getRow(tile));
     }
 
     // returns the tile in portable draughts notation ( 1 through 50 )

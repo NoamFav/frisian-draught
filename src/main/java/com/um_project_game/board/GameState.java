@@ -1,12 +1,12 @@
 package com.um_project_game.board;
 
-import java.util.Map;
+import org.joml.Vector2i;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-
-import org.joml.Vector2i;
 
 public class GameState {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
@@ -62,7 +62,7 @@ public class GameState {
 
     public boolean isTerminal() {
         if (generateMoves().isEmpty()) {
-            return true; 
+            return true;
         }
 
         boolean whitePawnsExist = boardState.values().stream().anyMatch(pawn -> pawn.isWhite());
@@ -71,4 +71,3 @@ public class GameState {
         return !whitePawnsExist || !blackPawnsExist;
     }
 }
-

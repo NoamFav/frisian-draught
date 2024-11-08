@@ -1,10 +1,8 @@
 package com.um_project_game;
 
+import com.um_project_game.util.Buttons;
 import com.um_project_game.util.SoundPlayer;
 
-import java.net.URL;
-
-import com.um_project_game.util.Buttons;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -12,6 +10,8 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.net.URL;
 
 public class Settings {
 
@@ -85,10 +85,15 @@ public class Settings {
 
         // Add Save and Cancel buttons
         Buttons saveButton = new Buttons("Save", 100, 30, () -> settingsStage.close());
-        Buttons cancelButton = new Buttons("Cancel", 100, 30, () -> {
-            // Optionally revert changes if needed
-            settingsStage.close();
-        });
+        Buttons cancelButton =
+                new Buttons(
+                        "Cancel",
+                        100,
+                        30,
+                        () -> {
+                            // Optionally revert changes if needed
+                            settingsStage.close();
+                        });
 
         // Add buttons to a horizontal box
         HBox buttonBox = new HBox(10, saveButton.getButton(), cancelButton.getButton());
@@ -114,7 +119,8 @@ public class Settings {
         settingsStage.initModality(Modality.APPLICATION_MODAL);
 
         // Set up listeners
-        setupListeners(mainVolumeSlider, backgroundVolumeSlider, moveVolumeSlider, captureVolumeSlider);
+        setupListeners(
+                mainVolumeSlider, backgroundVolumeSlider, moveVolumeSlider, captureVolumeSlider);
     }
 
     private void setupSlider(Slider slider) {
@@ -124,47 +130,63 @@ public class Settings {
         slider.setBlockIncrement(0.01);
     }
 
-    private void setupListeners(Slider mainVolumeSlider, Slider backgroundVolumeSlider, Slider moveVolumeSlider, Slider captureVolumeSlider) {
+    private void setupListeners(
+            Slider mainVolumeSlider,
+            Slider backgroundVolumeSlider,
+            Slider moveVolumeSlider,
+            Slider captureVolumeSlider) {
         // Listener for Main Volume Slider
-        mainVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            mainVolume = newValue.doubleValue();
-            soundPlayer.setMainVolume(mainVolume);
+        mainVolumeSlider
+                .valueProperty()
+                .addListener(
+                        (observable, oldValue, newValue) -> {
+                            mainVolume = newValue.doubleValue();
+                            soundPlayer.setMainVolume(mainVolume);
 
-            // Adjust other sliders
-            backgroundVolumeSlider.setValue(mainVolume);
-            moveVolumeSlider.setValue(mainVolume);
-            captureVolumeSlider.setValue(mainVolume);
-        });
+                            // Adjust other sliders
+                            backgroundVolumeSlider.setValue(mainVolume);
+                            moveVolumeSlider.setValue(mainVolume);
+                            captureVolumeSlider.setValue(mainVolume);
+                        });
 
         // Listener for Background Volume Slider
-        backgroundVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            double effectiveVolume = newValue.doubleValue();
-            if (mainVolume != 0) {
-                backgroundRelativeVolume = effectiveVolume / mainVolume;
-                soundPlayer.setBackgroundVolume(backgroundRelativeVolume);
-            }
-            // Else, do nothing
-        });
+        backgroundVolumeSlider
+                .valueProperty()
+                .addListener(
+                        (observable, oldValue, newValue) -> {
+                            double effectiveVolume = newValue.doubleValue();
+                            if (mainVolume != 0) {
+                                backgroundRelativeVolume = effectiveVolume / mainVolume;
+                                soundPlayer.setBackgroundVolume(backgroundRelativeVolume);
+                            }
+                            // Else, do nothing
+                        });
 
         // Listener for Move Volume Slider
-        moveVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            double effectiveVolume = newValue.doubleValue();
-            if (mainVolume != 0) {
-                moveRelativeVolume = effectiveVolume / mainVolume;
-                soundPlayer.setMoveVolume(moveRelativeVolume);
-            }
-            // Else, do nothing
-        });
+        moveVolumeSlider
+                .valueProperty()
+                .addListener(
+                        (observable, oldValue, newValue) -> {
+                            double effectiveVolume = newValue.doubleValue();
+                            if (mainVolume != 0) {
+                                moveRelativeVolume = effectiveVolume / mainVolume;
+                                soundPlayer.setMoveVolume(moveRelativeVolume);
+                            }
+                            // Else, do nothing
+                        });
 
         // Listener for Capture Volume Slider
-        captureVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            double effectiveVolume = newValue.doubleValue();
-            if (mainVolume != 0) {
-                captureRelativeVolume = effectiveVolume / mainVolume;
-                soundPlayer.setCaptureVolume(captureRelativeVolume);
-            }
-            // Else, do nothing
-        });
+        captureVolumeSlider
+                .valueProperty()
+                .addListener(
+                        (observable, oldValue, newValue) -> {
+                            double effectiveVolume = newValue.doubleValue();
+                            if (mainVolume != 0) {
+                                captureRelativeVolume = effectiveVolume / mainVolume;
+                                soundPlayer.setCaptureVolume(captureRelativeVolume);
+                            }
+                            // Else, do nothing
+                        });
     }
 
     public void show() {

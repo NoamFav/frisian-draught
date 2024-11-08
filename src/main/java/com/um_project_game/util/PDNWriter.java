@@ -27,8 +27,15 @@ public class PDNWriter {
     // Time
     //
 
-    public PDNWriter(String event, String site, String round, String date, String whitePlayer,
-                     String blackPlayer, String result, String moves) {
+    public PDNWriter(
+            String event,
+            String site,
+            String round,
+            String date,
+            String whitePlayer,
+            String blackPlayer,
+            String result,
+            String moves) {
         this.event = event;
         this.site = site;
         this.round = round;

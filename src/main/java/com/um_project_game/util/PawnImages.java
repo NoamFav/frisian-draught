@@ -1,10 +1,18 @@
 package com.um_project_game.util;
 
-import java.util.Objects;
-
 import javafx.scene.image.Image;
 
-public record PawnImages(Image whitePawn, Image blackPawn, Image whiteKing, Image blackKing, Image whitePawnHover, Image blackPawnHover, Image whiteKingHover, Image blackKingHover) {
+import java.util.Objects;
+
+public record PawnImages(
+        Image whitePawn,
+        Image blackPawn,
+        Image whiteKing,
+        Image blackKing,
+        Image whitePawnHover,
+        Image blackPawnHover,
+        Image whiteKingHover,
+        Image blackKingHover) {
 
     private static Image cachedWhitePawn;
     private static Image cachedBlackPawn;
@@ -17,16 +25,51 @@ public record PawnImages(Image whitePawn, Image blackPawn, Image whiteKing, Imag
 
     public static PawnImages getPawnImage() {
         if (cachedWhitePawn == null) {
-            cachedWhitePawn = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_pawn.png")));
-            cachedBlackPawn = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_pawn.png")));
-            cachedWhiteKing = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_king.png")));
-            cachedBlackKing = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_king.png")));
-            cachedWhitePawnHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_focused_pawn.png")));
-            cachedBlackPawnHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_focused_pawn.png")));
-            cachedWhiteKingHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/white_focused_king.png")));
-            cachedBlackKingHover = new Image(Objects.requireNonNull(PawnImages.class.getResourceAsStream("/pawns/black_focused_king.png")));
+            cachedWhitePawn =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream("/pawns/white_pawn.png")));
+            cachedBlackPawn =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream("/pawns/black_pawn.png")));
+            cachedWhiteKing =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream("/pawns/white_king.png")));
+            cachedBlackKing =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream("/pawns/black_king.png")));
+            cachedWhitePawnHover =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream(
+                                            "/pawns/white_focused_pawn.png")));
+            cachedBlackPawnHover =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream(
+                                            "/pawns/black_focused_pawn.png")));
+            cachedWhiteKingHover =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream(
+                                            "/pawns/white_focused_king.png")));
+            cachedBlackKingHover =
+                    new Image(
+                            Objects.requireNonNull(
+                                    PawnImages.class.getResourceAsStream(
+                                            "/pawns/black_focused_king.png")));
         }
-        return new PawnImages(cachedWhitePawn, cachedBlackPawn, cachedWhiteKing, cachedBlackKing,
-                cachedWhitePawnHover, cachedBlackPawnHover, cachedWhiteKingHover, cachedBlackKingHover);
+        return new PawnImages(
+                cachedWhitePawn,
+                cachedBlackPawn,
+                cachedWhiteKing,
+                cachedBlackKing,
+                cachedWhitePawnHover,
+                cachedBlackPawnHover,
+                cachedWhiteKingHover,
+                cachedBlackKingHover);
     }
 }

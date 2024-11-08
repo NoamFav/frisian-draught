@@ -1,7 +1,7 @@
 package com.um_project_game.board;
 
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 
 public class GameInfo {
     public IntegerProperty scorePlayerOne = new SimpleIntegerProperty(0);
