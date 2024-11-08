@@ -18,11 +18,9 @@ import java.net.URL;
 import java.util.Optional;
 
 public class Launcher extends Application {
-
     private PauseTransition resizePause;
     public static SoundPlayer soundPlayer = new SoundPlayer();
     public static Settings settings;
-
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
     public static final ViewManager viewManager =
