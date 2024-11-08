@@ -1,6 +1,7 @@
 package com.um_project_game.board;
 
 import com.um_project_game.util.TileConversion;
+
 import org.joml.Vector2i;
 
 import java.util.Collections;
@@ -44,12 +45,12 @@ public class Move {
         return !capturedPositions.isEmpty();
     }
 
-    //PGN Notation used for Export/Import and Visualization in MovesList
+    // PGN Notation used for Export/Import and Visualization in MovesList
     @Override
     public String toString() {
 
-        return TileConversion.getTileNotation(startPosition) +
-                (capturedPositions.isEmpty() ? "-" : "x") +
-                TileConversion.getTileNotation(endPosition);
+        return TileConversion.getTileNotation(startPosition)
+                + (capturedPositions.isEmpty() ? "-" : "x")
+                + TileConversion.getTileNotation(endPosition);
     }
 }

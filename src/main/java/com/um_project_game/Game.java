@@ -96,27 +96,35 @@ public class Game {
         moveList(gameRoot, scene);
 
         resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(event -> {
-            onResize(gameRoot, scene);
-        });
+        resizePause.setOnFinished(
+                event -> {
+                    onResize(gameRoot, scene);
+                });
 
         // Add resize listeners
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
-            resizePause.playFromStart(); // Restart the pause every time the size changes
-        });
+        scene.widthProperty()
+                .addListener(
+                        (observable, oldValue, newValue) -> {
+                            resizePause.playFromStart(); // Restart the pause every time the size
+                            // changes
+                        });
 
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
-            resizePause.playFromStart(); // Restart the pause every time the size changes
-        });
+        scene.heightProperty()
+                .addListener(
+                        (observable, oldValue, newValue) -> {
+                            resizePause.playFromStart(); // Restart the pause every time the size
+                            // changes
+                        });
 
         // Handle close event
-        this.gameStage.setOnCloseRequest(e -> {
-            // Check if the menu window exists
-            if (Launcher.menuStage == null) {
-                // Recreate the menu
-                launcher.showMenu();
-            }
-        });
+        this.gameStage.setOnCloseRequest(
+                e -> {
+                    // Check if the menu window exists
+                    if (Launcher.menuStage == null) {
+                        // Recreate the menu
+                        launcher.showMenu();
+                    }
+                });
     }
 
     public void showGameWindow() {
@@ -128,7 +136,13 @@ public class Game {
     }
 
     private void mainGameBoard(Pane root, Scene scene) {
-        board = mainBoard.getMainBoard(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo, movesListGridPane);
+        board =
+                mainBoard.getMainBoard(
+                        root,
+                        mainBoardSize,
+                        new Vector2i(mainBoardX, mainBoardY),
+                        gameInfo,
+                        movesListGridPane);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
 
@@ -136,7 +150,14 @@ public class Game {
     }
 
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {
-        board = mainBoard.getMainBoardMultiplayer(root, mainBoardSize, new Vector2i(mainBoardX, mainBoardY), gameInfo, movesListGridPane, true);
+        board =
+                mainBoard.getMainBoardMultiplayer(
+                        root,
+                        mainBoardSize,
+                        new Vector2i(mainBoardX, mainBoardY),
+                        gameInfo,
+                        movesListGridPane,
+                        true);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
 
@@ -158,13 +179,20 @@ public class Game {
         playerUI.getStyleClass().add("playerUI");
         playerUI.setId(isPlayerOne ? "playerOne" : "playerTwo");
 
-        Consumer<Text> setPlayerStyle = (player) -> {
-            if (player != null) {
-                boolean shouldBeBold = (isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne);
-                player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
-                                + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
-            }
-        };
+        Consumer<Text> setPlayerStyle =
+                (player) -> {
+                    if (player != null) {
+                        boolean shouldBeBold =
+                                (isWhiteTurn.get() && isPlayerOne)
+                                        || (!isWhiteTurn.get() && !isPlayerOne);
+                        player.setStyle(
+                                "-fx-font-size: "
+                                        + (shouldBeBold ? 20 : 15)
+                                        + ";"
+                                        + "-fx-font-weight: "
+                                        + (shouldBeBold ? "bold" : "normal"));
+                    }
+                };
 
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
         playerText.getStyleClass().add("playerText");
@@ -174,8 +202,15 @@ public class Game {
         Text playerScore = new Text();
         playerScore.getStyleClass().add("playerScore");
         playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
-        if (isPlayerOne) {playerScore.textProperty().bind(Bindings.concat("Score: ", gameInfo.scorePlayerOneProperty()));
-        } else { playerScore.textProperty().bind(Bindings.concat("Score: ", gameInfo.scorePlayerTwoProperty()));}
+        if (isPlayerOne) {
+            playerScore
+                    .textProperty()
+                    .bind(Bindings.concat("Score: ", gameInfo.scorePlayerOneProperty()));
+        } else {
+            playerScore
+                    .textProperty()
+                    .bind(Bindings.concat("Score: ", gameInfo.scorePlayerTwoProperty()));
+        }
         setPlayerStyle.accept(playerScore);
 
         Text playerTime = new Text("Time: 10:00");
@@ -189,7 +224,7 @@ public class Game {
         playerInfo.setAlignment(javafx.geometry.Pos.CENTER);
 
         playerUI.getChildren().add(playerInfo);
- 
+
         root.getChildren().add(playerUI);
     }
 
@@ -214,14 +249,34 @@ public class Game {
         controlButtons.setLayoutX(controlButtonsX);
         controlButtons.setLayoutY(controlButtonsY);
 
-        Buttons undoButton = new Buttons("Undo", buttonWidth, buttonHeight, () -> {mainBoard.undoLastMove();});
+        Buttons undoButton =
+                new Buttons(
+                        "Undo",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> {
+                            mainBoard.undoLastMove();
+                        });
         Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> drawWarning());
-        Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
-        Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
-        Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
-        Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> gameStage.close());
+        Buttons resignButton =
+                new Buttons(
+                        "Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
+        Buttons restartButton =
+                new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
+        Buttons settingsButton =
+                new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
+        Buttons exitButton =
+                new Buttons("Exit", buttonWidth, buttonHeight, () -> gameStage.close());
 
-        controlButtons.getChildren().addAll(undoButton.getButton(), drawButton.getButton(), resignButton.getButton(), restartButton.getButton(), settingsButton.getButton(), exitButton.getButton());
+        controlButtons
+                .getChildren()
+                .addAll(
+                        undoButton.getButton(),
+                        drawButton.getButton(),
+                        resignButton.getButton(),
+                        restartButton.getButton(),
+                        settingsButton.getButton(),
+                        exitButton.getButton());
         root.getChildren().addAll(controlButtons);
     }
 
@@ -241,7 +296,9 @@ public class Game {
 
         // Check if movesListGridPane is null
         if (movesListGridPane == null) {
-            System.err.println("Error: movesListGridPane is null. Please check getMovesListGridPane() in MainBoard.");
+            System.err.println(
+                    "Error: movesListGridPane is null. Please check getMovesListGridPane() in"
+                            + " MainBoard.");
             return;
         }
 
@@ -271,19 +328,15 @@ public class Game {
         root.getChildren().add(movesList);
     }
 
-
-
-
-
     private void restartWarning() {
-        
+
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Restart Confirmation");
         alert.setHeaderText("Are you sure you want to restart the game?");
         alert.setContentText("All progress will be lost.");
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK){
+        if (result.get() == ButtonType.OK) {
             mainBoard.resetGame(mainBoardSize);
         }
     }
@@ -301,7 +354,7 @@ public class Game {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.get() == yesButton){
+        if (result.get() == yesButton) {
             String botDecision = "Bot is thinking...";
             Alert botAlert = new Alert(AlertType.INFORMATION);
             botAlert.setTitle("Bot Decision");
@@ -368,6 +421,7 @@ public class Game {
     }
 
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
-        return (int) ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
+        return (int)
+                ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
     }
 }

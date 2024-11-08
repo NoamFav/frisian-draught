@@ -1,16 +1,14 @@
 package com.um_project_game.board;
 
+import org.joml.Vector2i;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joml.Vector2i;
-
-/**
- * Represents a capture path in the game.
- */
+/** Represents a capture path in the game. */
 public class CapturePath {
-    public List<Vector2i> positions;       // Positions along the path
-    public List<Pawn> capturedPawns;       // Pawns captured along the path
+    public List<Vector2i> positions; // Positions along the path
+    public List<Pawn> capturedPawns; // Pawns captured along the path
     double score;
 
     public CapturePath() {
