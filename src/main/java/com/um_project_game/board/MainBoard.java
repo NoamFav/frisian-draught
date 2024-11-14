@@ -9,7 +9,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
-import com.um_project_game.util.GameExporter;
+import com.um_project_game.util.PDNParser;
 import org.joml.Vector2i;
 
 import com.um_project_game.Launcher;
@@ -211,7 +211,7 @@ public class MainBoard {
      * @param boardPixelSize Size of the board in pixels.
      * @return GridPane representing a random board.
      */
-    public GridPane getRandomBoard(Pane root, float boardPixelSize) {
+    public GridPane getRandomBoard(Pane root, float boardPixelSize, String filePath) {
         tileSize = boardPixelSize / BOARD_SIZE;
         pawns = new ArrayList<>();
         board = new GridPane();
@@ -220,10 +220,17 @@ public class MainBoard {
 
         setupBoard();
         renderBoard();
-        //renderPawns();
+        renderPawns();
+        if (filePath != null) {
+            loadGameFromPDN(filePath);
+        }
         board.getStyleClass().add("board");
 
         return board;
+    }
+
+    public GridPane getRandomBoard(Pane root, float boardPixelSize) {
+        return getRandomBoard(root,boardPixelSize, null);
     }
 
     /**
@@ -264,7 +271,9 @@ public class MainBoard {
     }
 
     private void updateMovesListUI() {
-        movesListManager.updateMovesListUI(takenMoves);
+        if (movesListManager != null) {
+            movesListManager.updateMovesListUI(takenMoves);
+        }
     }
     private void renderBoard() {
         if (boardInitialized) return; // Avoid re-initializing the board
@@ -448,9 +457,9 @@ public class MainBoard {
         captureCheck(pawn, inBounds, x, y, new CapturePath(), allPaths);
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(pawn, allPaths, false, false);
+            handleCaptureMoves(pawn, allPaths, false, true);
         } else if (requiredPawns.isEmpty()) { 
-            handleNormalMoves(pawn, inBounds, x, y, false, false);
+            handleNormalMoves(pawn, inBounds, x, y, false, true);
         }
     }
 
@@ -560,10 +569,12 @@ public class MainBoard {
 
         // Update scores
         int captures = path.getCaptureCount();
-        if (pawn.isWhite()) {
-            gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
-        } else {
-            gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
+        if (gameInfo != null) {
+            if (pawn.isWhite()) {
+                gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
+            } else {
+                gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
+            }
         }
     }
   
@@ -627,7 +638,7 @@ public class MainBoard {
                 }
             }
         } else {
-            if (pawn.getNumberOfNonCapturingMoves() >= 3 && !onlyKingsLeft()) {
+            if (pawn.getNumberOfNonCapturingMoves() >= 3 && onlyKingsLeft()) {
                 System.out.println("King cannot move more than 3 times without capturing.");
                 return;
             }
@@ -660,6 +671,7 @@ public class MainBoard {
         GridPane.setColumnIndex(pawnView, landingPos.x);
         GridPane.setRowIndex(pawnView, landingPos.y);
 
+        // Process the move as a normal move
         promotePawnIfNeeded(pawn, landingPos);
         checkGameOver();
         clearHighlights();
@@ -677,7 +689,6 @@ public class MainBoard {
 
         // Create the Move object with the start and end positions
         takenMoves.add(new Move(pawn.getPosition(), landingPos, capturedPositions));
-        System.out.println("Move recorded: " + takenMoves.getLast());
     }
 
     /**
@@ -890,6 +901,9 @@ public class MainBoard {
      *
      */
     private void switchTurn() {
+        if (gameInfo==null) {
+            return;
+        }
         requiredPawns.clear();
         isWhiteTurn = !isWhiteTurn;
         gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
@@ -937,7 +951,6 @@ public class MainBoard {
                 }
             }
         }
-        System.out.println(move.getCapturedPositions());
 
         updateMovesListUI();
         switchTurn();
@@ -1140,4 +1153,61 @@ public class MainBoard {
         setPlayerStyle.accept(playerOneTime, true);
         setPlayerStyle.accept(playerTwoTime, false);
     }
+
+    public void loadGameFromPDN(String pdnFilePath) {
+        try {
+            System.out.println("Loading game from: " + pdnFilePath);
+            PDNParser pdnParser = new PDNParser(pdnFilePath);
+            pdnParser.parseFile();
+            for (Move move : pdnParser.getMoves()) {
+                Pawn pawn = getPawnAtPosition(move.getStartPosition());
+                if (pawn == null) {
+                    System.out.println("No pawn at pos: "+  move.getStartPosition().x + ", " + move.getStartPosition().y);
+                    throw new RuntimeException("Couldn't find pawn to process the move: " + move);
+                }
+                List<CapturePath> possibleCapturePaths = findCapturePathsForPawn(pawn);
+                boolean captureExecuted = false;
+                for (CapturePath ct : possibleCapturePaths) {
+                    if (ct.getLastPosition().equals(move.getEndPosition())) {
+                        executeCaptureMove(pawn, ct, false);
+                        captureExecuted = true;
+                        break; // Capture executed, no need to check further paths for this move
+                    }
+                }
+
+                if (!captureExecuted) {
+                    // If no capture was executed, proceed with a normal move
+                    executeMove(pawn, move.getEndPosition());
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error loading game from PDN: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private List<CapturePath> findCapturePathsForPawn(Pawn pawn) {
+        List<CapturePath> capturePaths = new ArrayList<>();
+
+        // Define a boundary check for positions within board limits
+        BiPredicate<Integer, Integer> inBounds = (x, y) -> x >= 0 && x < boardSize.x && y >= 0 && y < boardSize.y;
+
+        // Start capture path search from the pawn's current position
+        captureCheck(
+                pawn,
+                inBounds,
+                pawn.getPosition().x,
+                pawn.getPosition().y,
+                new CapturePath(),
+                capturePaths
+        );
+
+        return capturePaths;
+    }
+
+    public List<Move> getTakenMoves() {
+        return takenMoves;
+    }
+
 }

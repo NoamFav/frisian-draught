@@ -4,6 +4,7 @@ import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 
+import com.um_project_game.util.GameExporter;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -65,6 +66,9 @@ public class Game {
     private int movesListHeight = 222;
     private GridPane movesListGridPane = new GridPane();
 
+    // Game export
+    private GameExporter exporter = new GameExporter();
+
     public Game(boolean isMultiplayer, Launcher launcher) {
         this.launcher = launcher;
         this.gameStage = new Stage();
@@ -111,11 +115,8 @@ public class Game {
 
         // Handle close event
         this.gameStage.setOnCloseRequest(e -> {
-            // Check if the menu window exists
-            if (Launcher.menuStage == null) {
-                // Recreate the menu
-                launcher.showMenu();
-            }
+            e.consume(); // Prevent the window from closing immediately
+            showExitConfirmation(); // Show the exit confirmation dialog
         });
     }
 
@@ -208,6 +209,20 @@ public class Game {
         root.getChildren().add(chatUI);
     }
 
+    private void showExitConfirmation() {
+        ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
+        if (exitConfirmation.showAndWait()) { // If user confirmed exit
+            if (exitConfirmation.shouldSaveOnExit()) {
+                exporter.exportGameToPDN(mainBoard.getTakenMoves(), null);
+            }
+            if (Launcher.menuStage == null) {
+                // Recreate the menu
+                launcher.showMenu();
+            }
+            gameStage.close();  // Close the game window
+        }
+    }
+
     private void buttonGameLogic(Pane root, Scene scene) {
         VBox controlButtons = new VBox();
         controlButtons.setSpacing(buttonSpacing);
@@ -219,7 +234,7 @@ public class Game {
         Buttons resignButton = new Buttons("Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
         Buttons restartButton = new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
         Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
-        Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> gameStage.close());
+        Buttons exitButton = new Buttons("Exit", buttonWidth, buttonHeight, () -> showExitConfirmation());
 
         controlButtons.getChildren().addAll(undoButton.getButton(), drawButton.getButton(), resignButton.getButton(), restartButton.getButton(), settingsButton.getButton(), exitButton.getButton());
         root.getChildren().addAll(controlButtons);
@@ -370,4 +385,5 @@ public class Game {
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
         return (int) ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
     }
+
 }
