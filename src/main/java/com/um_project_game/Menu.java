@@ -24,7 +24,7 @@ public class Menu {
     private Pane menuRoot;
     private Launcher launcher;
     private Settings settings;
- 
+
     // Dimensions
     private int topBarHeight = 75;
     private int bottomBarHeight = 55;
@@ -43,7 +43,7 @@ public class Menu {
 
     private int liveGameX = 695;
     private int liveGameY = 120;
-    private int liveGameSpacing = 15; 
+    private int liveGameSpacing = 15;
     private int liveGameSize = 225;
 
     private int versionStatusX = 1030;
@@ -87,7 +87,9 @@ public class Menu {
 
     private void setBottomBar(Scene scene, Pane root) {
 
-        Rectangle bottomBar = new Rectangle(0, scene.getHeight() - bottomBarHeight, scene.getWidth(), bottomBarHeight);
+        Rectangle bottomBar =
+                new Rectangle(
+                        0, scene.getHeight() - bottomBarHeight, scene.getWidth(), bottomBarHeight);
         bottomBar.setFill(Color.WHITE);
         bottomBar.setStroke(Color.BLACK);
 
@@ -109,12 +111,29 @@ public class Menu {
 
         Runnable nill = () -> {};
 
-        Buttons startGameButton = new Buttons("Start Game", buttonWidth, buttonHeight, () -> launcher.startNewGame(false));
-        Buttons multiplayerButton = new Buttons("Multiplayer", buttonWidth, buttonHeight, () -> launcher.startNewGame(true));
+        Buttons startGameButton =
+                new Buttons(
+                        "Start Game",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> launcher.startNewGame(false));
+        Buttons multiplayerButton =
+                new Buttons(
+                        "Multiplayer",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> launcher.startNewGame(true));
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
-        Buttons settingsButton = new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
+        Buttons settingsButton =
+                new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
 
-        controlButtons.getChildren().addAll(startGameButton.getButton(), multiplayerButton.getButton(), tutorialButton.getButton(), settingsButton.getButton());
+        controlButtons
+                .getChildren()
+                .addAll(
+                        startGameButton.getButton(),
+                        multiplayerButton.getButton(),
+                        tutorialButton.getButton(),
+                        settingsButton.getButton());
         controlButtons.setId("control-buttons");
         root.getChildren().addAll(controlButtons);
     }
@@ -176,7 +195,9 @@ public class Menu {
 
     private void setVersionStatus(Scene scene, Pane root) {
 
-        Rectangle versionStatus = new Rectangle(versionStatusX, versionStatusY, versionStatusWidth, versionStatusHeight);
+        Rectangle versionStatus =
+                new Rectangle(
+                        versionStatusX, versionStatusY, versionStatusWidth, versionStatusHeight);
         versionStatus.setFill(Color.TRANSPARENT);
 
         Text versionStatusText = new Text("Version Status");
@@ -193,7 +214,7 @@ public class Menu {
     }
 
     public void onResize(Pane root, Scene scene) {
-        
+
         Node topBar = root.lookup("#top-bar");
         Node bottomBar = root.lookup("#bottom-bar");
         Node controlButtons = root.lookup("#control-buttons");
@@ -218,40 +239,41 @@ public class Menu {
     }
 
     private void newDimensions(Scene scene) {
-    // Calculate the ratios using oldVal and newVal for width and height respectively
-    int newSceneWidth = (int) scene.getWidth();
-    int newSceneHeight = (int) scene.getHeight();
+        // Calculate the ratios using oldVal and newVal for width and height respectively
+        int newSceneWidth = (int) scene.getWidth();
+        int newSceneHeight = (int) scene.getHeight();
 
-    int oldValHeight = Launcher.REF_HEIGHT;
-    int oldValWidth = Launcher.REF_WIDTH;
+        int oldValHeight = Launcher.REF_HEIGHT;
+        int oldValWidth = Launcher.REF_WIDTH;
 
-    topBarHeight = convertDimensions(75, newSceneHeight, oldValHeight); 
-    bottomBarHeight = convertDimensions(55, newSceneHeight, oldValHeight);
-    buttonWidth = convertDimensions(510, newSceneWidth, oldValWidth);
-    buttonHeight = convertDimensions(60, newSceneHeight, oldValHeight);
+        topBarHeight = convertDimensions(75, newSceneHeight, oldValHeight);
+        bottomBarHeight = convertDimensions(55, newSceneHeight, oldValHeight);
+        buttonWidth = convertDimensions(510, newSceneWidth, oldValWidth);
+        buttonHeight = convertDimensions(60, newSceneHeight, oldValHeight);
 
-    controlButtonsX = convertDimensions(75, newSceneWidth, oldValWidth);
-    controlButtonsY = convertDimensions(115, newSceneHeight, oldValHeight);
-    controlButtonsSpacing = convertDimensions(15, newSceneHeight, oldValHeight);
+        controlButtonsX = convertDimensions(75, newSceneWidth, oldValWidth);
+        controlButtonsY = convertDimensions(115, newSceneHeight, oldValHeight);
+        controlButtonsSpacing = convertDimensions(15, newSceneHeight, oldValHeight);
 
-    recentBoardsX = convertDimensions(75, newSceneWidth, oldValWidth);
-    recentBoardsY = convertDimensions(422, newSceneHeight, oldValHeight);
-    recentBoardsSpacingY = convertDimensions(15, newSceneHeight, oldValHeight);
-    recentBoardsSize = convertDimensions(225, newSceneHeight, oldValHeight);
-    recentBoardsSpacingX = convertDimensions(105, newSceneWidth, oldValWidth);
+        recentBoardsX = convertDimensions(75, newSceneWidth, oldValWidth);
+        recentBoardsY = convertDimensions(422, newSceneHeight, oldValHeight);
+        recentBoardsSpacingY = convertDimensions(15, newSceneHeight, oldValHeight);
+        recentBoardsSize = convertDimensions(225, newSceneHeight, oldValHeight);
+        recentBoardsSpacingX = convertDimensions(105, newSceneWidth, oldValWidth);
 
-    liveGameX = convertDimensions(695, newSceneWidth, oldValWidth);
-    liveGameY = convertDimensions(120, newSceneHeight, oldValHeight);
-    liveGameSpacing = convertDimensions(15, newSceneHeight, oldValHeight);
-    liveGameSize = convertDimensions(225, newSceneHeight, oldValHeight);
+        liveGameX = convertDimensions(695, newSceneWidth, oldValWidth);
+        liveGameY = convertDimensions(120, newSceneHeight, oldValHeight);
+        liveGameSpacing = convertDimensions(15, newSceneHeight, oldValHeight);
+        liveGameSize = convertDimensions(225, newSceneHeight, oldValHeight);
 
-    versionStatusX = convertDimensions(1030, newSceneWidth, oldValWidth);
-    versionStatusY = convertDimensions(99, newSceneHeight, oldValHeight);
-    versionStatusWidth = convertDimensions(300, newSceneWidth, oldValWidth);
-    versionStatusHeight = convertDimensions(570, newSceneHeight, oldValHeight);
-}
+        versionStatusX = convertDimensions(1030, newSceneWidth, oldValWidth);
+        versionStatusY = convertDimensions(99, newSceneHeight, oldValHeight);
+        versionStatusWidth = convertDimensions(300, newSceneWidth, oldValWidth);
+        versionStatusHeight = convertDimensions(570, newSceneHeight, oldValHeight);
+    }
 
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
-        return (int) ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
+        return (int)
+                ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
     }
 }

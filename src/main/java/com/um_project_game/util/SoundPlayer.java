@@ -23,11 +23,12 @@ public class SoundPlayer {
         playBackgroundMusic();
 
         // Add listeners to monitor volume changes
-        mainVolume.addListener((obs, oldVal, newVal) -> {
-            updateBackgroundMusicVolume();
-            updateMoveSoundVolume();
-            updateCaptureSoundVolume();
-        });
+        mainVolume.addListener(
+                (obs, oldVal, newVal) -> {
+                    updateBackgroundMusicVolume();
+                    updateMoveSoundVolume();
+                    updateCaptureSoundVolume();
+                });
         backgroundVolume.addListener((obs, oldVal, newVal) -> updateBackgroundMusicVolume());
         moveVolume.addListener((obs, oldVal, newVal) -> updateMoveSoundVolume());
         captureVolume.addListener((obs, oldVal, newVal) -> updateCaptureSoundVolume());

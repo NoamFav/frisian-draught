@@ -18,14 +18,14 @@ import java.net.URL;
 import java.util.Optional;
 
 public class Launcher extends Application {
-
     private PauseTransition resizePause;
     public static SoundPlayer soundPlayer = new SoundPlayer();
     public static Settings settings;
-
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
-    public static final ViewManager viewManager = new ViewManager(new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
+    public static final ViewManager viewManager =
+            new ViewManager(
+                    new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
 
     public static Stage menuStage;
 
@@ -48,15 +48,16 @@ public class Launcher extends Application {
             System.err.println("Stylesheet not found");
         }
 
-        scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case ESCAPE:
-                    showExitConfirmation();
-                    break;
-                default:
-                    break;
-            }
-        });
+        scene.setOnKeyPressed(
+                event -> {
+                    switch (event.getCode()) {
+                        case ESCAPE:
+                            showExitConfirmation();
+                            break;
+                        default:
+                            break;
+                    }
+                });
 
         stage.setScene(scene);
 
@@ -67,23 +68,24 @@ public class Launcher extends Application {
         resizePause.setOnFinished(event -> menu.onResize(root, scene));
 
         // Add resize listeners
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
+        scene.widthProperty()
+                .addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
+        scene.heightProperty()
+                .addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
 
         // Handle close event
-        stage.setOnCloseRequest(e -> {
-            // If there are no other windows open, exit the application
-            if (Stage.getWindows().size() <= 1) {
-                // This is the last window, so exit
-                Platform.exit();
-            } else {
-                // Just hide the menu window
-                menuStage = null;
-                stage.hide();
-            }
-        });
-
-
+        stage.setOnCloseRequest(
+                e -> {
+                    // If there are no other windows open, exit the application
+                    if (Stage.getWindows().size() <= 1) {
+                        // This is the last window, so exit
+                        Platform.exit();
+                    } else {
+                        // Just hide the menu window
+                        menuStage = null;
+                        stage.hide();
+                    }
+                });
 
         stage.show();
     }
@@ -108,6 +110,10 @@ public class Launcher extends Application {
         } else {
             menuStage.show();
         }
+    }
+
+    public void foolproofExit() {
+        showExitConfirmation();
     }
 
     private void showExitConfirmation() {

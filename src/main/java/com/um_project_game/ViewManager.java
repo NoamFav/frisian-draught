@@ -1,14 +1,12 @@
- package com.um_project_game;
-
-import java.util.ArrayList;
-import java.util.List;
+package com.um_project_game;
 
 import com.um_project_game.Server.MainServer;
 
-import javafx.animation.PauseTransition;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
-import javafx.util.Duration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViewManager {
 

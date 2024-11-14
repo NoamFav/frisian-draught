@@ -1,7 +1,8 @@
 package com.um_project_game.board;
 
-import javafx.scene.text.Text;
 import javafx.scene.layout.GridPane; // Ensure this is imported
+import javafx.scene.text.Text;
+
 import java.util.List;
 
 public class MovesListManager {
@@ -44,7 +45,8 @@ public class MovesListManager {
 
                 // Add turn number to the first column if it's the first move of a turn
                 if (column == 1) {
-                    Text turnText = new Text(String.valueOf(turnNumber)); // Create Text for turn number
+                    Text turnText =
+                            new Text(String.valueOf(turnNumber)); // Create Text for turn number
                     movesListGridPane.add(turnText, 0, row); // Add turn number to first column
                 }
 
