@@ -15,6 +15,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
+
 public class Menu {
 
     private Pane menuRoot;
@@ -116,7 +120,6 @@ public class Menu {
     }
 
     private void setRecentGames(Scene scene, Pane root) {
-
         VBox recentBoards = new VBox();
         recentBoards.setSpacing(recentBoardsSpacingY);
         recentBoards.setLayoutX(recentBoardsX);
@@ -127,14 +130,29 @@ public class Menu {
         float boardSize = recentBoardsSize;
         HBox recentGames = new HBox();
         recentGames.setSpacing(recentBoardsSpacingX);
-        for (int i = 0; i < 3; i++) {
-            MainBoard mainBoard = new MainBoard();
-            recentGames.getChildren().add(mainBoard.getRandomBoard(root, boardSize));
+
+        // Locate PDN files in the exports directory
+        File directory = new File("exports");
+        if (directory.exists() && directory.isDirectory()) {
+            // Filter and sort PDN files in descending order by filename
+            File[] pdnFiles = directory.listFiles((dir, name) -> name.endsWith(".pdn"));
+            if (pdnFiles != null) {
+                Arrays.sort(pdnFiles, Comparator.comparing(File::getName).reversed());
+
+                // Load and display the 3 most recent games (if available)
+                for (int i = 0; i < Math.min(3, pdnFiles.length); i++) {
+                    File pdnFile = pdnFiles[i];
+                    //TODO DANIEL
+                    MainBoard mainBoard = new MainBoard();
+
+                    // Display the game on the board
+                    recentGames.getChildren().add(mainBoard.getRandomBoard(root, boardSize, pdnFile.getPath()));
+                }
+            }
         }
 
         recentBoards.getChildren().addAll(recentBoardsTitle, recentGames);
         recentBoards.setId("recent-boards");
-
         root.getChildren().addAll(recentBoards);
     }
 
