@@ -188,7 +188,7 @@
             </goals>
             <configuration>
                 <executable>${java.home}/bin/jpackage</executable>
-                <commandlineArgs>--type dmg --dest "${project.build.directory}/installer" --name "UM Project Game" --icon "${icon.path}" --app-version "${app.version}" --module com.um_project_game/com.um_project_game.Launcher --module-path "${project.build.outputDirectory}:${project.build.directory}/mods:${java.home}/jmods" --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing,javafx.media</commandlineArgs>
+                <commandlineArgs>--type dmg --dest "${project.build.directory}/installer" --name "Frisian Draught" --icon "${icon.path}" --app-version "${app.version}" --module com.um_project_game/com.um_project_game.Launcher --module-path "${project.build.outputDirectory}:${project.build.directory}/mods:${java.home}/jmods" --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing,javafx.media</commandlineArgs>
             </configuration>
         </execution>
     </executions>
