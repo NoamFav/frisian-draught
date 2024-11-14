@@ -175,7 +175,6 @@
     </executions>
 </plugin>
 <!-- Exec Maven Plugin to run jpackage -->
-<!-- Exec Maven Plugin to run jpackage -->
 <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>exec-maven-plugin</artifactId>
@@ -189,11 +188,52 @@
             </goals>
             <configuration>
                 <executable>${java.home}/bin/jpackage</executable>
-                <commandlineArgs>--type dmg --dest "${project.build.directory}/installer" --name "UM Project Game" --app-version "${app.version}" --module com.um_project_game/com.um_project_game.Launcher --module-path "${project.build.outputDirectory}:${project.build.directory}/mods:${java.home}/jmods" --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing,javafx.media</commandlineArgs>
+                <commandlineArgs>--type dmg --dest "${project.build.directory}/installer" --name "UM Project Game" --icon "${icon.path}" --app-version "${app.version}" --module com.um_project_game/com.um_project_game.Launcher --module-path "${project.build.outputDirectory}:${project.build.directory}/mods:${java.home}/jmods" --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing,javafx.media</commandlineArgs>
             </configuration>
         </execution>
     </executions>
 </plugin>
   </plugins>
- </build>
+  </build>
+  <profiles>
+        <profile>
+            <id>macos</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <installer.type>dmg</installer.type>
+                <icon.path>${project.build.directory}/classes/icons/Icon-mac.icns</icon.path>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <installer.type>exe</installer.type>
+                <icon.path>${project.build.directory}/classes/icons/Icon-windows.ico</icon.path>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>!Mac OS X</name>
+                </os>
+            </activation>
+            <properties>
+            <installer.type>deb</installer.type> <!-- or rpm -->
+                <icon.path>${project.build.directory}/classes/icons/Icon-linux.png</icon.path>
+            </properties>
+        </profile>
+    </profiles>
 </project>
