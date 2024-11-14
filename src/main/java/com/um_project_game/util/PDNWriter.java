@@ -54,10 +54,14 @@ public class PDNWriter {
             writer.write("[Date \"" + date + "\"]\n");
             writer.write("[White \"" + whitePlayer + "\"]\n");
             writer.write("[Black \"" + blackPlayer + "\"]\n");
-            writer.write("[Result \"" + result + "\"]\n");
+            if (result != null) {
+                writer.write("[Result \"" + result + "\"]\n");
+            }
             writer.write("[GameType \"" + GAMETYPE + "\"]\n\n");
             writer.write(moves.trim() + "\n");
-            writer.write(result + "\n");
+            if (result != null) {
+                writer.write(result + "\n");
+            }
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }

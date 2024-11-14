@@ -4,6 +4,7 @@ import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 
+import com.um_project_game.util.GameExporter;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -70,6 +71,9 @@ public class Game {
     private int movesListHeight = 222;
     private GridPane movesListGridPane = new GridPane();
 
+    // Game export
+    private GameExporter exporter = new GameExporter();
+
     public Game(boolean isMultiplayer, Launcher launcher) {
         this.launcher = launcher;
         this.gameStage = new Stage();
@@ -122,14 +126,10 @@ public class Game {
                         });
 
         // Handle close event
-        this.gameStage.setOnCloseRequest(
-                e -> {
-                    // Check if the menu window exists
-                    if (Launcher.menuStage == null) {
-                        // Recreate the menu
-                        launcher.showMenu();
-                    }
-                });
+        this.gameStage.setOnCloseRequest(e -> {
+            e.consume(); // Prevent the window from closing immediately
+            showExitConfirmation(); // Show the exit confirmation dialog
+        });
     }
 
     public void showGameWindow() {
@@ -246,6 +246,20 @@ public class Game {
         chatUI.getChildren().add(chatText);
 
         root.getChildren().add(chatUI);
+    }
+
+    private void showExitConfirmation() {
+        ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
+        if (exitConfirmation.showAndWait()) { // If user confirmed exit
+            if (exitConfirmation.shouldSaveOnExit()) {
+                exporter.exportGameToPDN(mainBoard.getTakenMoves(), null);
+            }
+            if (Launcher.menuStage == null) {
+                // Recreate the menu
+                launcher.showMenu();
+            }
+            gameStage.close();  // Close the game window
+        }
     }
 
     private void buttonGameLogic(Pane root, Scene scene) {
@@ -429,4 +443,5 @@ public class Game {
         return (int)
                 ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
     }
+
 }
