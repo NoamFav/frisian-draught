@@ -17,6 +17,9 @@ public class PDNParser {
     private String result;
     private String moves;
 
+    /**
+     * @param filePath
+     */
     public PDNParser(String filePath) {
         Map<String, String> pdnData = new HashMap<>();
         StringBuilder movesBuilder = new StringBuilder();
