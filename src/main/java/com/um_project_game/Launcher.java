@@ -112,6 +112,10 @@ public class Launcher extends Application {
         }
     }
 
+    public void foolproofExit() {
+        showExitConfirmation();
+    }
+
     private void showExitConfirmation() {
         // Create a confirmation dialog
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
