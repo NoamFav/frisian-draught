@@ -85,7 +85,7 @@ public class MainBoard {
 
     private GameInfo gameInfo;
     private DQNModel botModel;
-    private boolean isBotActive = true; 
+    private boolean isBotActive = false;
     private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
     private static final int BATCH_SIZE = 32; 
     private static final double GAMMA = 0.99; 
@@ -1163,11 +1163,6 @@ public class MainBoard {
                 capturedPawn -> {
                     capturedPositions.add(capturedPawn.getPosition());
                 });
-        takenMoves.add(
-                new Move(
-                        pawn.getPosition(),
-                        positions.get(positions.size() - 1),
-                        capturedPositions));
         System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front
