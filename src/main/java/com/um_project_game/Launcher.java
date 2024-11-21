@@ -90,8 +90,13 @@ public class Launcher extends Application {
         stage.show();
     }
 
-    public void startNewGame(boolean isMultiplayer) {
-        viewManager.gameStateSwitch(isMultiplayer ? 2 : 1);
+    /**
+     *
+     * @param isOnline Is Online-Game?
+     * @param againstBot Is Against Bot?
+     */
+    public void startNewGame(boolean isOnline, boolean againstBot) {
+        viewManager.gameStateSwitch(isOnline ? 1 : againstBot ? 2 : 3);
     }
 
     public void closeMenu() {
