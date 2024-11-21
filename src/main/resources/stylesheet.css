@@ -1,95 +1,137 @@
+/* Light Theme */
 .root {
-    --background-color: #f4f4f4;
+  -fx-background-color: #f4f4f4;
 }
 
 .button {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 15;
-    -fx-text-fill: #333333;
-    -fx-border-color: #333333;
-    -fx-border-radius: 15;
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 15;
+  -fx-text-fill: #333333;
+  -fx-border-color: #333333;
+  -fx-border-radius: 15;
 }
 
 .button:hover {
-    -fx-background-color: #333333;
-    -fx-text-fill: #ffffff;
+  -fx-background-color: #333333;
+  -fx-text-fill: #ffffff;
 }
 
 .version-status {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 15;
-    -fx-text-fill: #333333;
-    -fx-border-color: #333333;
-    -fx-border-radius: 15;
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 15;
+  -fx-text-fill: #333333;
+  -fx-border-color: #333333;
+  -fx-border-radius: 15;
 }
 
 .board {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 15;
-    -fx-border-color: #333333;
-    -fx-border-radius: 15;
-    -fx-padding: 5;
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 15;
+  -fx-border-color: #333333;
+  -fx-border-radius: 15;
+  -fx-padding: 5;
 }
 
 .board:hover {
-    -fx-background-color: #333333;
+  -fx-background-color: #333333;
 }
 
 .playerUI {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #333333;
-    -fx-padding: 5;
+  -fx-background-color: #ffffff;
+  -fx-border-color: #333333;
+  -fx-padding: 5;
 }
 
 .chatUI {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #333333;
-    -fx-border-radius: 15;
-    -fx-background-radius: 15;
+  -fx-background-color: #ffffff;
+  -fx-border-color: #333333;
+  -fx-border-radius: 15;
+  -fx-background-radius: 15;
 }
 
 .movesList {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #333333;
-    -fx-border-radius: 15;
-    -fx-background-radius: 15;
+  -fx-background-color: #ffffff;
+  -fx-border-color: #333333;
+  -fx-border-radius: 15;
+  -fx-background-radius: 15;
 }
 
 .settings-label {
-    -fx-text-fill: #333333;
-    -fx-font-size: 14px;
-    -fx-padding: 5 0 5 0;
+  -fx-text-fill: #333333;
+  -fx-font-size: 14px;
+  -fx-padding: 5 0 5 0;
 }
 
 .settings-slider {
-    -fx-padding: 0 0 0 0;
+  -fx-padding: 0 0 0 0;
 }
 
-/* Correct selectors for subnodes */
-
-/* Track */
 .settings-slider .track {
-    -fx-background-color: #e0e0e0;
-    -fx-background-radius: 5;
+  -fx-background-color: #e0e0e0;
+  -fx-background-radius: 5;
 }
 
-/* Thumb */
 .settings-slider .thumb {
-    -fx-background-color: #ffffff;
-    -fx-background-insets: 0;
-    -fx-background-radius: 10;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 0, 1);
+  -fx-background-color: #ffffff;
+  -fx-background-insets: 0;
+  -fx-background-radius: 10;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0, 0, 1);
 }
 
-/* Thumb when hovered */
 .settings-slider .thumb:hover {
-    -fx-background-color: #333333;
+  -fx-background-color: #333333;
 }
 
-/* Hide Increment and Decrement Buttons */
-.settings-slider .increment-button,
-.settings-slider .decrement-button {
-    -fx-pref-width: 0;
-    -fx-pref-height: 0;
-    -fx-opacity: 0;
+/* Dark Theme */
+.dark-theme .root {
+  -fx-background-color: #222222;
+}
+
+.dark-theme .button {
+  -fx-background-color: #333333;
+  -fx-text-fill: #f4f4f4;
+  -fx-border-color: #555555;
+}
+
+.dark-theme .button:hover {
+  -fx-background-color: #555555;
+  -fx-text-fill: #ffffff;
+}
+
+.dark-theme .version-status {
+  -fx-background-color: #333333;
+  -fx-text-fill: #f4f4f4;
+  -fx-border-color: #555555;
+}
+
+.dark-theme .board {
+  -fx-background-color: #333333;
+  -fx-border-color: #555555;
+}
+
+.dark-theme .board:hover {
+  -fx-background-color: #555555;
+}
+
+.dark-theme .playerUI,
+.dark-theme .chatUI,
+.dark-theme .movesList {
+  -fx-background-color: #333333;
+  -fx-border-color: #555555;
+}
+
+.dark-theme .settings-label {
+  -fx-text-fill: #f4f4f4;
+}
+
+.dark-theme .settings-slider .track {
+  -fx-background-color: #444444;
+}
+
+.dark-theme .settings-slider .thumb {
+  -fx-background-color: #555555;
+}
+
+.dark-theme .settings-slider .thumb:hover {
+  -fx-background-color: #777777;
 }

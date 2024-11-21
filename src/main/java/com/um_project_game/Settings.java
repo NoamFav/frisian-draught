@@ -24,18 +24,29 @@ public class Settings {
     private double moveRelativeVolume;
     private double captureRelativeVolume;
 
-    public Settings(SoundPlayer soundPlayer) {
-        this.soundPlayer = soundPlayer;
-        initializeSettingsWindow();
+    // dark mode
+    private boolean darkMode;
+
+    public boolean isDarkMode() {
+        return darkMode;
     }
 
-    private void initializeSettingsWindow() {
+    public void setDarkMode(boolean darkMode) {
+        this.darkMode = darkMode;
+    }
+
+    public Settings(SoundPlayer soundPlayer, Pane root) {
+        this.soundPlayer = soundPlayer;
+        initializeSettingsWindow(root);
+    }
+
+    private void initializeSettingsWindow(Pane root) {
         // Store initial relative volumes
         mainVolume = soundPlayer.getMainVolume();
         backgroundRelativeVolume = soundPlayer.getBackgroundVolume();
         moveRelativeVolume = soundPlayer.getMoveVolume();
         captureRelativeVolume = soundPlayer.getCaptureVolume();
-
+        darkMode = false;
         // Create a GridPane for better layout
         GridPane grid = new GridPane();
         grid.setVgap(10);
@@ -62,6 +73,36 @@ public class Settings {
         Slider captureVolumeSlider = new Slider(0, 1, captureRelativeVolume * mainVolume);
         setupSlider(captureVolumeSlider);
 
+        // Dark mode
+        Label darkModeLabel = new Label("Dark Mode:");
+        darkModeLabel.getStyleClass().add("settings-label");
+
+        Buttons darkModeButton =
+                new Buttons(
+                        "Toggle",
+                        100,
+                        30,
+                        () -> {
+                            darkMode = !darkMode;
+
+                            // Ensure "dark-theme" is added only once
+                            if (darkMode && !root.getStyleClass().contains("dark-theme")) {
+                                System.out.println(root.getStyleClass());
+                                root.getStyleClass().add("dark-theme");
+                                System.out.println("Dark mode enabled");
+                            }
+                            // Remove "dark-theme" when toggling off
+                            else if (!darkMode) {
+                                System.out.println(root.getStyleClass());
+                                System.out.println("Dark mode disabled");
+                                root.getStyleClass().remove("dark-theme");
+                            }
+
+                            // Apply CSS styles immediately
+                            root.applyCss();
+                            root.layout();
+                        });
+
         mainVolumeLabel.getStyleClass().add("settings-label");
         backgroundVolumeLabel.getStyleClass().add("settings-label");
         moveVolumeLabel.getStyleClass().add("settings-label");
@@ -82,6 +123,8 @@ public class Settings {
         grid.add(moveVolumeSlider, 1, 2);
         grid.add(captureVolumeLabel, 0, 3);
         grid.add(captureVolumeSlider, 1, 3);
+        grid.add(darkModeLabel, 0, 4);
+        grid.add(darkModeButton.getButton(), 1, 4);
 
         // Add Save and Cancel buttons
         Buttons saveButton = new Buttons("Save", 100, 30, () -> settingsStage.close());
