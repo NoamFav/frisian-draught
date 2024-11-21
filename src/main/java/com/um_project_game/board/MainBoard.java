@@ -1,5 +1,8 @@
 package com.um_project_game.board;
 
+import com.um_project_game.AI.DQNModel;
+import com.um_project_game.AI.Experience;
+import com.um_project_game.AI.ReplayBuffer;
 import com.um_project_game.Launcher;
 import com.um_project_game.util.PDNParser;
 import com.um_project_game.util.SoundPlayer;
@@ -71,6 +74,11 @@ public class MainBoard {
     private SoundPlayer soundPlayer = Launcher.soundPlayer;
 
     private GameInfo gameInfo;
+    private DQNModel botModel;
+    private boolean isBotActive = false;
+    private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
+    private static final int BATCH_SIZE = 32;
+    private static final double GAMMA = 0.99;
 
     /**
      * Creates and returns the main board, rendering it to the root pane.
@@ -85,11 +93,13 @@ public class MainBoard {
             float boardPixelSize,
             Vector2i boardPosition,
             GameInfo gameInfo,
-            GridPane movesListGridPane) {
+            GridPane movesListGridPane,
+            boolean isBotActive) {
         tileSize = boardPixelSize / BOARD_SIZE;
         pawns = new ArrayList<>();
         board = new GridPane();
         isWhiteTurn = true;
+        this.isBotActive = isBotActive;
         this.root = root;
         this.gameInfo = gameInfo;
         gameInfo.playerTurn.set(1);
@@ -101,6 +111,8 @@ public class MainBoard {
         setupBoard();
         renderBoard();
         renderPawns();
+
+        botModel = new DQNModel(101, 100, 100, 0.1);
 
         System.out.println("isMultiplayer: " + isMultiplayer);
 
@@ -115,7 +127,8 @@ public class MainBoard {
             GridPane movesListGridPane,
             boolean isMultiplayer) {
         this.isMultiplayer = isMultiplayer;
-        return getMainBoard(root, boardPixelSize, boardPosition, gameInfo, movesListGridPane);
+        return getMainBoard(
+                root, boardPixelSize, boardPosition, gameInfo, movesListGridPane, isBotActive);
     }
 
     /**
@@ -171,7 +184,7 @@ public class MainBoard {
         gameInfo.scorePlayerTwo.set(0);
         gameInfo.playerTurn.set(1);
         // Clear moves list
-        takenMoves.clear();
+        resetTakenMoves();
         updateMovesListUI();
 
         // Reset the size of the tiles
@@ -578,9 +591,8 @@ public class MainBoard {
         // Capture any pawn at this step if one exists
         if (stepIndex < capturedPawns.size()) {
             Pawn capturedPawn = capturedPawns.get(stepIndex);
-            removePawn(
-                    capturedPawn); // This should handle removal from the board and updating the
-                                   // game state
+            removePawn(capturedPawn); // This should handle removal from the board and updating the
+            // game state
         }
     }
 
@@ -945,6 +957,9 @@ public class MainBoard {
         gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
+        if (!isWhiteTurn && isBotActive) {
+            triggerBotMove();
+        }
     }
 
     /** Checks if it is the white player's turn. */
@@ -1069,11 +1084,14 @@ public class MainBoard {
                     // Update the pawn's position in the GridPane
                     GridPane.setColumnIndex(pawnView, landingPos.x);
                     GridPane.setRowIndex(pawnView, landingPos.y);
+                    pawn.setPosition(landingPos);
 
                     isAnimating = false;
 
                     // Call the onFinished callback
-                    onFinished.run();
+                    if (onFinished != null) {
+                        onFinished.run();
+                    }
                 });
 
         // Play the animation
@@ -1145,11 +1163,6 @@ public class MainBoard {
                 capturedPawn -> {
                     capturedPositions.add(capturedPawn.getPosition());
                 });
-        takenMoves.add(
-                new Move(
-                        pawn.getPosition(),
-                        positions.get(positions.size() - 1),
-                        capturedPositions));
         System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front
@@ -1251,7 +1264,121 @@ public class MainBoard {
         return capturePaths;
     }
 
+    private void resetTakenMoves() {
+        takenMoves.clear();
+        pastStates.clear();
+        requiredPawns.clear();
+        updateMovesListUI();
+    }
+
     public List<Move> getTakenMoves() {
         return takenMoves;
+    }
+
+    private void triggerBotMove() {
+        Platform.runLater(
+                () -> {
+                    try {
+                        // Bot selects a move
+                        GameState currentState = getBoardState();
+                        List<Move> possibleMoves = currentState.generateMoves();
+
+                        if (possibleMoves.isEmpty()) {
+                            System.out.println("No possible moves for the bot.");
+                            return;
+                        }
+
+                        Map<Vector2i, Double> qValues = botModel.predict(currentState);
+                        Vector2i chosenAction =
+                                qValues.entrySet().stream()
+                                        .max(Map.Entry.comparingByValue())
+                                        .map(Map.Entry::getKey)
+                                        .orElse(null);
+
+                        Move selectedMove =
+                                possibleMoves.stream()
+                                        .filter(move -> move.getEndPosition().equals(chosenAction))
+                                        .findFirst()
+                                        .orElse(null);
+
+                        if (selectedMove == null) {
+                            System.out.println("Bot selected an invalid action.");
+                            return;
+                        }
+
+                        // Handle captures
+                        if (selectedMove.getCapturedPositions() != null
+                                && !selectedMove.getCapturedPositions().isEmpty()) {
+                            for (Vector2i capturedPosition : selectedMove.getCapturedPositions()) {
+                                Pawn capturedPawn = getPawnAtPosition(capturedPosition);
+                                if (capturedPawn != null) {
+                                    removePawn(
+                                            capturedPawn); // Ensure this logic works for both mouse
+                                    // and bot moves
+                                }
+                            }
+                        }
+
+                        // Apply the move and animate
+                        MoveResult result = currentState.applyMove(selectedMove);
+                        Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
+                        if (pawn != null) {
+                            animatePawnMovement(
+                                    pawn, selectedMove.getEndPosition(), () -> applyMove(result));
+                        } else {
+                            applyMove(result);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+
+    private void trainModel(List<Experience> batch) {
+        double totalLoss = 0.0;
+        for (Experience experience : batch) {
+            Map<Vector2i, Double> qValues = botModel.predict(experience.state);
+            double target = experience.reward;
+            if (!experience.isTerminal) {
+                Map<Vector2i, Double> nextQValues = botModel.predict(experience.nextState);
+                target += GAMMA * nextQValues.values().stream().max(Double::compareTo).orElse(0.0);
+            }
+            botModel.updateWeights(
+                    experience.state, experience.action, target - qValues.get(experience.action));
+            totalLoss += Math.abs(target - qValues.get(experience.action));
+        }
+        System.out.println("Average Loss: " + (totalLoss / batch.size()));
+    }
+
+    private void applyMove(MoveResult result) {
+        if (result != null) {
+            // Update the board state
+            pastStates.add(result.getNextState());
+            renderPawns(); // Ensure the board visually updates
+
+            if (result.isGameOver()) {
+                checkGameOver();
+            }
+
+            // Switch turn
+            switchTurn();
+        }
+    }
+
+    public GameState getBoardState() {
+        Map<Vector2i, Pawn> currentState = new HashMap<>();
+
+        // Iterate over all pawns and add their positions to the state
+        for (Pawn pawn : pawns) {
+            currentState.put(pawn.getPosition(), pawn);
+        }
+
+        return new GameState(currentState, isWhiteTurn);
+    }
+
+    private GameState createGameState() {
+        return new GameState(
+                pawns.stream().collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
+                isWhiteTurn);
     }
 }
