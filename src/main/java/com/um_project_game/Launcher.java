@@ -32,7 +32,7 @@ public class Launcher extends Application {
     @Override
     public void start(Stage stage) {
         menuStage = stage;
-        settings = new Settings(soundPlayer);
+        settings = new Settings(soundPlayer, viewManager.getRoot());
         setupMenuStage(menuStage);
     }
 

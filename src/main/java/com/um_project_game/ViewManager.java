@@ -11,6 +11,11 @@ import java.util.List;
 public class ViewManager {
 
     private Pane root;
+
+    public Pane getRoot() {
+        return root;
+    }
+
     private Launcher launcher;
     private Menu menu;
     private Scene scene;
