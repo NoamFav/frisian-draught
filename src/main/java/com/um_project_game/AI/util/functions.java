@@ -21,7 +21,7 @@ public class functions {
 
     public void qLearningUpdate(
             GameState state,
-            Vector2i action,
+            Move action,
             double reward,
             GameState nextState,
             DQNModel model,
@@ -29,7 +29,7 @@ public class functions {
             double alpha,
             double gamma) {
         Map<Vector2i, Double> currentQValues = model.predict(state);
-        double currentQ = currentQValues.getOrDefault(action, 0.0);
+        double currentQ = currentQValues.getOrDefault(action.getStartPosition(), 0.0);
 
         Map<Vector2i, Double> nextQValues = targetModel.predict(nextState);
         double maxNextQ =
@@ -38,7 +38,7 @@ public class functions {
         double target = reward + gamma * maxNextQ;
         double loss = Math.pow(target - currentQ, 2);
 
-        model.updateWeights(state, action, loss);
+        model.updateWeights(state, action.getStartPosition(), loss);
     }
 
     public double computeLoss(
@@ -75,9 +75,7 @@ public class functions {
         if (maximizingPlayer) {
             double maxEval = Double.NEGATIVE_INFINITY;
             for (Move move : state.generateMoves()) {
-                GameState newState =
-                        state.applyMove(move.getStartPosition(), move.getEndPosition())
-                                .getNextState();
+                GameState newState = state.applyMove(move).getNextState();
                 double eval = minimax(newState, depth - 1, alpha, beta, false, dqnModel);
                 maxEval = Math.max(maxEval, eval);
                 alpha = Math.max(alpha, eval);
@@ -89,9 +87,7 @@ public class functions {
         } else {
             double minEval = Double.POSITIVE_INFINITY;
             for (Move move : state.generateMoves()) {
-                GameState newState =
-                        state.applyMove(move.getStartPosition(), move.getEndPosition())
-                                .getNextState();
+                GameState newState = state.applyMove(move).getNextState();
                 double eval = minimax(newState, depth - 1, alpha, beta, true, dqnModel);
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);
@@ -107,18 +103,18 @@ public class functions {
         return model.predict(state);
     }
 
-    public Vector2i chooseActionEpsilonGreedy(GameState state, DQNModel model, double epsilon) {
+    public Move chooseActionEpsilonGreedy(GameState state, DQNModel model, double epsilon) {
         if (Math.random() < epsilon) {
             // Random move for exploration
             List<Move> moves = state.generateMoves();
-            return moves.get(new Random().nextInt(moves.size()))
-                    .getStartPosition(); // Choose a random start position as the action
+            return moves.get(new Random().nextInt(moves.size()));
         } else {
             // Greedy action for exploitation
-            return model.predict(state).entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey)
-                    .orElse(null); // Return the action with the highest Q-value
+            return state.generateMoves().stream()
+                    .max((move1, move2) -> Double.compare(
+                            model.predict(state).getOrDefault(move1.getStartPosition(), 0.0),
+                            model.predict(state).getOrDefault(move2.getStartPosition(), 0.0)))
+                    .orElse(null);
         }
     }
 
@@ -144,11 +140,11 @@ public class functions {
     public void storeExperience(
             ReplayBuffer replayBuffer,
             GameState state,
-            Vector2i action,
+            Move action,
             double reward,
             GameState nextState,
             boolean done) {
-        replayBuffer.addExperience(new Experience(state, action, reward, nextState, done));
+        replayBuffer.addExperience(new Experience(state, action.getStartPosition(), reward, nextState, done));
     }
 
     public void mainDRLLoop(
@@ -161,12 +157,8 @@ public class functions {
             double alpha) {
         GameState state = initialState;
         while (!state.isTerminal()) {
-            Vector2i action = chooseActionEpsilonGreedy(state, model, epsilon);
-            MoveResult result =
-                    state.applyMove(
-                            action,
-                            new Vector2i(
-                                    action.x + 1, action.y + 1)); // Adjust move logic as needed
+            Move action = chooseActionEpsilonGreedy(state, model, epsilon);
+            MoveResult result = state.applyMove(action); // Correctly pass the Move object
             GameState nextState = result.getNextState();
             double reward = result.getReward();
             boolean done = result.isGameOver();
@@ -179,23 +171,15 @@ public class functions {
         }
     }
 
-    public Vector2i adversarialSearch(GameState state, int depth, DQNModel model) {
-        Vector2i bestMove = null;
+    public Move adversarialSearch(GameState state, int depth, DQNModel model) {
+        Move bestMove = null;
         double bestScore = Double.NEGATIVE_INFINITY;
         for (Move move : state.generateMoves()) {
-            GameState newState =
-                    state.applyMove(move.getStartPosition(), move.getEndPosition()).getNextState();
-            double score =
-                    minimax(
-                            newState,
-                            depth - 1,
-                            Double.NEGATIVE_INFINITY,
-                            Double.POSITIVE_INFINITY,
-                            false,
-                            model);
+            GameState newState = state.applyMove(move).getNextState();
+            double score = minimax(newState, depth - 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false, model);
             if (score > bestScore) {
                 bestScore = score;
-                bestMove = move.getStartPosition();
+                bestMove = move;
             }
         }
         return bestMove;

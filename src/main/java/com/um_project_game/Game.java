@@ -74,7 +74,7 @@ public class Game {
     // Game export
     private GameExporter exporter = new GameExporter();
 
-    public Game(boolean isMultiplayer, Launcher launcher) {
+    public Game(boolean isMultiplayer, boolean isAgainstBot, Launcher launcher) {
         this.launcher = launcher;
         this.gameStage = new Stage();
         this.gameStage.setTitle("Frisian Draughts - Game");
@@ -96,7 +96,7 @@ public class Game {
         if (isMultiplayer) {
             mainGameBoardMultiplayer(gameRoot, scene);
         } else {
-            mainGameBoard(gameRoot, scene);
+            mainGameBoard(gameRoot, scene, isAgainstBot);
         }
         playerUI(gameRoot, scene, true);
         playerUI(gameRoot, scene, false);
@@ -140,14 +140,15 @@ public class Game {
         return gameRoot;
     }
 
-    private void mainGameBoard(Pane root, Scene scene) {
+    private void mainGameBoard(Pane root, Scene scene, boolean isBotActive) {
         board =
                 mainBoard.getMainBoard(
                         root,
                         mainBoardSize,
                         new Vector2i(mainBoardX, mainBoardY),
                         gameInfo,
-                        movesListGridPane);
+                        movesListGridPane,
+                        isBotActive);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
 
