@@ -20,6 +20,11 @@ public class ReplayBuffer {
         buffer.add(experience);
     }
 
+    public int size() {
+        return buffer.size(); 
+    }
+    
+
     public List<Experience> sample(int batchSize) {
         List<Experience> sample = new ArrayList<>();
         Random rand = new Random();
