@@ -85,7 +85,7 @@ public class MainBoard {
 
     private GameInfo gameInfo;
     private DQNModel botModel;
-    private boolean isBotActive = true; 
+    private boolean isBotActive = false;
     private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
     private static final int BATCH_SIZE = 32; 
     private static final double GAMMA = 0.99; 
@@ -103,11 +103,13 @@ public class MainBoard {
             float boardPixelSize,
             Vector2i boardPosition,
             GameInfo gameInfo,
-            GridPane movesListGridPane) {
+            GridPane movesListGridPane,
+            boolean isBotActive) {
         tileSize = boardPixelSize / BOARD_SIZE;
         pawns = new ArrayList<>();
         board = new GridPane();
         isWhiteTurn = true;
+        this.isBotActive = isBotActive;
         this.root = root;
         this.gameInfo = gameInfo;
         gameInfo.playerTurn.set(1);
@@ -135,7 +137,7 @@ public class MainBoard {
             GridPane movesListGridPane,
             boolean isMultiplayer) {
         this.isMultiplayer = isMultiplayer;
-        return getMainBoard(root, boardPixelSize, boardPosition, gameInfo, movesListGridPane);
+        return getMainBoard(root, boardPixelSize, boardPosition, gameInfo, movesListGridPane, isBotActive);
     }
 
     /**
@@ -1163,11 +1165,6 @@ public class MainBoard {
                 capturedPawn -> {
                     capturedPositions.add(capturedPawn.getPosition());
                 });
-        takenMoves.add(
-                new Move(
-                        pawn.getPosition(),
-                        positions.get(positions.size() - 1),
-                        capturedPositions));
         System.out.println(takenMoves.getLast());
 
         // Bring pawnView to front

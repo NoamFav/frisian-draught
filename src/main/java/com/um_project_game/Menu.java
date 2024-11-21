@@ -111,18 +111,18 @@ public class Menu {
 
         Runnable nill = () -> {};
 
-        Buttons startGameButton =
+        Buttons playLocalButton =
                 new Buttons(
-                        "Start Game",
+                        "Play Local",
                         buttonWidth,
                         buttonHeight,
-                        () -> launcher.startNewGame(false));
+                        () -> showPlayLocalOptions(scene, root));
         Buttons multiplayerButton =
                 new Buttons(
                         "Multiplayer",
                         buttonWidth,
                         buttonHeight,
-                        () -> launcher.startNewGame(true));
+                        () -> launcher.startNewGame(true, false));
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
@@ -130,12 +130,63 @@ public class Menu {
         controlButtons
                 .getChildren()
                 .addAll(
-                        startGameButton.getButton(),
+                        playLocalButton.getButton(),
                         multiplayerButton.getButton(),
                         tutorialButton.getButton(),
                         settingsButton.getButton());
         controlButtons.setId("control-buttons");
         root.getChildren().addAll(controlButtons);
+    }
+
+    private void showPlayLocalOptions(Scene scene, Pane root) {
+        // Remove the current menu buttons
+        Node controlButtons = root.lookup("#control-buttons");
+        if (controlButtons != null) {
+            root.getChildren().remove(controlButtons);
+        }
+
+        // Create the new play local options
+        VBox playLocalOptions = new VBox();
+        playLocalOptions.setSpacing(controlButtonsSpacing);
+        playLocalOptions.setLayoutX(controlButtonsX);
+        playLocalOptions.setLayoutY(controlButtonsY);
+
+        Buttons playerVsPlayerButton = new Buttons(
+                "Player against Player",
+                buttonWidth,
+                buttonHeight,
+                () -> launcher.startNewGame(false, false)); // false for Player vs Player
+
+        Buttons playerVsBotButton = new Buttons(
+                "Player against Bot",
+                buttonWidth,
+                buttonHeight,
+                () -> launcher.startNewGame(false, true)); // true for Player vs Bot
+
+        Buttons backButton = new Buttons(
+                "Back",
+                buttonWidth,
+                buttonHeight,
+                () -> returnToMainMenu(scene, root)); // Go back to main menu
+
+        playLocalOptions.getChildren().addAll(
+                playerVsPlayerButton.getButton(),
+                playerVsBotButton.getButton(),
+                backButton.getButton()
+        );
+        playLocalOptions.setId("play-local-options");
+        root.getChildren().addAll(playLocalOptions);
+    }
+
+    private void returnToMainMenu(Scene scene, Pane root) {
+        // Remove the play local options
+        Node playLocalOptions = root.lookup("#play-local-options");
+        if (playLocalOptions != null) {
+            root.getChildren().remove(playLocalOptions);
+        }
+
+        // Re-add the original control buttons
+        setMenuButtons(scene, root);
     }
 
     private void setRecentGames(Scene scene, Pane root) {
@@ -161,7 +212,6 @@ public class Menu {
                 // Load and display the 3 most recent games (if available)
                 for (int i = 0; i < Math.min(3, pdnFiles.length); i++) {
                     File pdnFile = pdnFiles[i];
-                    //TODO DANIEL
                     MainBoard mainBoard = new MainBoard();
 
                     // Display the game on the board
