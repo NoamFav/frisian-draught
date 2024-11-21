@@ -191,7 +191,7 @@ public class MainBoard {
         gameInfo.scorePlayerTwo.set(0);
         gameInfo.playerTurn.set(1);
         // Clear moves list
-        takenMoves.clear();
+        resetTakenMoves();
         updateMovesListUI();
 
         // Reset the size of the tiles
@@ -1263,6 +1263,13 @@ public class MainBoard {
         );
 
         return capturePaths;
+    }
+
+    private void resetTakenMoves() {
+        takenMoves.clear();
+        pastStates.clear();
+        requiredPawns.clear();
+        updateMovesListUI();
     }
 
     public List<Move> getTakenMoves() {
