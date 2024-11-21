@@ -103,11 +103,13 @@ public class MainBoard {
             float boardPixelSize,
             Vector2i boardPosition,
             GameInfo gameInfo,
-            GridPane movesListGridPane) {
+            GridPane movesListGridPane,
+            boolean isBotActive) {
         tileSize = boardPixelSize / BOARD_SIZE;
         pawns = new ArrayList<>();
         board = new GridPane();
         isWhiteTurn = true;
+        this.isBotActive = isBotActive;
         this.root = root;
         this.gameInfo = gameInfo;
         gameInfo.playerTurn.set(1);
@@ -135,7 +137,7 @@ public class MainBoard {
             GridPane movesListGridPane,
             boolean isMultiplayer) {
         this.isMultiplayer = isMultiplayer;
-        return getMainBoard(root, boardPixelSize, boardPosition, gameInfo, movesListGridPane);
+        return getMainBoard(root, boardPixelSize, boardPosition, gameInfo, movesListGridPane, isBotActive);
     }
 
     /**
