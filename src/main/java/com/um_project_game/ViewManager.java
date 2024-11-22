@@ -35,12 +35,8 @@ public class ViewManager {
     }
 
     /**
-     *
-     * @param state Equals:
-     *                  0 - Close Server Instance
-     *                  1 - Online Multiplayer
-     *                  2 - Offline Player against Bot
-     *                  3 - Offline Player against Player
+     * @param state Equals: 0 - Close Server Instance 1 - Online Multiplayer 2 - Offline Player
+     *     against Bot 3 - Offline Player against Player
      */
     public void gameStateSwitch(int state) {
         GAME_STATE = state;
@@ -96,5 +92,53 @@ public class ViewManager {
         if (activeGames.isEmpty()) {
             gameStateSwitch(0); // Go back to menu
         }
+    }
+
+    public void setRoot(Pane root) {
+        this.root = root;
+    }
+
+    public Launcher getLauncher() {
+        return launcher;
+    }
+
+    public void setLauncher(Launcher launcher) {
+        this.launcher = launcher;
+    }
+
+    public Menu getMenu() {
+        return menu;
+    }
+
+    public void setMenu(Menu menu) {
+        this.menu = menu;
+    }
+
+    public Scene getScene() {
+        return scene;
+    }
+
+    public void setScene(Scene scene) {
+        this.scene = scene;
+    }
+
+    public void setServer(MainServer server) {
+        this.server = server;
+    }
+
+    public List<Game> getActiveGames() {
+        return activeGames;
+    }
+
+    public void setActiveGames(List<Game> activeGames) {
+        this.activeGames = activeGames;
+    }
+
+    public int getGAME_STATE() {
+        return GAME_STATE;
+    }
+
+    public void setGAME_STATE(int gAME_STATE) {
+        GAME_STATE = gAME_STATE;
     }
 }

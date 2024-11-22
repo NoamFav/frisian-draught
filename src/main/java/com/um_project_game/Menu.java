@@ -72,11 +72,9 @@ public class Menu {
     private void setTopBar(Scene scene, Pane root) {
 
         Rectangle topBar = new Rectangle(0, 0, scene.getWidth(), topBarHeight);
-        topBar.setFill(Color.WHITE);
-        topBar.setStroke(Color.BLACK);
-
+        topBar.setId("top-bar");
         Text windowTitle = new Text("Frisian draughts");
-        windowTitle.setFill(Color.BLACK);
+        windowTitle.getStyleClass().add("label");
 
         StackPane titlePane = new StackPane();
         titlePane.getChildren().addAll(topBar, windowTitle);
@@ -90,11 +88,9 @@ public class Menu {
         Rectangle bottomBar =
                 new Rectangle(
                         0, scene.getHeight() - bottomBarHeight, scene.getWidth(), bottomBarHeight);
-        bottomBar.setFill(Color.WHITE);
-        bottomBar.setStroke(Color.BLACK);
-
+        bottomBar.setId("bottom-bar");
         Text bottomBarText = new Text("© 2024 UM Project - Version 1.0.0");
-        bottomBarText.setFill(Color.BLACK);
+        bottomBarText.getStyleClass().add("label");
 
         StackPane bottomBarPane = new StackPane();
         bottomBarPane.getChildren().addAll(bottomBar, bottomBarText);
@@ -151,29 +147,33 @@ public class Menu {
         playLocalOptions.setLayoutX(controlButtonsX);
         playLocalOptions.setLayoutY(controlButtonsY);
 
-        Buttons playerVsPlayerButton = new Buttons(
-                "Player against Player",
-                buttonWidth,
-                buttonHeight,
-                () -> launcher.startNewGame(false, false)); // false for Player vs Player
+        Buttons playerVsPlayerButton =
+                new Buttons(
+                        "Player against Player",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> launcher.startNewGame(false, false)); // false for Player vs Player
 
-        Buttons playerVsBotButton = new Buttons(
-                "Player against Bot",
-                buttonWidth,
-                buttonHeight,
-                () -> launcher.startNewGame(false, true)); // true for Player vs Bot
+        Buttons playerVsBotButton =
+                new Buttons(
+                        "Player against Bot",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> launcher.startNewGame(false, true)); // true for Player vs Bot
 
-        Buttons backButton = new Buttons(
-                "Back",
-                buttonWidth,
-                buttonHeight,
-                () -> returnToMainMenu(scene, root)); // Go back to main menu
+        Buttons backButton =
+                new Buttons(
+                        "Back",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> returnToMainMenu(scene, root)); // Go back to main menu
 
-        playLocalOptions.getChildren().addAll(
-                playerVsPlayerButton.getButton(),
-                playerVsBotButton.getButton(),
-                backButton.getButton()
-        );
+        playLocalOptions
+                .getChildren()
+                .addAll(
+                        playerVsPlayerButton.getButton(),
+                        playerVsBotButton.getButton(),
+                        backButton.getButton());
         playLocalOptions.setId("play-local-options");
         root.getChildren().addAll(playLocalOptions);
     }
@@ -196,6 +196,7 @@ public class Menu {
         recentBoards.setLayoutY(recentBoardsY);
 
         Text recentBoardsTitle = new Text("Recent Boards");
+        recentBoardsTitle.getStyleClass().add("label");
 
         float boardSize = recentBoardsSize;
         HBox recentGames = new HBox();
@@ -215,7 +216,9 @@ public class Menu {
                     MainBoard mainBoard = new MainBoard();
 
                     // Display the game on the board
-                    recentGames.getChildren().add(mainBoard.getRandomBoard(root, boardSize, pdnFile.getPath()));
+                    recentGames
+                            .getChildren()
+                            .add(mainBoard.getRandomBoard(root, boardSize, pdnFile.getPath()));
                 }
             }
         }
@@ -228,6 +231,7 @@ public class Menu {
     private void setLiveGame(Scene scene, Pane root) {
 
         Text liveGameTitle = new Text("Live Game");
+        liveGameTitle.getStyleClass().add("label");
 
         MainBoard mainBoard = new MainBoard();
         GridPane liveboard = mainBoard.getRandomBoard(root, liveGameSize);
@@ -251,7 +255,7 @@ public class Menu {
         versionStatus.setFill(Color.TRANSPARENT);
 
         Text versionStatusText = new Text("Version Status");
-        versionStatusText.setFill(Color.BLACK);
+        versionStatusText.getStyleClass().add("label");
 
         StackPane versionStatusPane = new StackPane();
         versionStatusPane.getChildren().addAll(versionStatus, versionStatusText);

@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class Launcher extends Application {
@@ -23,16 +25,29 @@ public class Launcher extends Application {
     public static Settings settings;
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
+    public static boolean DARK_MODE = true;
     public static final ViewManager viewManager =
             new ViewManager(
                     new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
+
+    private static final List<Scene> scenes = new ArrayList<>();
+
+    public static void registerScene(Scene scene) {
+        scenes.add(scene);
+        applyTheme(scene); // Apply the current theme immediately
+    }
+
+    public static void switchTheme() {
+        Launcher.DARK_MODE = !Launcher.DARK_MODE;
+        scenes.forEach(Launcher::applyTheme); // Apply the new theme to all scenes
+    }
 
     public static Stage menuStage;
 
     @Override
     public void start(Stage stage) {
         menuStage = stage;
-        settings = new Settings(soundPlayer, viewManager.getRoot());
+        settings = new Settings(soundPlayer, viewManager.getRoot(), viewManager.getScene());
         setupMenuStage(menuStage);
     }
 
@@ -41,11 +56,9 @@ public class Launcher extends Application {
         Scene scene = new Scene(root, REF_WIDTH, REF_HEIGHT);
         stage.setTitle("Frisian Draughts - Menu");
 
-        URL cssUrl = getClass().getResource("/stylesheet.css");
+        URL cssUrl = getClass().getResource(DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
         if (cssUrl != null) {
             scene.getStylesheets().add(cssUrl.toExternalForm());
-        } else {
-            System.err.println("Stylesheet not found");
         }
 
         scene.setOnKeyPressed(
@@ -63,10 +76,9 @@ public class Launcher extends Application {
 
         // Create and display the menu
         Menu menu = new Menu(root, scene, this);
-
+        viewManager.setMenu(menu);
         resizePause = new PauseTransition(Duration.millis(50));
         resizePause.setOnFinished(event -> menu.onResize(root, scene));
-
         // Add resize listeners
         scene.widthProperty()
                 .addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
@@ -91,7 +103,6 @@ public class Launcher extends Application {
     }
 
     /**
-     *
      * @param isOnline Is Online-Game?
      * @param againstBot Is Against Bot?
      */
@@ -144,6 +155,21 @@ public class Launcher extends Application {
                 System.out.println("Server closed");
             }
             Platform.exit(); // Close the application
+        }
+    }
+
+    public static void applyTheme(Scene scene) {
+        URL cssUrl =
+                Launcher.DARK_MODE
+                        ? Launcher.class.getResource("/dark-theme.css")
+                        : Launcher.class.getResource("/light-theme.css");
+
+        if (cssUrl != null) {
+            scene.getStylesheets().clear();
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+            System.out.println("Applied theme: " + (Launcher.DARK_MODE ? "Dark" : "Light"));
+        } else {
+            System.err.println("Stylesheet not found.");
         }
     }
 

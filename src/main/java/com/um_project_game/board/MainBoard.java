@@ -1381,4 +1381,11 @@ public class MainBoard {
                 pawns.stream().collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
                 isWhiteTurn);
     }
+
+    public void refreshBoard() {
+        if (!root.getChildren().contains(board)) {
+            root.getChildren().add(board); // Re-add the board if not already in the root
+        }
+        board.toFront(); // Bring the board to the front
+    }
 }

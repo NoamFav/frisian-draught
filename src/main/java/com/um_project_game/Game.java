@@ -3,8 +3,8 @@ package com.um_project_game;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
-
 import com.um_project_game.util.GameExporter;
+
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -35,6 +35,11 @@ import java.util.function.Consumer;
 public class Game {
 
     private final MainBoard mainBoard = new MainBoard();
+
+    public MainBoard getMainBoard() {
+        return mainBoard;
+    }
+
     private GridPane board;
 
     private GameInfo gameInfo = new GameInfo();
@@ -81,9 +86,11 @@ public class Game {
 
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
+        Launcher.registerScene(scene);
 
         // Load CSS
-        URL cssUrl = getClass().getResource("/stylesheet.css");
+        URL cssUrl =
+                getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
         if (cssUrl != null) {
             scene.getStylesheets().add(cssUrl.toExternalForm());
         } else {
@@ -126,10 +133,11 @@ public class Game {
                         });
 
         // Handle close event
-        this.gameStage.setOnCloseRequest(e -> {
-            e.consume(); // Prevent the window from closing immediately
-            showExitConfirmation(); // Show the exit confirmation dialog
-        });
+        this.gameStage.setOnCloseRequest(
+                e -> {
+                    e.consume(); // Prevent the window from closing immediately
+                    showExitConfirmation(); // Show the exit confirmation dialog
+                });
     }
 
     public void showGameWindow() {
@@ -201,12 +209,12 @@ public class Game {
                 };
 
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
-        playerText.getStyleClass().add("playerText");
+        playerText.getStyleClass().add("label");
         setPlayerStyle.accept(playerText);
         playerText.setId(isPlayerOne ? "playerOneText" : "playerTwoText");
 
         Text playerScore = new Text();
-        playerScore.getStyleClass().add("playerScore");
+        playerScore.getStyleClass().add("label");
         playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
         if (isPlayerOne) {
             playerScore
@@ -220,7 +228,7 @@ public class Game {
         setPlayerStyle.accept(playerScore);
 
         Text playerTime = new Text("Time: 10:00");
-        playerTime.getStyleClass().add("playerTime");
+        playerTime.getStyleClass().add("label");
         setPlayerStyle.accept(playerTime);
         playerTime.setId(isPlayerOne ? "playerOneTime" : "playerTwoTime");
 
@@ -242,7 +250,7 @@ public class Game {
         chatUI.getStyleClass().add("chatUI");
 
         Text chatText = new Text("Chat");
-        chatText.getStyleClass().add("chatText");
+        chatText.getStyleClass().add("label");
 
         chatUI.getChildren().add(chatText);
 
@@ -259,7 +267,7 @@ public class Game {
                 // Recreate the menu
                 launcher.showMenu();
             }
-            gameStage.close();  // Close the game window
+            gameStage.close(); // Close the game window
         }
     }
 
@@ -309,7 +317,7 @@ public class Game {
         movesList.getStyleClass().add("movesList");
 
         Text movesListText = new Text("Moves List");
-        movesListText.getStyleClass().add("movesListText");
+        movesListText.getStyleClass().add("label");
 
         // Fetch the moves list grid pane
         movesListGridPane = mainBoard.getMovesListGridPane();
@@ -335,11 +343,11 @@ public class Game {
 
         // Create a ScrollPane and add movesListGridPane to it
         ScrollPane scrollPane = new ScrollPane(movesListGridPane);
-        scrollPane.setStyle("-fx-background: white; -fx-background-color: white;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.getStyleClass().add("movesListScrollPane");
 
-        // Wrap ScrollPane in a VBox with padding for better visibility
         VBox scrollPaneWrapper = new VBox(scrollPane);
+        scrollPaneWrapper.getStyleClass().add("movesListScrollPane");
         scrollPaneWrapper.setPadding(new Insets(10));
         scrollPaneWrapper.setPrefSize(movesListWidth, movesListHeight);
 
@@ -444,5 +452,4 @@ public class Game {
         return (int)
                 ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
     }
-
 }
