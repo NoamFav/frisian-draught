@@ -24,6 +24,10 @@ public class MovesListManager {
             Text whiteHeader = new Text("White");
             Text blackHeader = new Text("Black");
 
+            turnHeader.getStyleClass().add("label");
+            whiteHeader.getStyleClass().add("label");
+            blackHeader.getStyleClass().add("label");
+
             movesListGridPane.add(turnHeader, 0, 0); // Column 0, Row 0
             movesListGridPane.add(whiteHeader, 1, 0); // Column 1, Row 0
             movesListGridPane.add(blackHeader, 2, 0); // Column 2, Row 0
@@ -33,6 +37,7 @@ public class MovesListManager {
             for (int i = 0; i < moves.size(); i++) {
                 Move move = moves.get(i);
                 Text moveText = new Text(move.toString()); // Create Text for the move
+                moveText.getStyleClass().add("label");
 
                 // Determine column based on whether it's an odd/even index
                 int column = (i % 2) + 1; // 1 for Player 1, 2 for Player 2
@@ -47,6 +52,7 @@ public class MovesListManager {
                 if (column == 1) {
                     Text turnText =
                             new Text(String.valueOf(turnNumber)); // Create Text for turn number
+                    turnText.getStyleClass().add("label");
                     movesListGridPane.add(turnText, 0, row); // Add turn number to first column
                 }
 

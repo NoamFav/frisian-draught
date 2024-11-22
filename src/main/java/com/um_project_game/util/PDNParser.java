@@ -1,6 +1,7 @@
 package com.um_project_game.util;
 
 import com.um_project_game.board.Move;
+
 import org.joml.Vector2i;
 
 import java.io.BufferedReader;
@@ -74,7 +75,7 @@ public class PDNParser {
         String[] turnMoves = line.split("\\s+");
         for (String turn : turnMoves) {
             // For now: Skip known game result lines explicitly
-            //TODO: Add handling for when you load in a game that is already finished
+            // TODO: Add handling for when you load in a game that is already finished
             if ("1-0".equals(turn) || "0-1".equals(turn) || "1/2-1/2".equals(turn)) {
                 continue;
             }
@@ -103,7 +104,8 @@ public class PDNParser {
 
                 List<Vector2i> capturedPositions = new ArrayList<>();
                 if (isCapture && endPosition != null) {
-                    capturedPositions.add(endPosition); // Replace with actual capture logic as needed
+                    capturedPositions.add(
+                            endPosition); // Replace with actual capture logic as needed
                 }
 
                 Move move = new Move(startPosition, endPosition, capturedPositions);
@@ -117,10 +119,9 @@ public class PDNParser {
 
         // Print all moves after parsing
         for (Move move : moves) {
-            System.out.println(move);
+            // System.out.println(move);
         }
     }
-
 
     public String getEvent() {
         return event;

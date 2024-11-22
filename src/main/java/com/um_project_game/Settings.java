@@ -3,7 +3,9 @@ package com.um_project_game;
 import com.um_project_game.util.Buttons;
 import com.um_project_game.util.SoundPlayer;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -24,29 +26,18 @@ public class Settings {
     private double moveRelativeVolume;
     private double captureRelativeVolume;
 
-    // dark mode
-    private boolean darkMode;
-
-    public boolean isDarkMode() {
-        return darkMode;
-    }
-
-    public void setDarkMode(boolean darkMode) {
-        this.darkMode = darkMode;
-    }
-
-    public Settings(SoundPlayer soundPlayer, Pane root) {
+    public Settings(SoundPlayer soundPlayer, Pane root, Scene scene) {
         this.soundPlayer = soundPlayer;
-        initializeSettingsWindow(root);
+        initializeSettingsWindow(root, scene);
     }
 
-    private void initializeSettingsWindow(Pane root) {
+    private void initializeSettingsWindow(Pane root, Scene scene) {
         // Store initial relative volumes
         mainVolume = soundPlayer.getMainVolume();
         backgroundRelativeVolume = soundPlayer.getBackgroundVolume();
         moveRelativeVolume = soundPlayer.getMoveVolume();
         captureRelativeVolume = soundPlayer.getCaptureVolume();
-        darkMode = false;
+
         // Create a GridPane for better layout
         GridPane grid = new GridPane();
         grid.setVgap(10);
@@ -83,24 +74,18 @@ public class Settings {
                         100,
                         30,
                         () -> {
-                            darkMode = !darkMode;
-
-                            // Ensure "dark-theme" is added only once
-                            if (darkMode && !root.getStyleClass().contains("dark-theme")) {
-                                System.out.println(root.getStyleClass());
-                                root.getStyleClass().add("dark-theme");
-                                System.out.println("Dark mode enabled");
-                            }
-                            // Remove "dark-theme" when toggling off
-                            else if (!darkMode) {
-                                System.out.println(root.getStyleClass());
-                                System.out.println("Dark mode disabled");
-                                root.getStyleClass().remove("dark-theme");
-                            }
-
-                            // Apply CSS styles immediately
-                            root.applyCss();
-                            root.layout();
+                            Launcher.switchTheme();
+                            Platform.runLater(
+                                    () -> {
+                                        Launcher.viewManager.getMenu().onResize(root, scene);
+                                        Launcher.viewManager
+                                                .getActiveGames()
+                                                .forEach(game -> game.onResize(root, scene));
+                                        Launcher.viewManager
+                                                .getActiveGames()
+                                                .forEach(
+                                                        game -> game.getMainBoard().refreshBoard());
+                                    });
                         });
 
         mainVolumeLabel.getStyleClass().add("settings-label");
@@ -146,17 +131,19 @@ public class Settings {
         VBox content = new VBox(10, grid, buttonBox);
 
         // Create the scene and stage
-        Scene scene = new Scene(content);
-        URL cssUrl = getClass().getResource("/stylesheet.css");
+        Scene settingScene = new Scene(content);
+        URL cssUrl =
+                getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
         if (cssUrl != null) {
-            scene.getStylesheets().add(cssUrl.toExternalForm());
+            settingScene.getStylesheets().add(cssUrl.toExternalForm());
         } else {
             System.err.println("Stylesheet not found");
         }
 
         settingsStage = new Stage();
         settingsStage.setTitle("Settings");
-        settingsStage.setScene(scene);
+        Launcher.registerScene(settingScene); // Register the scene
+        settingsStage.setScene(settingScene);
 
         // Make the settings window modal
         settingsStage.initModality(Modality.APPLICATION_MODAL);
@@ -230,6 +217,17 @@ public class Settings {
                             }
                             // Else, do nothing
                         });
+    }
+
+    private void refreshStyles(Pane root) {
+        root.applyCss(); // Apply styles to the root
+        for (Node child : root.getChildren()) {
+            if (child instanceof Pane) {
+                refreshStyles((Pane) child); // Recursively apply styles to child panes
+            } else {
+                child.applyCss(); // Apply styles to non-pane nodes
+            }
+        }
     }
 
     public void show() {

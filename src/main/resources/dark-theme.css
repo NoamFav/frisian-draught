@@ -1,0 +1,111 @@
+.root {
+  -fx-background-color: #1e1e1e;
+}
+
+#top-bar {
+  -fx-fill: black;
+  -fx-stroke: white;
+}
+
+#bottom-bar {
+  -fx-fill: black;
+  -fx-stroke: white;
+}
+
+.label {
+  -fx-fill: #ffffff;
+  -fx-font-size: 14px;
+}
+
+.button {
+  -fx-background-color: #333333;
+  -fx-background-radius: 15;
+  -fx-text-fill: #ffffff;
+  -fx-border-color: #ffffff;
+  -fx-border-radius: 15;
+}
+
+.button:hover {
+  -fx-background-color: #ffffff;
+  -fx-text-fill: #333333;
+}
+
+.version-status {
+  -fx-background-color: #333333;
+  -fx-background-radius: 15;
+  -fx-text-fill: #ffffff;
+  -fx-border-color: #ffffff;
+  -fx-border-radius: 15;
+}
+
+.board {
+  -fx-background-color: #333333;
+  -fx-background-radius: 15;
+  -fx-border-color: #ffffff;
+  -fx-border-radius: 15;
+  -fx-padding: 5;
+}
+
+.board:hover {
+  -fx-background-color: #555555;
+}
+
+.playerUI {
+  -fx-background-color: #2b2b2b;
+  -fx-border-color: #444444;
+  -fx-padding: 5;
+}
+
+.chatUI {
+  -fx-background-color: #2b2b2b;
+  -fx-border-color: #444444;
+  -fx-border-radius: 15;
+  -fx-background-radius: 15;
+}
+
+.movesList {
+  -fx-background-color: #2b2b2b;
+  -fx-border-color: #444444;
+  -fx-border-radius: 15;
+  -fx-background-radius: 15;
+}
+
+.movesListScrollPane {
+  -fx-background-color: #2b2b2b;
+  -fx-text-fill: #cccccc;
+  -fx-background-radius: 15;
+  -fx-fill: #ffffff;
+}
+
+.movesListScrollPane .viewport {
+  -fx-background-color: #2b2b2b; /* Matches ScrollPane background */
+  -fx-text-fill: #cccccc;
+  -fx-background-radius: 15;
+  -fx-fill: #ffffff;
+}
+
+.settings-label {
+  -fx-text-fill: #cccccc;
+  -fx-font-size: 14px;
+  -fx-padding: 5 0 5 0;
+}
+
+.settings-slider {
+  -fx-padding: 0 0 0 0;
+}
+
+.settings-slider .track {
+  -fx-background-color: #444444;
+  -fx-background-radius: 5;
+}
+
+.settings-slider .thumb {
+  -fx-background-color: #666666;
+  -fx-background-insets: 0;
+  -fx-background-radius: 10;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0, 0, 1);
+}
+
+.settings-slider .thumb:hover {
+  -fx-background-color: #ffffff;
+}
