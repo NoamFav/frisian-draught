@@ -9,6 +9,7 @@ import java.util.List;
 public class CapturePath {
     public List<Vector2i> positions; // Positions along the path
     public List<Pawn> capturedPawns; // Pawns captured along the path
+    public Pawn initialPawn; // Initial pawn that made the capture
     double score;
 
     public CapturePath() {
