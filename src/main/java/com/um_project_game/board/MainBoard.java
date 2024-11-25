@@ -63,6 +63,7 @@ public class MainBoard {
     private List<Pawn> pawns = new ArrayList<>();
     private List<Pawn> requiredPawns = new ArrayList<>();
     private List<Vector2i> possibleMoves = new ArrayList<>();
+    private List<CapturePath> currentCapturePaths = new ArrayList<>();
 
     private List<Move> takenMoves = new ArrayList<>();
     private MovesListManager movesListManager;
@@ -490,6 +491,9 @@ public class MainBoard {
 
         captureCheck(pawn, inBounds, x, y, new CapturePath(), allPaths);
 
+        currentCapturePaths = allPaths;
+        System.out.println("All paths: " + allPaths);
+
         if (!allPaths.isEmpty()) {
             handleCaptureMoves(pawn, allPaths, false, true);
         } else if (requiredPawns.isEmpty()) {
@@ -838,7 +842,7 @@ public class MainBoard {
         for (Pawn pawn : pawns) {
             currentState.put(pawn.getPosition(), pawn);
         }
-        GameState newState = new GameState(currentState, isWhiteTurn);
+        GameState newState = new GameState(currentState, isWhiteTurn, this);
 
         pastStates.add(newState);
 
@@ -960,6 +964,7 @@ public class MainBoard {
         if (!isWhiteTurn && isBotActive) {
             triggerBotMove();
         }
+        System.out.println("Player " + (isWhiteTurn ? 1 : 2) + "'s turn");
     }
 
     /** Checks if it is the white player's turn. */
@@ -1106,6 +1111,7 @@ public class MainBoard {
      * @param onFinished Callback to run after the animation finishes.
      */
     private void animatePawnCaptureMovement(Pawn pawn, CapturePath path, Runnable onFinished) {
+        System.out.println("Animating capture moves");
         ImageView pawnView = pawnViews.get(pawn);
         List<Vector2i> positions = path.positions;
         List<Pawn> capturedPawns = path.capturedPawns;
@@ -1264,6 +1270,48 @@ public class MainBoard {
         return capturePaths;
     }
 
+    public List<Move> getValidMovesForState(GameState state) {
+        List<Move> validMoves = new ArrayList<>();
+
+        // Iterate through all pawns in the game state
+        for (Map.Entry<Vector2i, Pawn> entry : state.getBoardState().entrySet()) {
+            Vector2i position = entry.getKey();
+            Pawn pawn = entry.getValue();
+
+            // Ensure this pawn belongs to the current player
+            if (pawn.isWhite() != state.isWhiteTurn()) {
+                continue;
+            }
+
+            // Generate moves for this pawn
+            seePossibleMove(pawn);
+            validMoves.addAll(
+                    possibleMoves.stream()
+                            .map(
+                                    move ->
+                                            new Move(
+                                                    position,
+                                                    move,
+                                                    new ArrayList<>(
+                                                            requiredPawns.stream()
+                                                                    .map(Pawn::getPosition)
+                                                                    .collect(Collectors.toList()))))
+                            .collect(Collectors.toList()));
+        }
+
+        List<Move> captureMoves =
+                validMoves.stream()
+                        .filter(move -> !move.getCapturedPositions().isEmpty())
+                        .collect(Collectors.toList());
+        if (!captureMoves.isEmpty()) {
+            System.out.println("Capture moves found: " + captureMoves);
+            return captureMoves;
+        }
+
+        System.out.println("Normal moves found: " + validMoves);
+        return validMoves;
+    }
+
     private void resetTakenMoves() {
         takenMoves.clear();
         pastStates.clear();
@@ -1279,9 +1327,48 @@ public class MainBoard {
         Platform.runLater(
                 () -> {
                     try {
-                        // Bot selects a move
+                        currentCapturePaths.clear();
                         GameState currentState = getBoardState();
                         List<Move> possibleMoves = currentState.generateMoves();
+
+                        System.out.println(
+                                "Current capture paths for the bot: " + currentCapturePaths);
+
+                        // Prioritize capture moves
+                        if (!currentCapturePaths.isEmpty()) {
+                            double maxCaptureValue =
+                                    currentCapturePaths.stream()
+                                            .mapToDouble(CapturePath::getCaptureValue)
+                                            .max()
+                                            .orElse(0);
+
+                            CapturePath bestPath =
+                                    currentCapturePaths.stream()
+                                            .filter(
+                                                    path ->
+                                                            path.getCaptureValue()
+                                                                    == maxCaptureValue)
+                                            .findFirst()
+                                            .orElse(null);
+
+                            System.out.println("Best capture path: " + bestPath);
+
+                            if (bestPath != null) {
+                                Pawn pawn =
+                                        getPawnAtPosition(
+                                                bestPath.positions.get(0)); // Start position
+                                if (pawn != null) {
+                                    System.out.println("Bot executing capture path: " + bestPath);
+                                    animatePawnCaptureMovement(
+                                            pawn,
+                                            bestPath,
+                                            () -> processAfterCaptureMove(pawn, bestPath));
+                                    return; // Capture move executed, skip normal move logic
+                                }
+                            }
+                        }
+
+                        // If no captures are available, handle normal moves
 
                         if (possibleMoves.isEmpty()) {
                             System.out.println("No possible moves for the bot.");
@@ -1301,32 +1388,17 @@ public class MainBoard {
                                         .findFirst()
                                         .orElse(null);
 
-                        if (selectedMove == null) {
-                            System.out.println("Bot selected an invalid action.");
-                            return;
-                        }
-
-                        // Handle captures
-                        if (selectedMove.getCapturedPositions() != null
-                                && !selectedMove.getCapturedPositions().isEmpty()) {
-                            for (Vector2i capturedPosition : selectedMove.getCapturedPositions()) {
-                                Pawn capturedPawn = getPawnAtPosition(capturedPosition);
-                                if (capturedPawn != null) {
-                                    removePawn(
-                                            capturedPawn); // Ensure this logic works for both mouse
-                                    // and bot moves
-                                }
+                        if (selectedMove != null) {
+                            Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
+                            if (pawn != null) {
+                                System.out.println("Bot executing normal move: " + selectedMove);
+                                animatePawnMovement(
+                                        pawn,
+                                        selectedMove.getEndPosition(),
+                                        () -> applyMove(currentState.applyMove(selectedMove)));
+                            } else {
+                                applyMove(currentState.applyMove(selectedMove));
                             }
-                        }
-
-                        // Apply the move and animate
-                        MoveResult result = currentState.applyMove(selectedMove);
-                        Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
-                        if (pawn != null) {
-                            animatePawnMovement(
-                                    pawn, selectedMove.getEndPosition(), () -> applyMove(result));
-                        } else {
-                            applyMove(result);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1373,13 +1445,14 @@ public class MainBoard {
             currentState.put(pawn.getPosition(), pawn);
         }
 
-        return new GameState(currentState, isWhiteTurn);
+        return new GameState(currentState, isWhiteTurn, this);
     }
 
     private GameState createGameState() {
         return new GameState(
                 pawns.stream().collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
-                isWhiteTurn);
+                isWhiteTurn,
+                this);
     }
 
     public void refreshBoard() {

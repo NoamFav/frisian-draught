@@ -2,6 +2,7 @@ package com.um_project_game.AI;
 
 import com.um_project_game.board.GameState;
 import com.um_project_game.board.Move;
+
 import org.joml.Vector2i;
 
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class DQNModel {
         double[] input = state.toInputArray();
         double[] output = network.predict(input);
         Map<Vector2i, Double> qValues = new HashMap<>();
-        
+
         // Assuming the output size matches the board size (e.g., 10x10 = 100)
         int boardSize = 10;
         for (int i = 0; i < output.length; i++) {
@@ -29,8 +30,8 @@ public class DQNModel {
             int y = i / boardSize;
             qValues.put(new Vector2i(x, y), output[i]);
         }
-        
-        // Filter Q-values based on valid moves
+
+        // Filter Q-values based on valid moves from MainBoard
         List<Move> possibleMoves = state.generateMoves();
         Map<Vector2i, Double> filteredQValues = new HashMap<>();
         for (Move move : possibleMoves) {
@@ -39,7 +40,7 @@ public class DQNModel {
                 filteredQValues.put(endPosition, qValues.get(endPosition));
             }
         }
-        
+
         System.out.println("Filtered Q-values: " + filteredQValues);
         return filteredQValues;
     }
@@ -50,7 +51,7 @@ public class DQNModel {
         double[] target = network.predict(input); // Get current predictions
 
         // Update only the Q-value of the chosen action
-        int actionIndex = action.y * 10 + action.x; // Example: 1D index for a 2D board
+        int actionIndex = action.y * 10 + action.x;
         target[actionIndex] = reward; // Assign reward to the specific action
 
         network.train(input, target); // Train the network
