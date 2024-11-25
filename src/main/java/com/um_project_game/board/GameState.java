@@ -2,7 +2,6 @@ package com.um_project_game.board;
 
 import org.joml.Vector2i;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,11 +9,13 @@ import java.util.Objects;
 
 public class GameState {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
+    MainBoard mainBoard;
     boolean isWhiteTurn;
 
-    public GameState(Map<Vector2i, Pawn> currentState, boolean isWhiteTurn) {
+    public GameState(Map<Vector2i, Pawn> currentState, boolean isWhiteTurn, MainBoard mainBoard) {
         this.boardState = new HashMap<>(currentState);
         this.isWhiteTurn = isWhiteTurn;
+        this.mainBoard = mainBoard;
     }
 
     public double[] toInputArray() {
@@ -63,43 +64,7 @@ public class GameState {
     }
 
     public List<Move> generateMoves() {
-        List<Move> moves = new ArrayList<>();
-
-        for (Map.Entry<Vector2i, Pawn> entry : boardState.entrySet()) {
-            Vector2i position = entry.getKey();
-            Pawn pawn = entry.getValue();
-
-            if (pawn.isWhite() != isWhiteTurn) continue; // Skip opponent pawns
-
-            // Add normal moves
-            int[][] directions =
-                    pawn.isKing()
-                            ? new int[][] {
-                                {-1, -1}, {1, -1}, {-1, 1}, {1, 1}
-                            } // Kings move in all directions
-                            : isWhiteTurn
-                                    ? new int[][] {{-1, -1}, {1, -1}} // White pawns move upward
-                                    : new int[][] {{-1, 1}, {1, 1}}; // Black pawns move downward
-
-            for (int[] dir : directions) {
-                Vector2i newPos = new Vector2i(position.x + dir[0], position.y + dir[1]);
-                if (isValidMove(position, newPos)) {
-                    moves.add(new Move(position, newPos));
-                }
-            }
-
-            // Add capturing moves
-            for (int[] dir : directions) {
-                Vector2i capturePos = new Vector2i(position.x + dir[0], position.y + dir[1]);
-                Vector2i landingPos = new Vector2i(capturePos.x + dir[0], capturePos.y + dir[1]);
-
-                if (isValidCapture(position, capturePos, landingPos)) {
-                    moves.add(new Move(position, landingPos, List.of(capturePos)));
-                }
-            }
-        }
-
-        return moves;
+        return mainBoard.getValidMovesForState(this);
     }
 
     private boolean isValidMove(Vector2i startPosition, Vector2i endPosition) {
@@ -193,7 +158,7 @@ public class GameState {
         }
 
         // Create the updated game state
-        GameState newState = new GameState(boardState, !isWhiteTurn);
+        GameState newState = new GameState(boardState, !isWhiteTurn, mainBoard);
 
         // Return the result
         return new MoveResult(newState, reward, newState.isTerminal());

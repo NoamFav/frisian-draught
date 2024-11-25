@@ -134,6 +134,10 @@ public class ViewManager {
         this.activeGames = activeGames;
     }
 
+    public Game getGame(Game game) {
+        return activeGames.get(activeGames.indexOf(game));
+    }
+
     public int getGAME_STATE() {
         return GAME_STATE;
     }
