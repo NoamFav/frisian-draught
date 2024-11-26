@@ -49,7 +49,7 @@ mvn clean package -Djpackage.type=deb
 mvn clean package -Djpackage.type=rpm
 ```
 
-This will prompt you to move the app to the Applications folder on macOS or install it on Windows. You can then run the game as a standalone application.
+This will prompt you to move the app to the Applications' folder on macOS or install it on Windows. You can then run the game as a standalone application.
 Note that the save files are stored in the user's home directory under the `FrisianDraughtsExports` folder.
 
 ### Using Maven

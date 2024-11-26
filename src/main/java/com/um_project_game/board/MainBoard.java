@@ -10,6 +10,7 @@ import com.um_project_game.util.SoundPlayer;
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
@@ -34,6 +35,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
@@ -83,6 +85,7 @@ public class MainBoard {
     private GameInfo gameInfo;
     private DQNModel botModel;
     public boolean isBotActive = false;
+    public boolean isBotvsBot = false;
     private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
     private static final int BATCH_SIZE = 32;
     private static final double GAMMA = 0.99;
@@ -114,14 +117,18 @@ public class MainBoard {
             Vector2i boardPosition,
             GameInfo gameInfo,
             GridPane movesListGridPane,
-            boolean isBotActive) {
+            boolean isBotActive,
+            boolean isBotvsBot) {
         tileSize = boardPixelSize / BOARD_SIZE;
         pawns = new ArrayList<>();
         board = new GridPane();
         isWhiteTurn = true;
         this.isBotActive = isBotActive;
+        this.isBotvsBot = isBotvsBot;
         this.root = root;
         this.gameInfo = gameInfo;
+
+        System.out.println("isBotvsBot: " + isBotvsBot);
         gameInfo.playerTurn.set(1);
         movesListManager = new MovesListManager(movesListGridPane);
 
@@ -132,7 +139,13 @@ public class MainBoard {
         renderBoard();
         renderPawns();
 
-        botModel = new DQNModel(101, 100, 100, 0.1);
+        if (isBotActive) {
+            botModel = new DQNModel(101, 100, 100, 0.1);
+        }
+        if (isBotvsBot) {
+            botModel = new DQNModel(101, 100, 100, 0.1);
+            playBotVsBot();
+        }
 
         System.out.println("isMultiplayer: " + isMultiplayer);
 
@@ -148,7 +161,13 @@ public class MainBoard {
             boolean isMultiplayer) {
         this.isMultiplayer = isMultiplayer;
         return getMainBoard(
-                root, boardPixelSize, boardPosition, gameInfo, movesListGridPane, isBotActive);
+                root,
+                boardPixelSize,
+                boardPosition,
+                gameInfo,
+                movesListGridPane,
+                isBotActive,
+                false);
     }
 
     /**
@@ -200,14 +219,15 @@ public class MainBoard {
     public void resetGame(float boardPixelSize) {
         tileSize = boardPixelSize / BOARD_SIZE;
         isWhiteTurn = true;
+        isActive = true; // Ensure game is active
+        pastStates.clear(); // Clear game history
         gameInfo.scorePlayerOne.set(0);
         gameInfo.scorePlayerTwo.set(0);
         gameInfo.playerTurn.set(1);
-        // Clear moves list
         resetTakenMoves();
         updateMovesListUI();
 
-        // Reset the size of the tiles
+        // Reset board tiles
         for (int y = 0; y < boardSize.y; y++) {
             for (int x = 0; x < boardSize.x; x++) {
                 Node node = boardTiles[x][y];
@@ -219,30 +239,28 @@ public class MainBoard {
             }
         }
 
-        // Clear highlights if any
+        // Clear highlights and reset pawns
         clearHighlights();
-
-        // Reset pawns to initial positions
         resetPawnsToInitialPositions();
 
-        // Update the size and position of each pawn
+        // Resize pawns
         double scaleFactor = 0.8;
         for (Map.Entry<Pawn, ImageView> entry : pawnViews.entrySet()) {
             Pawn pawn = entry.getKey();
             ImageView pawnView = entry.getValue();
 
-            // Update pawn image size
             pawnView.setFitWidth(tileSize * scaleFactor);
             pawnView.setFitHeight(tileSize * scaleFactor);
-
-            // Reset pawn properties
-            pawn.setKing(false);
-
-            // Set pawn to initial position
+            pawn.setKing(false); // Reset pawn to non-king
             Vector2i initialPosition = pawn.getInitialPosition();
             pawn.setPosition(initialPosition);
             GridPane.setColumnIndex(pawnView, initialPosition.x);
             GridPane.setRowIndex(pawnView, initialPosition.y);
+        }
+
+        // Restart bot-vs-bot if enabled
+        if (isBotvsBot) {
+            Platform.runLater(() -> playBotVsBot()); // Ensure proper UI thread handling
         }
     }
 
@@ -902,7 +920,7 @@ public class MainBoard {
                         gameOverAlert.showAndWait();
                         resetGame(tileSize * BOARD_SIZE);
 
-                        isActive = false;
+                        isActive = isBotvsBot ? true : false;
                     }
                 });
     }
@@ -983,8 +1001,9 @@ public class MainBoard {
         gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
+
         if (!isWhiteTurn && isBotActive) {
-            triggerBotMove();
+            triggerBotMove(); // Trigger bot move in player-vs-bot mode
         }
         System.out.println("Player " + (isWhiteTurn ? 1 : 2) + "'s turn");
     }
@@ -1441,14 +1460,101 @@ public class MainBoard {
                 });
     }
 
+    private void triggerBotMoveR() {
+        Platform.runLater(
+                () -> {
+                    try {
+                        // Compute capture paths for the bot
+                        List<CapturePath> capturePaths = computeCapturePathsForBot();
+                        if (capturePaths != null && !capturePaths.isEmpty()) {
+                            System.out.println("Bot has capture opportunities. Available paths:");
+                            for (CapturePath path : capturePaths) {
+                                System.out.println(
+                                        " - Path: "
+                                                + path.positions
+                                                + ", Captures: "
+                                                + path.capturedPawns);
+                            }
+
+                            // Find the maximum capture value
+                            double maxCaptureValue =
+                                    capturePaths.stream()
+                                            .mapToDouble(CapturePath::getCaptureValue)
+                                            .max()
+                                            .orElse(Double.NEGATIVE_INFINITY);
+
+                            // Filter paths with the maximum value
+                            List<CapturePath> bestPaths =
+                                    capturePaths.stream()
+                                            .filter(
+                                                    path ->
+                                                            path.getCaptureValue()
+                                                                    == maxCaptureValue)
+                                            .collect(Collectors.toList());
+
+                            // Randomly select one of the best paths
+                            CapturePath bestPath =
+                                    bestPaths.get(new Random().nextInt(bestPaths.size()));
+
+                            System.out.println("Selected capture path: " + bestPath);
+
+                            if (bestPath != null) {
+                                Pawn pawn = bestPath.initialPawn;
+                                if (pawn != null) {
+                                    System.out.println("Bot executing capture path: " + bestPath);
+                                    animatePawnCaptureMovement(
+                                            pawn,
+                                            bestPath,
+                                            () -> processAfterCaptureMove(pawn, bestPath));
+                                    return; // Ensure no fallback to normal moves
+                                }
+                            }
+                        }
+
+                        // If no captures, proceed with normal moves
+                        GameState currentState = getBoardState();
+                        List<Move> possibleMoves = currentState.generateMoves();
+
+                        if (possibleMoves.isEmpty()) {
+                            System.out.println("No possible moves for the agent.");
+                            return;
+                        }
+
+                        // Randomly select a normal move
+                        Random random = new Random();
+                        Move selectedMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
+
+                        if (selectedMove != null) {
+                            Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
+                            if (pawn != null) {
+                                animatePawnMovement(
+                                        pawn,
+                                        selectedMove.getEndPosition(),
+                                        () -> applyMove(currentState.applyMove(selectedMove)));
+                            } else {
+                                applyMove(currentState.applyMove(selectedMove));
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+
     private List<CapturePath> computeCapturePathsForBot() {
-        List<Pawn> botPawns =
+
+        List<Pawn> whitepawns =
+                this.pawns.stream()
+                        .filter(pawn -> pawn.isWhite())
+                        .collect(Collectors.toList()); // Bot's pawns
+
+        List<Pawn> botPawnsblack =
                 pawns.stream()
                         .filter(pawn -> !pawn.isWhite())
                         .collect(Collectors.toList()); // Bot's pawns
         List<CapturePath> allCapturePaths = new ArrayList<>();
 
-        for (Pawn pawn : botPawns) {
+        for (Pawn pawn : isWhiteTurn && isBotvsBot ? whitepawns : botPawnsblack) {
             seePossibleMove(pawn);
             if (currentCapturePaths != null && !currentCapturePaths.isEmpty()) {
                 allCapturePaths.addAll(currentCapturePaths); // Add computed paths
@@ -1505,6 +1611,28 @@ public class MainBoard {
                 pawns.stream().collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
                 isWhiteTurn,
                 this);
+    }
+
+    public void playBotVsBot() {
+        Platform.runLater(
+                () -> {
+                    if (!isActive) {
+                        System.out.println("Game is inactive. Stopping bot-vs-bot.");
+                        return;
+                    }
+
+                    if (isBotvsBot) {
+                        if (isWhiteTurn) {
+                            triggerBotMoveR(); // Random bot for White
+                        } else {
+                            triggerBotMove(); // Other bot for Black
+                        }
+                        // Delay to make the moves visually distinguishable
+                        PauseTransition pause = new PauseTransition(Duration.millis(1000));
+                        pause.setOnFinished(_ -> playBotVsBot());
+                        pause.play();
+                    }
+                });
     }
 
     public void refreshBoard() {

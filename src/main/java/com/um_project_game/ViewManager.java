@@ -37,7 +37,7 @@ public class ViewManager {
 
     /**
      * @param state Equals: 0 - Close Server Instance 1 - Online Multiplayer 2 - Offline Player
-     *     against Bot 3 - Offline Player against Player
+     *     against Bot 3 - Offline Player against Player 4 - Bot vs Bot
      */
     public void gameStateSwitch(int state) {
         GAME_STATE = state;
@@ -54,9 +54,11 @@ public class ViewManager {
             case 1:
             case 2:
             case 3:
+            case 4:
                 // Start a new game
                 boolean isMultiplayer = (GAME_STATE == 1);
                 boolean isAgainstBot = (GAME_STATE == 2);
+                boolean isBotvsBot = (GAME_STATE == 4);
                 System.out.println("Starting game");
                 System.out.println("Multiplayer: " + isMultiplayer);
                 System.out.println("Against Bot: " + isAgainstBot);
@@ -80,7 +82,7 @@ public class ViewManager {
                     }
                 }
 
-                Game game = new Game(isMultiplayer, isAgainstBot, launcher);
+                Game game = new Game(isMultiplayer, isAgainstBot, isBotvsBot, launcher);
 
                 activeGames.add(game);
                 game.showGameWindow();
@@ -108,6 +110,7 @@ public class ViewManager {
                 // Start a new game
                 boolean isMultiplayer = (GAME_STATE == 1);
                 boolean isAgainstBot = (GAME_STATE == 2);
+
                 System.out.println("Starting game");
                 System.out.println("Multiplayer: " + isMultiplayer);
                 System.out.println("Against Bot: " + isAgainstBot);

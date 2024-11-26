@@ -47,6 +47,7 @@ public class Game {
 
     private boolean isMultiplayer;
     private boolean isAgainstBot;
+    private boolean isBotvBot;
 
     private PauseTransition resizePause;
 
@@ -82,12 +83,13 @@ public class Game {
     // Game export
     private GameExporter exporter = new GameExporter();
 
-    public Game(boolean isMultiplayer, boolean isAgainstBot, Launcher launcher) {
+    public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher) {
         this.launcher = launcher;
         this.gameStage = new Stage();
         this.gameStage.setTitle("Frisian Draughts - Game");
         this.isMultiplayer = isMultiplayer;
         this.isAgainstBot = isAgainstBot;
+        this.isBotvBot = isBotvBot;
 
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
@@ -229,7 +231,8 @@ public class Game {
                         new Vector2i(mainBoardX, mainBoardY),
                         gameInfo,
                         movesListGridPane,
-                        isBotActive);
+                        isBotActive,
+                        isBotvBot);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
 

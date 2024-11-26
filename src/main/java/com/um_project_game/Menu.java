@@ -120,7 +120,7 @@ public class Menu {
                         "Multiplayer",
                         buttonWidth,
                         buttonHeight,
-                        () -> launcher.startNewGame(true, false));
+                        () -> launcher.startNewGame(true, false, false));
         Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
@@ -154,14 +154,25 @@ public class Menu {
                         "Player against Player",
                         buttonWidth,
                         buttonHeight,
-                        () -> launcher.startNewGame(false, false)); // false for Player vs Player
+                        () ->
+                                launcher.startNewGame(
+                                        false, false, false)); // false for Player vs Player
 
         Buttons playerVsBotButton =
                 new Buttons(
                         "Player against Bot",
                         buttonWidth,
                         buttonHeight,
-                        () -> launcher.startNewGame(false, true)); // true for Player vs Bot
+                        () -> launcher.startNewGame(false, true, false)); // true for Player vs Bot
+
+        Buttons randomBotvsBotButton =
+                new Buttons(
+                        "Random Bot against Bot",
+                        buttonWidth,
+                        buttonHeight,
+                        () ->
+                                launcher.startNewGame(
+                                        false, true, true)); // true for Random Bot vs Bot
 
         Buttons backButton =
                 new Buttons(
@@ -175,6 +186,7 @@ public class Menu {
                 .addAll(
                         playerVsPlayerButton.getButton(),
                         playerVsBotButton.getButton(),
+                        randomBotvsBotButton.getButton(),
                         backButton.getButton());
         playLocalOptions.setId("play-local-options");
         root.getChildren().addAll(playLocalOptions);

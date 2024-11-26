@@ -109,8 +109,15 @@ public class Launcher extends Application {
      * @param isOnline Is Online-Game?
      * @param againstBot Is Against Bot?
      */
-    public void startNewGame(boolean isOnline, boolean againstBot) {
-        viewManager.gameStateSwitch(isOnline ? 1 : againstBot ? 2 : 3);
+    public void startNewGame(boolean isOnline, boolean againstBot, boolean isBotVsBot) {
+
+        if (isOnline) {
+            viewManager.gameStateSwitch(1);
+        } else if (againstBot) {
+            viewManager.gameStateSwitch(isBotVsBot ? 4 : 2);
+        } else {
+            viewManager.gameStateSwitch(3);
+        }
     }
 
     public void startNewGame(MainBoard board) {
