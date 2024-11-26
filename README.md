@@ -128,6 +128,32 @@ Frisian Draughts introduces unique capture mechanics:
 ### 9. Animations
 - Movement and capture animations are managed using JavaFX's **`TranslateTransition`** and **`SequentialTransition`**, providing smooth and visual feedback for pawn movement and captures.
 
+### 10. Separation of classes
+| Class File/ Directory | Relative Path              | Description                                                                                                                                                |
+|-----------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Launcher              | com.um_project_game        | Entry point of the application, initializes the main menu, handles scene switching, and theming.                                                           |
+| Menu                  | com.um_project_game        | Manages the main menu of the application, including UI elements like buttons, recent games, and live games.                                                |
+| Game                  | com.um_project_game        | Defines and manages UI-Elements of the game                                                                                                                |
+| ViewManager           | com.um_project_game        | Manages active games and transitions between menu, gameplay and server                                                                                     |
+| Settings              | com.um_project_game        | Manages Game Settings UI                                                                                                                                   |
+| ExitGameConfirmation  | com.um_project_game        | Displays an exit confirmation when trying to exit a game                                                                                                   |
+| /util/...             | com.um_project_game.util   | Manages utility classes, buttons, fileReaders, fileWriters, sound, ...                                                                                     |
+| /server/...           | com.um_project_game.Server | Manages Server instance and client handling                                                                                                                |
+| CapturePath           | ...um_project_game.board   | Instance of a capturePath, storing a single capture and its steps                                                                                          |
+| GameInfo              | ...um_project_game.board   | Stores additional game information                                                                                                                         |
+| GameState             | ...um_project_game.board   | Stores important game information regarding the current board position                                                                                     |
+| MainBoard             | ...um_project_game.board   | Main game logic class. Stores information about the main board instance and the actual game logic.                                                         |
+| Move                  | ...um_project_game.board   | Instance of a single move. Contains the initial and final position of a move in both vector and PDN format.                                                |
+| MoveResult            | ...um_project_game.board   | Stores additional information after a taken move.                                                                                                          |
+| MovesListManager      | ...um_project_game.board   | Manages the moves list table entries displayed in the game UI                                                                                              |
+| Pawn                  | ...um_project_game.board   | Instance of a Pawn                                                                                                                                         |
+| DQNModel              | ...um_project_game.AI      | Implements a Deep Q-Network for AI decision-making in games, handling Q-value prediction, training, and weight updates.                                    |
+| Experience            | ...um_project_game.AI      | Represents a single learning step for reinforcement learning, containing state, action, reward, next state, and terminal status.                           |
+| init.java             | ...um_project_game.AI      |                                                                                                                                                            |
+| NeuralNetwork         | ...um_project_game.AI      | 	Implements a basic neural network with forward propagation, backpropagation, and weight updates for training.                                             |
+| ReplayBuffer          | ...um_project_game.AI      | Manages a buffer of experiences, allowing the addition, sampling, and maintaining a fixed size for training in reinforcement learning.                     |
+| functions             | ...um_project_game.AI.util | AI utility file. Contains various utility methods for Q-learning, training, action selection, and adversarial search in reinforcement learning for a game. |
+
 ### License
 
 D9_pawn.mp3 by Iamgiorgio -- https://freesound.org/s/371352/ -- License: Creative Commons 0
