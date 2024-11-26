@@ -1356,8 +1356,12 @@ public class MainBoard {
         Platform.runLater(
                 () -> {
                     try {
+                        GameState currentState = getBoardState();
+
                         // Compute capture paths for the bot
                         List<CapturePath> capturePaths = computeCapturePathsForBot();
+                        Map<Vector2i, Double> qValues = botModel.predict(currentState);
+
                         if (capturePaths != null && !capturePaths.isEmpty()) {
                             System.out.println("Bot has capture opportunities. Available paths:");
                             for (CapturePath path : capturePaths) {
@@ -1368,20 +1372,21 @@ public class MainBoard {
                                                 + path.capturedPawns);
                             }
 
-                            // Select the best capture path
+                            // Select the capture path with the highest predicted value
                             CapturePath bestPath =
                                     capturePaths.stream()
                                             .max(
                                                     Comparator.comparingDouble(
-                                                            CapturePath::getCaptureValue))
+                                                            path ->
+                                                                    qValues.getOrDefault(
+                                                                            path.getLastPosition(),
+                                                                            0.0)))
                                             .orElse(null);
 
-                            System.out.println("Best capture path: " + bestPath);
-
                             if (bestPath != null) {
+                                System.out.println("Best capture path: " + bestPath);
                                 Pawn pawn = bestPath.initialPawn;
                                 if (pawn != null) {
-                                    System.out.println("Bot executing capture path: " + bestPath);
                                     animatePawnCaptureMovement(
                                             pawn,
                                             bestPath,
@@ -1396,14 +1401,12 @@ public class MainBoard {
                         }
 
                         // If no captures, proceed with normal moves
-                        GameState currentState = getBoardState();
                         List<Move> possibleMoves = currentState.generateMoves();
                         if (possibleMoves.isEmpty()) {
                             System.out.println("No possible moves for the bot.");
                             return;
                         }
 
-                        Map<Vector2i, Double> qValues = botModel.predict(currentState);
                         Vector2i chosenAction =
                                 qValues.entrySet().stream()
                                         .max(Map.Entry.comparingByValue())
@@ -1419,9 +1422,7 @@ public class MainBoard {
                         if (selectedMove != null) {
                             Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
                             if (pawn != null) {
-
                                 takenMoves.add(selectedMove);
-
                                 animatePawnMovement(
                                         pawn,
                                         selectedMove.getEndPosition(),
@@ -1429,7 +1430,6 @@ public class MainBoard {
                                 return;
                             } else {
                                 System.out.println("Fallback for takenMoves: " + selectedMove);
-
                                 takenMoves.add(selectedMove);
                                 applyMove(currentState.applyMove(selectedMove));
                                 return;
@@ -1451,7 +1451,7 @@ public class MainBoard {
         for (Pawn pawn : botPawns) {
             seePossibleMove(pawn);
             if (currentCapturePaths != null && !currentCapturePaths.isEmpty()) {
-                allCapturePaths.addAll(currentCapturePaths);
+                allCapturePaths.addAll(currentCapturePaths); // Add computed paths
             }
         }
 
