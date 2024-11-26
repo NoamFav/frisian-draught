@@ -27,6 +27,7 @@ public class Launcher extends Application {
     public static final int REF_WIDTH = 1366;
     public static final int REF_HEIGHT = 768;
     public static boolean DARK_MODE = true;
+    public static boolean dqnbot = true;
     public static final ViewManager viewManager =
             new ViewManager(
                     new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));

@@ -257,11 +257,6 @@ public class MainBoard {
             GridPane.setColumnIndex(pawnView, initialPosition.x);
             GridPane.setRowIndex(pawnView, initialPosition.y);
         }
-
-        // Restart bot-vs-bot if enabled
-        if (isBotvsBot) {
-            Platform.runLater(() -> playBotVsBot()); // Ensure proper UI thread handling
-        }
     }
 
     /**
@@ -920,7 +915,7 @@ public class MainBoard {
                         gameOverAlert.showAndWait();
                         resetGame(tileSize * BOARD_SIZE);
 
-                        isActive = isBotvsBot ? true : false;
+                        isActive = false;
                     }
                 });
     }
@@ -1003,7 +998,11 @@ public class MainBoard {
         findPawnsWithMaxCaptures();
 
         if (!isWhiteTurn && isBotActive) {
-            triggerBotMove(); // Trigger bot move in player-vs-bot mode
+            if (Launcher.dqnbot) {
+                triggerBotMove();
+            } else {
+                triggerBotMoveR();
+            }
         }
         System.out.println("Player " + (isWhiteTurn ? 1 : 2) + "'s turn");
     }

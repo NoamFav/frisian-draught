@@ -63,6 +63,27 @@ public class Settings {
         Slider captureVolumeSlider = new Slider(0, 1, captureRelativeVolume * mainVolume);
         setupSlider(captureVolumeSlider);
 
+        // DQN Bot Setting
+        Label dqnbotLabel = new Label("Enable DQN Bot:");
+        dqnbotLabel.getStyleClass().add("settings-label");
+
+        final Buttons[] dqnbotToggleButton = new Buttons[1];
+
+        dqnbotToggleButton[0] =
+                new Buttons(
+                        Launcher.dqnbot ? "Disable" : "Enable",
+                        100,
+                        30,
+                        () -> {
+                            Launcher.dqnbot = !Launcher.dqnbot;
+                            dqnbotToggleButton[0]
+                                    .getButton()
+                                    .setText(Launcher.dqnbot ? "Disable" : "Enable");
+                            System.out.println(
+                                    "DQN Bot is now: "
+                                            + (Launcher.dqnbot ? "Enabled" : "Disabled"));
+                        });
+
         // Dark mode
         Label darkModeLabel = new Label("Dark Mode:");
         darkModeLabel.getStyleClass().add("settings-label");
@@ -107,8 +128,10 @@ public class Settings {
         grid.add(moveVolumeSlider, 1, 2);
         grid.add(captureVolumeLabel, 0, 3);
         grid.add(captureVolumeSlider, 1, 3);
-        grid.add(darkModeLabel, 0, 4);
-        grid.add(darkModeButton.getButton(), 1, 4);
+        grid.add(dqnbotLabel, 0, 4);
+        grid.add(dqnbotToggleButton[0].getButton(), 1, 4);
+        grid.add(darkModeLabel, 0, 5);
+        grid.add(darkModeButton.getButton(), 1, 5);
 
         // Add Save and Cancel buttons
         Buttons doneButtons = new Buttons("Done", 100, 30, () -> settingsStage.close());
