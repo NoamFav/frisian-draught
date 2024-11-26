@@ -902,7 +902,6 @@ public class MainBoard {
                         gameOverAlert.showAndWait();
                         resetGame(tileSize * BOARD_SIZE);
 
-                        // Optionally, disable further interactions
                         isActive = false;
                     }
                 });
@@ -966,7 +965,7 @@ public class MainBoard {
         fadeTransition.setToValue(0.0);
 
         fadeTransition.setOnFinished(
-                e -> {
+                _ -> {
                     board.getChildren().remove(capturedPawnView);
                     pawnViews.remove(capturedPawn);
                 });
@@ -1104,7 +1103,7 @@ public class MainBoard {
 
         // When the animation finishes, reset the translate values and update the GridPane position
         transition.setOnFinished(
-                e -> {
+                _ -> {
                     // Reset translation
                     pawnView.setTranslateX(0);
                     pawnView.setTranslateY(0);
@@ -1420,14 +1419,8 @@ public class MainBoard {
                         if (selectedMove != null) {
                             Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
                             if (pawn != null) {
-                                // Log before adding the move
-                                System.out.println("Adding to takenMoves: " + selectedMove);
 
-                                // Update `takenMoves`
                                 takenMoves.add(selectedMove);
-
-                                // Log after adding the move
-                                System.out.println("Current takenMoves: " + takenMoves);
 
                                 animatePawnMovement(
                                         pawn,
@@ -1435,7 +1428,6 @@ public class MainBoard {
                                         () -> applyMove(currentState.applyMove(selectedMove)));
                                 return;
                             } else {
-                                // Log for fallback moves
                                 System.out.println("Fallback for takenMoves: " + selectedMove);
 
                                 takenMoves.add(selectedMove);
@@ -1456,10 +1448,10 @@ public class MainBoard {
                         .collect(Collectors.toList()); // Bot's pawns
         List<CapturePath> allCapturePaths = new ArrayList<>();
 
-        for (Pawn pawn : botPawns) { // For each bot pawn
-            seePossibleMove(pawn); // Compute moves and update currentCapturePaths for this pawn
+        for (Pawn pawn : botPawns) {
+            seePossibleMove(pawn);
             if (currentCapturePaths != null && !currentCapturePaths.isEmpty()) {
-                allCapturePaths.addAll(currentCapturePaths); // Add computed paths
+                allCapturePaths.addAll(currentCapturePaths);
             }
         }
 
