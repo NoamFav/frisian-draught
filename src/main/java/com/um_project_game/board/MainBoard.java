@@ -1048,7 +1048,7 @@ public class MainBoard {
         }
 
         updateMovesListUI();
-        if(!isBotActive) {
+        if (!isBotActive) {
             switchTurn();
         }
         // Clear any highlights and re-render the board
@@ -1418,8 +1418,9 @@ public class MainBoard {
 
                                     ArrayList<Vector2i> capturedPawnPositions = new ArrayList<>();
                                     capturedPawnsList.forEach(
-                                            capturedPawn -> capturedPawnPositions.add(capturedPawn.getPosition())
-                                    );
+                                            capturedPawn ->
+                                                    capturedPawnPositions.add(
+                                                            capturedPawn.getPosition()));
 
                                     animatePawnCaptureMovement(
                                             pawn,
@@ -1429,8 +1430,7 @@ public class MainBoard {
                                             new Move(
                                                     pawn.getPosition(),
                                                     bestPath.getLastPosition(),
-                                                    capturedPawnPositions)
-                                            );
+                                                    capturedPawnPositions));
                                     return; // Ensure no fallback to normal moves
                                 }
                             }
@@ -1519,6 +1519,14 @@ public class MainBoard {
                                 Pawn pawn = bestPath.initialPawn;
                                 if (pawn != null) {
                                     System.out.println("Bot executing capture path: " + bestPath);
+
+                                    takenMoves.add(
+                                            new Move(
+                                                    pawn.getPosition(),
+                                                    bestPath.getLastPosition(),
+                                                    bestPath.capturedPawns.stream()
+                                                            .map(Pawn::getPosition)
+                                                            .collect(Collectors.toList())));
                                     animatePawnCaptureMovement(
                                             pawn,
                                             bestPath,
@@ -1544,11 +1552,13 @@ public class MainBoard {
                         if (selectedMove != null) {
                             Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
                             if (pawn != null) {
+                                takenMoves.add(selectedMove);
                                 animatePawnMovement(
                                         pawn,
                                         selectedMove.getEndPosition(),
                                         () -> applyMove(currentState.applyMove(selectedMove)));
                             } else {
+                                takenMoves.add(selectedMove);
                                 applyMove(currentState.applyMove(selectedMove));
                             }
                         }
