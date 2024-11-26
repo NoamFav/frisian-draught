@@ -262,7 +262,9 @@ public class Game {
         if (exitConfirmation.showAndWait()) { // If user confirmed exit
             if (exitConfirmation.shouldSaveOnExit()) {
                 exporter.exportGameToPDN(mainBoard.getTakenMoves(), null);
-                Launcher.menuStage.show();
+                Launcher.viewManager
+                        .getMenu()
+                        .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
             }
             if (Launcher.menuStage == null) {
                 // Recreate the menu
