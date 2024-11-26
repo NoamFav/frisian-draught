@@ -87,8 +87,9 @@ public class MainBoard {
     private static final int BATCH_SIZE = 32;
     private static final double GAMMA = 0.99;
 
-    public GridPane getBoard(GridPane movesListGridPane) {
+    public GridPane getBoard(GridPane movesListGridPane, GameInfo gameInfo) {
         movesListManager = new MovesListManager(movesListGridPane);
+        this.gameInfo = gameInfo;
         isActive = true;
         renderPawns();
         return board;
