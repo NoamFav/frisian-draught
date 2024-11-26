@@ -177,7 +177,7 @@ public class Game {
         // Initialize game player
 
         System.out.println("list " + this.movesListGridPane);
-        board = mainBoard.getBoard(this.movesListGridPane);
+        board = mainBoard.getBoard(this.movesListGridPane, this.gameInfo);
         playerUI(gameRoot, scene, true);
         playerUI(gameRoot, scene, false);
         chatUI(gameRoot, scene);
@@ -337,9 +337,9 @@ public class Game {
                 exporter.exportGameToPDN(
                         mainBoard.getTakenMoves(),
                         null,
-                        gameInfo.getPlayerTurn() == 1 ? "W" : "B",
                         isAgainstBot ? "1" : "0",
-                        isMultiplayer ? "1" : "0");
+                        isMultiplayer ? "1" : "0",
+                        gameInfo.getPlayerTurn() == 1 ? "W" : "B");
 
                 Launcher.viewManager
                         .getMenu()
