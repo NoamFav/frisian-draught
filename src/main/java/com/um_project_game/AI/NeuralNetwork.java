@@ -18,14 +18,14 @@ public class NeuralNetwork {
     private void initializeWeights(double[][] weights) {
         for (int i = 0; i < weights.length; i++) {
             for (int j = 0; j < weights[i].length; j++) {
-                weights[i][j] = Math.random() * 0.01; // Small random values
+                weights[i][j] = Math.random() * 0.01;
             }
         }
     }
 
     // Getter for weights
     public double[][][] getWeights() {
-        return new double[][][] { weightsInputHidden, weightsHiddenOutput };
+        return new double[][][] {weightsInputHidden, weightsHiddenOutput};
     }
 
     // Setter for weights
@@ -78,7 +78,7 @@ public class NeuralNetwork {
         if (input.length != weights.length) {
             throw new IllegalArgumentException("Input length does not match weights dimensions!");
         }
-    
+
         double[] output = new double[weights[0].length];
         for (int i = 0; i < weights[0].length; i++) {
             for (int j = 0; j < input.length; j++) {
@@ -87,7 +87,6 @@ public class NeuralNetwork {
         }
         return output;
     }
-    
 
     private double[] backpropagate(double[] error, double[][] weights) {
         double[] propagatedError = new double[weights.length];

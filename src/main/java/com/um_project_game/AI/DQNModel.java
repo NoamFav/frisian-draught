@@ -23,7 +23,6 @@ public class DQNModel {
         double[] output = network.predict(input);
         Map<Vector2i, Double> qValues = new HashMap<>();
 
-        // Assuming the output size matches the board size (e.g., 10x10 = 100)
         int boardSize = 10;
         for (int i = 0; i < output.length; i++) {
             int x = i % boardSize;
@@ -73,7 +72,7 @@ public class DQNModel {
             }
 
             // Update Q-value for the chosen action
-            int actionIndex = exp.action.y * 10 + exp.action.x; // Example: 1D index for a 2D board
+            int actionIndex = exp.action.y * 10 + exp.action.x;
             target[actionIndex] = exp.reward + gamma * maxNextQ;
 
             network.train(input, target); // Train the network
