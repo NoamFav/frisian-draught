@@ -4,7 +4,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 import java.util.Optional;
@@ -20,6 +19,7 @@ public class ExitGameConfirmation {
         exitAlert.setContentText("Choose 'Yes' to exit, or 'No' to stay in the game.");
 
         CheckBox saveCheckbox = new CheckBox("Save the game before exiting");
+        saveCheckbox.setSelected(true);
 
         VBox content = new VBox();
         content.getChildren().add(saveCheckbox);

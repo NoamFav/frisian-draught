@@ -58,7 +58,7 @@ public class Menu {
      */
     public Menu(Pane root, Scene scene, Launcher launcher) {
         this.launcher = launcher;
-        this.menuRoot = root; // Use the root passed in
+        this.menuRoot = root;
         setTopBar(scene, menuRoot);
         setBottomBar(scene, menuRoot);
         setMenuButtons(scene, menuRoot);
@@ -91,7 +91,7 @@ public class Menu {
                 new Rectangle(
                         0, scene.getHeight() - bottomBarHeight, scene.getWidth(), bottomBarHeight);
         bottomBar.setId("bottom-bar");
-        Text bottomBarText = new Text("© 2024 UM Project - Version 1.0.0");
+        Text bottomBarText = new Text("© 2024 UM Project - Version 2.1.4");
         bottomBarText.getStyleClass().add("label");
 
         StackPane bottomBarPane = new StackPane();
