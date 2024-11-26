@@ -1,6 +1,7 @@
 package com.um_project_game;
 
 import com.um_project_game.Server.MainServer;
+import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.SoundPlayer;
 
 import javafx.animation.PauseTransition;
@@ -109,6 +110,10 @@ public class Launcher extends Application {
      */
     public void startNewGame(boolean isOnline, boolean againstBot) {
         viewManager.gameStateSwitch(isOnline ? 1 : againstBot ? 2 : 3);
+    }
+
+    public void startNewGame(MainBoard board) {
+        viewManager.gameStateSwitch(board.isMultiplayer ? 1 : board.isBotActive ? 2 : 3, board);
     }
 
     public void closeMenu() {

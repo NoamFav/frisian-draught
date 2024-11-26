@@ -19,6 +19,8 @@ public class PDNWriter {
 
     private String result; // 1-0 / 1/2-1/2 / 0-1
     private static final String GAMETYPE = "40"; // 40 - Frisian
+    private String isBot; // 0 / 1
+    private String isMultiplayer; // 0 / 1
     private String moves; // Played moves in draughts notation
 
     // Additional Tags
@@ -35,6 +37,9 @@ public class PDNWriter {
             String date,
             String whitePlayer,
             String blackPlayer,
+            String turn,
+            String isBot,
+            String isMultiplayer,
             String result,
             String moves) {
         this.event = event;
@@ -43,7 +48,10 @@ public class PDNWriter {
         this.date = date;
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
+        this.turn = turn;
         this.result = result;
+        this.isBot = isBot;
+        this.isMultiplayer = isMultiplayer;
         this.moves = moves;
     }
 
@@ -55,6 +63,9 @@ public class PDNWriter {
             writer.write("[Date \"" + date + "\"]\n");
             writer.write("[White \"" + whitePlayer + "\"]\n");
             writer.write("[Black \"" + blackPlayer + "\"]\n");
+            writer.write("[Turn \"" + turn + "\"]\n");
+            writer.write("[isBot \"" + isBot + "\"]\n");
+            writer.write("[isMultiplayer \"" + isMultiplayer + "\"]\n");
             if (result != null) {
                 writer.write("[Result \"" + result + "\"]\n");
             }

@@ -45,11 +45,11 @@ public class MainBoard {
     private static final int BOARD_SIZE = 10;
 
     // Game state variables
-    private boolean isWhiteTurn = true; // White starts first
+    public boolean isWhiteTurn = true; // White starts first
     private boolean isActive = true;
     private boolean boardInitialized = false;
     private boolean isAnimating = false;
-    private boolean isMultiplayer = false;
+    public boolean isMultiplayer = false;
 
     // Board-related fields
     private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
@@ -68,6 +68,11 @@ public class MainBoard {
 
     private List<Move> takenMoves = new ArrayList<>();
     private MovesListManager movesListManager;
+
+    public void setMovesListManager(MovesListManager movesListManager) {
+        this.movesListManager = movesListManager;
+    }
+
     private List<GameState> pastStates = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
     private List<Node> highlightNodes = new ArrayList<>();
@@ -77,10 +82,22 @@ public class MainBoard {
 
     private GameInfo gameInfo;
     private DQNModel botModel;
-    private boolean isBotActive = false;
+    public boolean isBotActive = false;
     private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
     private static final int BATCH_SIZE = 32;
     private static final double GAMMA = 0.99;
+
+    public GridPane getBoard(GridPane movesListGridPane) {
+        movesListManager = new MovesListManager(movesListGridPane);
+        isActive = true;
+        renderPawns();
+        return board;
+    }
+
+    public GridPane getBoard() {
+
+        return board;
+    }
 
     /**
      * Creates and returns the main board, rendering it to the root pane.
@@ -322,16 +339,20 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      */
     private void renderPawns() {
-        // For new pawns, create ImageViews and add them to the board
         for (Pawn pawn : pawns) {
-            if (!pawnViews.containsKey(pawn)) {
-                ImageView pawnView = createPawnImageView(pawn, 0.8);
-                setupPawnInteractions(pawnView, pawn);
+            ImageView pawnView = pawnViews.get(pawn);
+
+            if (pawnView == null) {
+                // Pawn is not yet rendered, create a new ImageView
+                pawnView = createPawnImageView(pawn, 0.8);
                 board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
                 GridPane.setHalignment(pawnView, HPos.CENTER);
                 GridPane.setValignment(pawnView, VPos.CENTER);
                 pawnViews.put(pawn, pawnView);
             }
+
+            // Always set up interactions for pawns
+            setupPawnInteractions(pawnView, pawn);
         }
     }
 
@@ -1098,6 +1119,7 @@ public class MainBoard {
                     if (onFinished != null) {
                         onFinished.run();
                     }
+                    updateMovesListUI();
                 });
 
         // Play the animation
@@ -1138,13 +1160,14 @@ public class MainBoard {
             int index = i;
 
             transition.setOnFinished(
-                    e -> {
+                    _ -> {
                         // Reset translation
                         pawnView.setTranslateX(0);
                         pawnView.setTranslateY(0);
 
                         // Process each step to handle captures and update positions
                         processCaptureStep(pawn, nextPos, capturedPawns, index);
+                        updateMovesListUI();
                     });
 
             animations.add(transition);
@@ -1157,7 +1180,7 @@ public class MainBoard {
         sequentialTransition.getChildren().addAll(animations);
 
         sequentialTransition.setOnFinished(
-                e -> {
+                _ -> {
                     isAnimating = false;
                     onFinished.run();
                 });
@@ -1245,6 +1268,11 @@ public class MainBoard {
                     executeMove(pawn, move.getEndPosition());
                 }
             }
+
+            renderPawns();
+            isBotActive = pdnParser.getIsBot().equals("1");
+            isMultiplayer = pdnParser.getIsMultiplayer().equals("1");
+            isWhiteTurn = pdnParser.getTurn().equals("W");
 
         } catch (Exception e) {
             System.err.println("Error loading game from PDN: " + e.getMessage());
@@ -1358,6 +1386,10 @@ public class MainBoard {
                                             pawn,
                                             bestPath,
                                             () -> processAfterCaptureMove(pawn, bestPath));
+                                    takenMoves.add(
+                                            new Move(
+                                                    pawn.getPosition(),
+                                                    bestPath.getLastPosition()));
                                     return; // Ensure no fallback to normal moves
                                 }
                             }
@@ -1387,12 +1419,27 @@ public class MainBoard {
                         if (selectedMove != null) {
                             Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
                             if (pawn != null) {
+                                // Log before adding the move
+                                System.out.println("Adding to takenMoves: " + selectedMove);
+
+                                // Update `takenMoves`
+                                takenMoves.add(selectedMove);
+
+                                // Log after adding the move
+                                System.out.println("Current takenMoves: " + takenMoves);
+
                                 animatePawnMovement(
                                         pawn,
                                         selectedMove.getEndPosition(),
                                         () -> applyMove(currentState.applyMove(selectedMove)));
+                                return;
                             } else {
+                                // Log for fallback moves
+                                System.out.println("Fallback for takenMoves: " + selectedMove);
+
+                                takenMoves.add(selectedMove);
                                 applyMove(currentState.applyMove(selectedMove));
+                                return;
                             }
                         }
                     } catch (Exception e) {

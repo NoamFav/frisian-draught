@@ -22,7 +22,8 @@ public class GameExporter {
         // Default constructor
     }
 
-    public void exportGameToPDN(List<Move> moves, String result) {
+    public void exportGameToPDN(
+            List<Move> moves, String result, String isBot, String isMultiplayer, String turn) {
         // Build moves string in PDN format with turn numbers
         StringBuilder movesStringBuilder = new StringBuilder();
         for (int i = 0; i < moves.size(); i += 2) {
@@ -45,6 +46,9 @@ public class GameExporter {
                         LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
                         PDNConstraints.DEFAULT_WHITE_PLAYER,
                         PDNConstraints.DEFAULT_BLACK_PLAYER,
+                        turn,
+                        isBot,
+                        isMultiplayer,
                         result,
                         movesString);
 

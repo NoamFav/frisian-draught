@@ -1,6 +1,7 @@
 package com.um_project_game;
 
 import com.um_project_game.board.MainBoard;
+import com.um_project_game.board.MovesListManager;
 import com.um_project_game.util.Buttons;
 
 import javafx.geometry.Pos;
@@ -25,7 +26,6 @@ public class Menu {
 
     private Pane menuRoot;
     private Launcher launcher;
-    private Settings settings;
 
     // Dimensions
     private int topBarHeight = 75;
@@ -210,7 +210,7 @@ public class Menu {
 
         if (directory.exists() && directory.isDirectory()) {
             // Filter and sort PDN files in descending order by filename
-            File[] pdnFiles = directory.listFiles((dir, name) -> name.endsWith(".pdn"));
+            File[] pdnFiles = directory.listFiles((_, name) -> name.endsWith(".pdn"));
             if (pdnFiles != null) {
                 Arrays.sort(pdnFiles, Comparator.comparing(File::getName).reversed());
 
@@ -218,11 +218,18 @@ public class Menu {
                 for (int i = 0; i < Math.min(3, pdnFiles.length); i++) {
                     File pdnFile = pdnFiles[i];
                     MainBoard mainBoard = new MainBoard();
-
+                    mainBoard.setMovesListManager(new MovesListManager(new GridPane()));
                     // Display the game on the board
                     recentGames
                             .getChildren()
                             .add(mainBoard.getRandomBoard(root, boardSize, pdnFile.getPath()));
+
+                    mainBoard
+                            .getBoard()
+                            .setOnMouseClicked(
+                                    _ -> {
+                                        launcher.startNewGame(mainBoard);
+                                    });
                 }
             }
         }
