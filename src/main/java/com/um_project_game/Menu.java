@@ -16,6 +16,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -189,7 +191,7 @@ public class Menu {
         setMenuButtons(scene, root);
     }
 
-    private void setRecentGames(Scene scene, Pane root) {
+    public void setRecentGames(Scene scene, Pane root) {
         VBox recentBoards = new VBox();
         recentBoards.setSpacing(recentBoardsSpacingY);
         recentBoards.setLayoutX(recentBoardsX);
@@ -202,8 +204,10 @@ public class Menu {
         HBox recentGames = new HBox();
         recentGames.setSpacing(recentBoardsSpacingX);
 
-        // Locate PDN files in the exports directory
-        File directory = new File("exports");
+        // Locate PDN files in the platform-independent export directory
+        Path exportPath = Paths.get(System.getProperty("user.home"), "FrisianDraughtsExports");
+        File directory = exportPath.toFile();
+
         if (directory.exists() && directory.isDirectory()) {
             // Filter and sort PDN files in descending order by filename
             File[] pdnFiles = directory.listFiles((dir, name) -> name.endsWith(".pdn"));
