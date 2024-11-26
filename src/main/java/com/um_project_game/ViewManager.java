@@ -1,6 +1,7 @@
 package com.um_project_game;
 
 import com.um_project_game.Server.MainServer;
+import com.um_project_game.board.MainBoard;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -56,6 +57,9 @@ public class ViewManager {
                 // Start a new game
                 boolean isMultiplayer = (GAME_STATE == 1);
                 boolean isAgainstBot = (GAME_STATE == 2);
+                System.out.println("Starting game");
+                System.out.println("Multiplayer: " + isMultiplayer);
+                System.out.println("Against Bot: " + isAgainstBot);
 
                 if (isMultiplayer) {
                     System.out.println("Starting multiplayer game");
@@ -77,6 +81,57 @@ public class ViewManager {
                 }
 
                 Game game = new Game(isMultiplayer, isAgainstBot, launcher);
+
+                activeGames.add(game);
+                game.showGameWindow();
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void gameStateSwitch(int state, MainBoard board) {
+        GAME_STATE = state;
+        switch (GAME_STATE) {
+            case 0:
+                if (server.isRunning()) {
+                    server.close();
+                    System.out.println("Server closed");
+                }
+
+                root.getChildren().clear();
+                root.getChildren().add(menu.getMenuRoot());
+                break;
+            case 1:
+            case 2:
+            case 3:
+                // Start a new game
+                boolean isMultiplayer = (GAME_STATE == 1);
+                boolean isAgainstBot = (GAME_STATE == 2);
+                System.out.println("Starting game");
+                System.out.println("Multiplayer: " + isMultiplayer);
+                System.out.println("Against Bot: " + isAgainstBot);
+
+                if (isMultiplayer) {
+                    System.out.println("Starting multiplayer game");
+                    if (server.isRunning()) {
+                        server.close();
+                        System.out.println("Server closed");
+                    }
+                    server = new MainServer(); // Create a new server instance
+                    System.out.println("Starting server");
+                    Thread serverThread = new Thread(server);
+                    serverThread.setDaemon(true);
+                    serverThread.start();
+                    System.out.println("Server started");
+                } else {
+                    if (server != null && server.isRunning()) {
+                        server.close();
+                        System.out.println("Server closed");
+                    }
+                }
+
+                Game game = new Game(launcher, board);
 
                 activeGames.add(game);
                 game.showGameWindow();

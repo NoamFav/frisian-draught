@@ -20,7 +20,10 @@ public class PDNParser {
     private String round;
     private String blackPlayer;
     private String whitePlayer;
+    private String turn;
     private String result;
+    private String isBot;
+    private String isMultiplayer;
     private List<Move> moves;
 
     private String filePath;
@@ -57,7 +60,10 @@ public class PDNParser {
         this.round = pdnData.getOrDefault("Round", "");
         this.whitePlayer = pdnData.getOrDefault("White", "");
         this.blackPlayer = pdnData.getOrDefault("Black", "");
+        this.turn = pdnData.getOrDefault("Turn", "");
         this.result = pdnData.getOrDefault("Result", "");
+        this.isBot = pdnData.getOrDefault("isBot", "");
+        this.isMultiplayer = pdnData.getOrDefault("isMultiplayer", "");
     }
 
     private void parseMetadata(String line, Map<String, String> pdnData) {
@@ -153,5 +159,17 @@ public class PDNParser {
 
     public List<Move> getMoves() {
         return moves;
+    }
+
+    public String getIsBot() {
+        return isBot;
+    }
+
+    public String getIsMultiplayer() {
+        return isMultiplayer;
+    }
+
+    public String getTurn() {
+        return turn;
     }
 }

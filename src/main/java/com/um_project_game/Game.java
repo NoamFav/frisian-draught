@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 
 public class Game {
 
-    private final MainBoard mainBoard = new MainBoard();
+    private MainBoard mainBoard = new MainBoard();
 
     public MainBoard getMainBoard() {
         return mainBoard;
@@ -44,6 +44,9 @@ public class Game {
 
     private GameInfo gameInfo = new GameInfo();
     private BooleanBinding isWhiteTurn;
+
+    private boolean isMultiplayer;
+    private boolean isAgainstBot;
 
     private PauseTransition resizePause;
 
@@ -83,6 +86,8 @@ public class Game {
         this.launcher = launcher;
         this.gameStage = new Stage();
         this.gameStage.setTitle("Frisian Draughts - Game");
+        this.isMultiplayer = isMultiplayer;
+        this.isAgainstBot = isAgainstBot;
 
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
@@ -113,21 +118,89 @@ public class Game {
 
         resizePause = new PauseTransition(Duration.millis(50));
         resizePause.setOnFinished(
-                event -> {
+                _ -> {
                     onResize(gameRoot, scene);
                 });
 
         // Add resize listeners
         scene.widthProperty()
                 .addListener(
-                        (observable, oldValue, newValue) -> {
+                        (_, _, _) -> {
                             resizePause.playFromStart(); // Restart the pause every time the size
                             // changes
                         });
 
         scene.heightProperty()
                 .addListener(
-                        (observable, oldValue, newValue) -> {
+                        (_, _, _) -> {
+                            resizePause.playFromStart(); // Restart the pause every time the size
+                            // changes
+                        });
+
+        // Handle close event
+        this.gameStage.setOnCloseRequest(
+                e -> {
+                    e.consume(); // Prevent the window from closing immediately
+                    showExitConfirmation(); // Show the exit confirmation dialog
+                });
+    }
+
+    public Game(Launcher launcher, MainBoard mainBoard) {
+        this.launcher = launcher;
+        this.gameStage = new Stage();
+        this.gameStage.setTitle("Frisian Draughts - Game");
+        this.movesListGridPane = mainBoard.getMovesListGridPane();
+        this.mainBoard = mainBoard;
+        this.isWhiteTurn =
+                mainBoard.isWhiteTurn
+                        ? Bindings.createBooleanBinding(() -> true)
+                        : Bindings.createBooleanBinding(() -> false);
+        mainBoard
+                .getBoard()
+                .setOnMouseClicked(null); // Disable board interaction when loading from PDN
+
+        this.gameRoot = new Pane();
+        Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
+        Launcher.registerScene(scene);
+
+        // Load CSS
+        URL cssUrl =
+                getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.err.println("Stylesheet not found");
+        }
+
+        this.gameStage.setScene(scene);
+
+        // Initialize game player
+
+        System.out.println("list " + this.movesListGridPane);
+        board = mainBoard.getBoard(this.movesListGridPane);
+        playerUI(gameRoot, scene, true);
+        playerUI(gameRoot, scene, false);
+        chatUI(gameRoot, scene);
+        buttonGameLogic(gameRoot, scene);
+        moveList(gameRoot, scene);
+
+        resizePause = new PauseTransition(Duration.millis(50));
+        resizePause.setOnFinished(
+                _ -> {
+                    onResize(gameRoot, scene);
+                });
+
+        // Add resize listeners
+        scene.widthProperty()
+                .addListener(
+                        (_, _, _) -> {
+                            resizePause.playFromStart(); // Restart the pause every time the size
+                            // changes
+                        });
+
+        scene.heightProperty()
+                .addListener(
+                        (_, _, _) -> {
                             resizePause.playFromStart(); // Restart the pause every time the size
                             // changes
                         });
@@ -261,7 +334,13 @@ public class Game {
         ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
         if (exitConfirmation.showAndWait()) { // If user confirmed exit
             if (exitConfirmation.shouldSaveOnExit()) {
-                exporter.exportGameToPDN(mainBoard.getTakenMoves(), null);
+                exporter.exportGameToPDN(
+                        mainBoard.getTakenMoves(),
+                        null,
+                        gameInfo.getPlayerTurn() == 1 ? "W" : "B",
+                        isAgainstBot ? "1" : "0",
+                        isMultiplayer ? "1" : "0");
+
                 Launcher.viewManager
                         .getMenu()
                         .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);

@@ -5,7 +5,6 @@ import com.um_project_game.util.SoundPlayer;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -112,19 +111,10 @@ public class Settings {
         grid.add(darkModeButton.getButton(), 1, 4);
 
         // Add Save and Cancel buttons
-        Buttons saveButton = new Buttons("Save", 100, 30, () -> settingsStage.close());
-        Buttons cancelButton =
-                new Buttons(
-                        "Cancel",
-                        100,
-                        30,
-                        () -> {
-                            // Optionally revert changes if needed
-                            settingsStage.close();
-                        });
+        Buttons doneButtons = new Buttons("Done", 100, 30, () -> settingsStage.close());
 
         // Add buttons to a horizontal box
-        HBox buttonBox = new HBox(10, saveButton.getButton(), cancelButton.getButton());
+        HBox buttonBox = new HBox(10, doneButtons.getButton());
         buttonBox.setPadding(new Insets(10));
 
         // Create a VBox to hold all elements
@@ -169,7 +159,7 @@ public class Settings {
         mainVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (observable, oldValue, newValue) -> {
+                        (_, _, newValue) -> {
                             mainVolume = newValue.doubleValue();
                             soundPlayer.setMainVolume(mainVolume);
 
@@ -183,7 +173,7 @@ public class Settings {
         backgroundVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (observable, oldValue, newValue) -> {
+                        (_, _, newValue) -> {
                             double effectiveVolume = newValue.doubleValue();
                             if (mainVolume != 0) {
                                 backgroundRelativeVolume = effectiveVolume / mainVolume;
@@ -196,7 +186,7 @@ public class Settings {
         moveVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (observable, oldValue, newValue) -> {
+                        (_, _, newValue) -> {
                             double effectiveVolume = newValue.doubleValue();
                             if (mainVolume != 0) {
                                 moveRelativeVolume = effectiveVolume / mainVolume;
@@ -209,7 +199,7 @@ public class Settings {
         captureVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (observable, oldValue, newValue) -> {
+                        (_, _, newValue) -> {
                             double effectiveVolume = newValue.doubleValue();
                             if (mainVolume != 0) {
                                 captureRelativeVolume = effectiveVolume / mainVolume;
@@ -217,17 +207,6 @@ public class Settings {
                             }
                             // Else, do nothing
                         });
-    }
-
-    private void refreshStyles(Pane root) {
-        root.applyCss(); // Apply styles to the root
-        for (Node child : root.getChildren()) {
-            if (child instanceof Pane) {
-                refreshStyles((Pane) child); // Recursively apply styles to child panes
-            } else {
-                child.applyCss(); // Apply styles to non-pane nodes
-            }
-        }
     }
 
     public void show() {
