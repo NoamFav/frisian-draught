@@ -1,8 +1,9 @@
 package com.um_project_game.util;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 public class PDNWriter {
 
@@ -46,8 +47,8 @@ public class PDNWriter {
         this.moves = moves;
     }
 
-    public void generatePDNFile(String filePath) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+    public void generatePDNFile(OutputStream outputStream) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
             writer.write("[Event \"" + event + "\"]\n");
             writer.write("[Site \"" + site + "\"]\n");
             writer.write("[Round \"" + round + "\"]\n");

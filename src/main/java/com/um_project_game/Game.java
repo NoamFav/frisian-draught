@@ -262,6 +262,7 @@ public class Game {
         if (exitConfirmation.showAndWait()) { // If user confirmed exit
             if (exitConfirmation.shouldSaveOnExit()) {
                 exporter.exportGameToPDN(mainBoard.getTakenMoves(), null);
+                Launcher.menuStage.show();
             }
             if (Launcher.menuStage == null) {
                 // Recreate the menu
@@ -294,7 +295,7 @@ public class Game {
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
         Buttons exitButton =
-                new Buttons("Exit", buttonWidth, buttonHeight, () -> gameStage.close());
+                new Buttons("Exit", buttonWidth, buttonHeight, () -> showExitConfirmation());
 
         controlButtons
                 .getChildren()

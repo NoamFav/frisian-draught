@@ -29,12 +29,13 @@ public class Launcher extends Application {
     public static final ViewManager viewManager =
             new ViewManager(
                     new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
+    public static Scene menuScene;
 
     private static final List<Scene> scenes = new ArrayList<>();
 
     public static void registerScene(Scene scene) {
         scenes.add(scene);
-        applyTheme(scene); // Apply the current theme immediately
+        applyTheme(scene);
     }
 
     public static void switchTheme() {
@@ -54,6 +55,8 @@ public class Launcher extends Application {
     private void setupMenuStage(Stage stage) {
         Pane root = new Pane();
         Scene scene = new Scene(root, REF_WIDTH, REF_HEIGHT);
+        Launcher.registerScene(scene);
+        menuScene = scene;
         stage.setTitle("Frisian Draughts - Menu");
 
         URL cssUrl = getClass().getResource(DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
@@ -78,16 +81,14 @@ public class Launcher extends Application {
         Menu menu = new Menu(root, scene, this);
         viewManager.setMenu(menu);
         resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(event -> menu.onResize(root, scene));
+        resizePause.setOnFinished(_ -> menu.onResize(root, scene));
         // Add resize listeners
-        scene.widthProperty()
-                .addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
-        scene.heightProperty()
-                .addListener((observable, oldValue, newValue) -> resizePause.playFromStart());
+        scene.widthProperty().addListener((_, _, _) -> resizePause.playFromStart());
+        scene.heightProperty().addListener((_, _, _) -> resizePause.playFromStart());
 
         // Handle close event
         stage.setOnCloseRequest(
-                e -> {
+                _ -> {
                     // If there are no other windows open, exit the application
                     if (Stage.getWindows().size() <= 1) {
                         // This is the last window, so exit
