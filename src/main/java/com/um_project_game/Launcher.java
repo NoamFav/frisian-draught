@@ -31,6 +31,7 @@ public class Launcher extends Application {
             new ViewManager(
                     new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
     public static Scene menuScene;
+    public static final boolean isRecentGameToggleReady = false;
 
     private static final List<Scene> scenes = new ArrayList<>();
 

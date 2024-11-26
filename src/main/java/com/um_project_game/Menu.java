@@ -224,12 +224,21 @@ public class Menu {
                             .getChildren()
                             .add(mainBoard.getRandomBoard(root, boardSize, pdnFile.getPath()));
 
-                    mainBoard
-                            .getBoard()
-                            .setOnMouseClicked(
-                                    _ -> {
-                                        launcher.startNewGame(mainBoard);
-                                    });
+                    if (Launcher.isRecentGameToggleReady) {
+                        mainBoard
+                                .getBoard()
+                                .setOnMouseClicked(
+                                        _ -> {
+                                            launcher.startNewGame(mainBoard);
+                                        });
+                    } else {
+                        mainBoard
+                                .getBoard()
+                                .setOnMouseClicked(
+                                        _ ->
+                                                System.out.println(
+                                                        "Currently unavailble, will be soon"));
+                    }
                 }
             }
         }
