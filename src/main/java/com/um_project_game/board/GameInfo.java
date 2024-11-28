@@ -8,7 +8,6 @@ public class GameInfo {
     public IntegerProperty scorePlayerTwo = new SimpleIntegerProperty(0);
     public IntegerProperty playerTurn = new SimpleIntegerProperty(1);
 
-    // Getter methods for the scores
     public int getScorePlayerOne() {
         return scorePlayerOne.get();
     }

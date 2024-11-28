@@ -155,7 +155,7 @@ public class Settings {
 
         settingsStage = new Stage();
         settingsStage.setTitle("Settings");
-        Launcher.registerScene(settingScene); // Register the scene
+        Launcher.registerScene(settingScene);
         settingsStage.setScene(settingScene);
 
         // Make the settings window modal
@@ -186,7 +186,6 @@ public class Settings {
                             mainVolume = newValue.doubleValue();
                             soundPlayer.setMainVolume(mainVolume);
 
-                            // Adjust other sliders
                             backgroundVolumeSlider.setValue(mainVolume);
                             moveVolumeSlider.setValue(mainVolume);
                             captureVolumeSlider.setValue(mainVolume);
@@ -202,7 +201,6 @@ public class Settings {
                                 backgroundRelativeVolume = effectiveVolume / mainVolume;
                                 soundPlayer.setBackgroundVolume(backgroundRelativeVolume);
                             }
-                            // Else, do nothing
                         });
 
         // Listener for Move Volume Slider
@@ -215,7 +213,6 @@ public class Settings {
                                 moveRelativeVolume = effectiveVolume / mainVolume;
                                 soundPlayer.setMoveVolume(moveRelativeVolume);
                             }
-                            // Else, do nothing
                         });
 
         // Listener for Capture Volume Slider
@@ -228,7 +225,6 @@ public class Settings {
                                 captureRelativeVolume = effectiveVolume / mainVolume;
                                 soundPlayer.setCaptureVolume(captureRelativeVolume);
                             }
-                            // Else, do nothing
                         });
     }
 

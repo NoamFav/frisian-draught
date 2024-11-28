@@ -111,9 +111,13 @@ public class functions {
         } else {
             // Greedy action for exploitation
             return state.generateMoves().stream()
-                    .max((move1, move2) -> Double.compare(
-                            model.predict(state).getOrDefault(move1.getStartPosition(), 0.0),
-                            model.predict(state).getOrDefault(move2.getStartPosition(), 0.0)))
+                    .max(
+                            (move1, move2) ->
+                                    Double.compare(
+                                            model.predict(state)
+                                                    .getOrDefault(move1.getStartPosition(), 0.0),
+                                            model.predict(state)
+                                                    .getOrDefault(move2.getStartPosition(), 0.0)))
                     .orElse(null);
         }
     }
@@ -144,7 +148,8 @@ public class functions {
             double reward,
             GameState nextState,
             boolean done) {
-        replayBuffer.addExperience(new Experience(state, action.getStartPosition(), reward, nextState, done));
+        replayBuffer.addExperience(
+                new Experience(state, action.getStartPosition(), reward, nextState, done));
     }
 
     public void mainDRLLoop(
@@ -158,7 +163,7 @@ public class functions {
         GameState state = initialState;
         while (!state.isTerminal()) {
             Move action = chooseActionEpsilonGreedy(state, model, epsilon);
-            MoveResult result = state.applyMove(action); // Correctly pass the Move object
+            MoveResult result = state.applyMove(action);
             GameState nextState = result.getNextState();
             double reward = result.getReward();
             boolean done = result.isGameOver();
@@ -176,7 +181,14 @@ public class functions {
         double bestScore = Double.NEGATIVE_INFINITY;
         for (Move move : state.generateMoves()) {
             GameState newState = state.applyMove(move).getNextState();
-            double score = minimax(newState, depth - 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false, model);
+            double score =
+                    minimax(
+                            newState,
+                            depth - 1,
+                            Double.NEGATIVE_INFINITY,
+                            Double.POSITIVE_INFINITY,
+                            false,
+                            model);
             if (score > bestScore) {
                 bestScore = score;
                 bestMove = move;

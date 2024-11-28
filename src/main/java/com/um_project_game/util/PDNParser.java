@@ -122,11 +122,6 @@ public class PDNParser {
                 e.printStackTrace();
             }
         }
-
-        // Print all moves after parsing
-        for (Move move : moves) {
-            // System.out.println(move);
-        }
     }
 
     public String getEvent() {

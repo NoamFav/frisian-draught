@@ -22,7 +22,7 @@ public class ViewManager {
     private Scene scene;
     private MainServer server;
     private List<Game> activeGames = new ArrayList<>();
-    private int GAME_STATE = 0; // 0 = Menu, 1 = Game, 2 = Multiplayer
+    private int GAME_STATE = 0;
 
     public ViewManager(Pane root, Launcher launcher, Scene scene) {
         this.server = new MainServer();
