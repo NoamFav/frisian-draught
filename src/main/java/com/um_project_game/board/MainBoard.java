@@ -199,7 +199,6 @@ public class MainBoard {
             pawnView.setFitHeight(tileSize * scaleFactor);
         }
 
-        // Update the size of highlight nodes if necessary
         for (Node highlightNode : highlightNodes) {
             if (highlightNode instanceof Rectangle) {
                 Rectangle square = (Rectangle) highlightNode;
@@ -294,7 +293,6 @@ public class MainBoard {
      * @param pawns List to populate with the initial pawns.
      */
     private void setupBoard() {
-        // Function to add pawns to the board
         BiConsumer<Integer, Boolean> addPawns =
                 (startRow, isWhite) -> {
                     for (int y = startRow; y < startRow + 4; y++) {
@@ -332,7 +330,7 @@ public class MainBoard {
     }
 
     private void renderBoard() {
-        if (boardInitialized) return; // Avoid re-initializing the board
+        if (boardInitialized) return;
 
         for (int y = 0; y < boardSize.y; y++) {
             for (int x = 0; x < boardSize.x; x++) {
@@ -357,7 +355,6 @@ public class MainBoard {
             ImageView pawnView = pawnViews.get(pawn);
 
             if (pawnView == null) {
-                // Pawn is not yet rendered, create a new ImageView
                 pawnView = createPawnImageView(pawn, 0.8);
                 board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
                 GridPane.setHalignment(pawnView, HPos.CENTER);
@@ -365,7 +362,6 @@ public class MainBoard {
                 pawnViews.put(pawn, pawnView);
             }
 
-            // Always set up interactions for pawns
             setupPawnInteractions(pawnView, pawn);
         }
     }
@@ -386,7 +382,6 @@ public class MainBoard {
         pawnView.setPreserveRatio(true);
         pawnView.setUserData(pawn);
 
-        // Add the hover listener here
         pawnView.hoverProperty()
                 .addListener(
                         (observable, oldValue, newValue) -> {
@@ -530,9 +525,9 @@ public class MainBoard {
         currentCapturePaths = new ArrayList<>(allPaths);
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(pawn, allPaths, false, true);
+            handleCaptureMoves(pawn, allPaths, true);
         } else if (requiredPawns.isEmpty()) {
-            handleNormalMoves(pawn, inBounds, x, y, false, true);
+            handleNormalMoves(pawn, inBounds, x, y, true);
         }
     }
 
@@ -545,8 +540,7 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      * @param allPaths List of all possible capture paths.
      */
-    private void handleCaptureMoves(
-            Pawn pawn, List<CapturePath> allPaths, boolean isAutomatic, boolean isAnimated) {
+    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths, boolean isAnimated) {
         double maxCaptureValue =
                 allPaths.stream().mapToDouble(CapturePath::getCaptureValue).max().orElse(0);
 
@@ -556,15 +550,6 @@ public class MainBoard {
                         .filter(path -> path.getCaptureValue() == maxCaptureValue)
                         .collect(Collectors.toList());
 
-        if (isAutomatic) {
-            // Execute the first maximum capture path automatically
-            if (!maxCapturePaths.isEmpty()) {
-                executeCaptureMove(pawn, maxCapturePaths.get(0), isAnimated);
-            }
-            return; // Exit after executing automatic move
-        }
-
-        // If not automatic, set up click listeners for manual move handling
         for (CapturePath path : maxCapturePaths) {
             Vector2i landingPos = path.getLastPosition();
 
@@ -667,12 +652,7 @@ public class MainBoard {
      * @param y Current y-coordinate of the pawn.
      */
     private void handleNormalMoves(
-            Pawn pawn,
-            BiPredicate<Integer, Integer> inBounds,
-            int x,
-            int y,
-            boolean isAutomatic,
-            boolean isAnimated) {
+            Pawn pawn, BiPredicate<Integer, Integer> inBounds, int x, int y, boolean isAnimated) {
         BiConsumer<Integer, Integer> highlightMove =
                 (newX, newY) -> {
                     Rectangle square = createHighlightSquare(Color.GREEN);
@@ -715,10 +695,6 @@ public class MainBoard {
                 if (inBounds.test(newX, newY)
                         && getPawnAtPosition(new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
-                    if (isAutomatic) {
-                        executeMove(pawn, new Vector2i(newX, newY));
-                        return; // Stop after the first automatic move
-                    }
                 }
             }
         } else {
@@ -739,10 +715,7 @@ public class MainBoard {
                 while (inBounds.test(newX, newY)
                         && getPawnAtPosition(new Vector2i(newX, newY)) == null) {
                     highlightMove.accept(newX, newY);
-                    if (isAutomatic) {
-                        executeMove(pawn, new Vector2i(newX, newY));
-                        return;
-                    }
+
                     newX += dx;
                     newY += dy;
                 }
@@ -756,7 +729,6 @@ public class MainBoard {
         GridPane.setColumnIndex(pawnView, landingPos.x);
         GridPane.setRowIndex(pawnView, landingPos.y);
 
-        // Process the move as a normal move
         promotePawnIfNeeded(pawn, landingPos);
         checkGameOver();
         clearHighlights();
@@ -1032,7 +1004,7 @@ public class MainBoard {
             // Clear the existing pawn view for the moved pawn
             ImageView movedPawnView = pawnViews.remove(movedPawn);
             if (movedPawnView != null) {
-                board.getChildren().remove(movedPawnView); // Remove the existing ImageView
+                board.getChildren().remove(movedPawnView);
             }
             List<Vector2i> capturedPostions = move.getCapturedPositions();
             // If a capture occurred during the move, restore the captured pawn
@@ -1062,7 +1034,6 @@ public class MainBoard {
                 pastStates.removeLast();
             }
             undoMove(takenMoves.removeLast());
-            // during game with bot, trigger another undo to skip to last player move
             if (isBotActive) {
                 undoMove(takenMoves.removeLast());
             }
@@ -1611,7 +1582,7 @@ public class MainBoard {
         if (result != null) {
             // Update the board state
             pastStates.add(result.getNextState());
-            renderPawns(); // Ensure the board visually updates
+            renderPawns();
 
             if (result.isGameOver()) {
                 checkGameOver();
@@ -1654,7 +1625,8 @@ public class MainBoard {
                         } else {
                             triggerBotMove(); // Other bot for Black
                         }
-                        // Delay to make the moves visually distinguishable
+                        // Delay to make the moves visually distinguishable and avoid crash due to
+                        // the game buffer
                         PauseTransition pause = new PauseTransition(Duration.millis(1000));
                         pause.setOnFinished(_ -> playBotVsBot());
                         pause.play();

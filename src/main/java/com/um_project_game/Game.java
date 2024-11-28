@@ -128,22 +128,20 @@ public class Game {
         scene.widthProperty()
                 .addListener(
                         (_, _, _) -> {
-                            resizePause.playFromStart(); // Restart the pause every time the size
-                            // changes
+                            resizePause.playFromStart();
                         });
 
         scene.heightProperty()
                 .addListener(
                         (_, _, _) -> {
-                            resizePause.playFromStart(); // Restart the pause every time the size
-                            // changes
+                            resizePause.playFromStart();
                         });
 
         // Handle close event
         this.gameStage.setOnCloseRequest(
                 e -> {
-                    e.consume(); // Prevent the window from closing immediately
-                    showExitConfirmation(); // Show the exit confirmation dialog
+                    e.consume();
+                    showExitConfirmation();
                 });
     }
 
@@ -196,22 +194,20 @@ public class Game {
         scene.widthProperty()
                 .addListener(
                         (_, _, _) -> {
-                            resizePause.playFromStart(); // Restart the pause every time the size
-                            // changes
+                            resizePause.playFromStart();
                         });
 
         scene.heightProperty()
                 .addListener(
                         (_, _, _) -> {
-                            resizePause.playFromStart(); // Restart the pause every time the size
-                            // changes
+                            resizePause.playFromStart();
                         });
 
         // Handle close event
         this.gameStage.setOnCloseRequest(
                 e -> {
-                    e.consume(); // Prevent the window from closing immediately
-                    showExitConfirmation(); // Show the exit confirmation dialog
+                    e.consume();
+                    showExitConfirmation();
                 });
     }
 
@@ -407,7 +403,6 @@ public class Game {
         // Fetch the moves list grid pane
         movesListGridPane = mainBoard.getMovesListGridPane();
 
-        // Check if movesListGridPane is null
         if (movesListGridPane == null) {
             System.err.println(
                     "Error: movesListGridPane is null. Please check getMovesListGridPane() in"

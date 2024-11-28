@@ -154,32 +154,24 @@ public class Menu {
                         "Player against Player",
                         buttonWidth,
                         buttonHeight,
-                        () ->
-                                launcher.startNewGame(
-                                        false, false, false)); // false for Player vs Player
+                        () -> launcher.startNewGame(false, false, false));
 
         Buttons playerVsBotButton =
                 new Buttons(
                         "Player against Bot",
                         buttonWidth,
                         buttonHeight,
-                        () -> launcher.startNewGame(false, true, false)); // true for Player vs Bot
+                        () -> launcher.startNewGame(false, true, false));
 
         Buttons randomBotvsBotButton =
                 new Buttons(
                         "Random Bot against Bot",
                         buttonWidth,
                         buttonHeight,
-                        () ->
-                                launcher.startNewGame(
-                                        false, true, true)); // true for Random Bot vs Bot
+                        () -> launcher.startNewGame(false, true, true));
 
         Buttons backButton =
-                new Buttons(
-                        "Back",
-                        buttonWidth,
-                        buttonHeight,
-                        () -> returnToMainMenu(scene, root)); // Go back to main menu
+                new Buttons("Back", buttonWidth, buttonHeight, () -> returnToMainMenu(scene, root));
 
         playLocalOptions
                 .getChildren()
@@ -199,7 +191,6 @@ public class Menu {
             root.getChildren().remove(playLocalOptions);
         }
 
-        // Re-add the original control buttons
         setMenuButtons(scene, root);
     }
 
