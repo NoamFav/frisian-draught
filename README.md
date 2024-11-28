@@ -200,6 +200,17 @@ Frisian Draughts introduces unique capture mechanics:
 | ReplayBuffer          | ...um_project_game.AI      | Manages a buffer of experiences, allowing the addition, sampling, and maintaining a fixed size for training in reinforcement learning.                     |
 | functions             | ...um_project_game.AI.util | AI utility file. Contains various utility methods for Q-learning, training, action selection, and adversarial search in reinforcement learning for a game. |
 
+### 11. AI and algorithms
+
+The game includes a basic AI implementation using a **Deep Q-Network (DQN)** for decision-making.
+The file `DQNModel.java` contains the DQN implementation, which handles Q-value prediction, training, and weight updates.
+It is located in the `com.um_project_game.AI` package.
+Helper classes like `Experience.java`, `NeuralNetwork.java`, and `ReplayBuffer.java` are used to manage the learning process. And are in the same package.
+
+For the moves themselves, `GameState` contain how the board is represented and how the moves are stored.
+The rest like the method for triggering the AI move is located in the `MainBoard` class. Same for the random bot and the way those two bots play against each other.
+This is located in the `com.um_project_game.board` package. In the `MainBoard` class. At line around 1298.
+
 ### License
 
 D9_pawn.mp3 by Iamgiorgio -- https://freesound.org/s/371352/ -- License: Creative Commons 0
