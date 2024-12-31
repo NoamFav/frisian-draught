@@ -7,11 +7,7 @@ import com.um_project_game.util.Buttons;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -24,10 +20,10 @@ import java.util.Comparator;
 
 public class Menu {
 
-    private Pane menuRoot;
-    private Launcher launcher;
+    private final Pane menuRoot;
+    private final Launcher launcher;
 
-    // Dimensions
+    // Dimensions (initialized with defaults)
     private int topBarHeight = 75;
     private int bottomBarHeight = 55;
     private int buttonWidth = 510;
@@ -53,75 +49,82 @@ public class Menu {
     private int versionStatusWidth = 300;
     private int versionStatusHeight = 570;
 
-    /**
-     * @param root
-     */
+    /** Constructor */
     public Menu(Pane root, Scene scene, Launcher launcher) {
-        this.launcher = launcher;
         this.menuRoot = root;
-        setTopBar(scene, menuRoot);
-        setBottomBar(scene, menuRoot);
-        setMenuButtons(scene, menuRoot);
-        setRecentGames(scene, menuRoot);
-        setLiveGame(scene, menuRoot);
-        setVersionStatus(scene, menuRoot);
+        this.launcher = launcher;
+        rebuildLayout(scene, root);
     }
 
+    /**
+     * @return The root pane containing the menu.
+     */
     public Pane getMenuRoot() {
         return menuRoot;
     }
 
-    private void setTopBar(Scene scene, Pane root) {
+    /** Rebuilds the entire menu layout (useful for first load and resizing). */
+    private void rebuildLayout(Scene scene, Pane root) {
+        // Remove old nodes
+        removeExistingNodes(root);
 
-        Rectangle topBar = new Rectangle(0, 0, scene.getWidth(), topBarHeight);
-        topBar.setId("top-bar");
-        Text windowTitle = new Text("Frisian draughts");
-        windowTitle.getStyleClass().add("label");
+        // Update dimension fields based on the new window size
+        updateDimensions(scene);
 
-        StackPane titlePane = new StackPane();
-        titlePane.getChildren().addAll(topBar, windowTitle);
-        titlePane.setId("top-bar");
-
-        root.getChildren().add(titlePane);
+        // Build everything fresh
+        initTopBar(scene, root);
+        initBottomBar(scene, root);
+        initMenuButtons(scene, root);
+        initRecentGames(scene, root);
+        initLiveGame(scene, root);
+        initVersionStatus(scene, root);
     }
 
-    private void setBottomBar(Scene scene, Pane root) {
+    /** Initializes top bar. */
+    private void initTopBar(Scene scene, Pane root) {
+        // Use a helper to create a stacked bar with text
+        StackPane topBarPane =
+                createStackedBar(
+                        0, 0, (int) scene.getWidth(), topBarHeight, "Frisian draughts", "top-bar");
+        root.getChildren().add(topBarPane);
+    }
 
-        Rectangle bottomBar =
-                new Rectangle(
-                        0, scene.getHeight() - bottomBarHeight, scene.getWidth(), bottomBarHeight);
-        bottomBar.setId("bottom-bar");
-        Text bottomBarText = new Text("© 2024 UM Project - Version 2.1.4");
-        bottomBarText.getStyleClass().add("label");
-
-        StackPane bottomBarPane = new StackPane();
-        bottomBarPane.getChildren().addAll(bottomBar, bottomBarText);
-        bottomBarPane.setLayoutY(scene.getHeight() - bottomBarHeight);
-        bottomBarPane.setId("bottom-bar");
+    /** Initializes bottom bar. */
+    private void initBottomBar(Scene scene, Pane root) {
+        StackPane bottomBarPane =
+                createStackedBar(
+                        0,
+                        (int) (scene.getHeight() - bottomBarHeight),
+                        (int) scene.getWidth(),
+                        bottomBarHeight,
+                        "© 2024 UM Project - Version 2.1.4",
+                        "bottom-bar");
         root.getChildren().add(bottomBarPane);
     }
 
-    private void setMenuButtons(Scene scene, Pane root) {
-        VBox controlButtons = new VBox();
-        controlButtons.setSpacing(controlButtonsSpacing);
+    /** Initializes main menu buttons. */
+    private void initMenuButtons(Scene scene, Pane root) {
+        VBox controlButtons = new VBox(controlButtonsSpacing);
         controlButtons.setLayoutX(controlButtonsX);
         controlButtons.setLayoutY(controlButtonsY);
+        controlButtons.setId("control-buttons");
 
-        Runnable nill = () -> {};
+        // Example no-op
+        Runnable noAction = () -> {};
 
         Buttons playLocalButton =
                 new Buttons(
                         "Play Local",
                         buttonWidth,
                         buttonHeight,
-                        () -> showPlayLocalOptions(scene, root));
+                        () -> showLocalOptions(scene, root));
         Buttons multiplayerButton =
                 new Buttons(
                         "Multiplayer",
                         buttonWidth,
                         buttonHeight,
                         () -> launcher.startNewGame(true, false, false));
-        Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, nill);
+        Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, noAction);
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
 
@@ -132,225 +135,232 @@ public class Menu {
                         multiplayerButton.getButton(),
                         tutorialButton.getButton(),
                         settingsButton.getButton());
-        controlButtons.setId("control-buttons");
-        root.getChildren().addAll(controlButtons);
+
+        root.getChildren().add(controlButtons);
     }
 
-    private void showPlayLocalOptions(Scene scene, Pane root) {
-        // Remove the current menu buttons
-        Node controlButtons = root.lookup("#control-buttons");
-        if (controlButtons != null) {
-            root.getChildren().remove(controlButtons);
-        }
+    /** Shows the "play local" options, replacing the main menu buttons. */
+    private void showLocalOptions(Scene scene, Pane root) {
+        removeNodeById(root, "#control-buttons");
 
-        // Create the new play local options
-        VBox playLocalOptions = new VBox();
-        playLocalOptions.setSpacing(controlButtonsSpacing);
+        VBox playLocalOptions = new VBox(controlButtonsSpacing);
         playLocalOptions.setLayoutX(controlButtonsX);
         playLocalOptions.setLayoutY(controlButtonsY);
+        playLocalOptions.setId("play-local-options");
 
-        Buttons playerVsPlayerButton =
+        Buttons pvpButton =
                 new Buttons(
                         "Player against Player",
                         buttonWidth,
                         buttonHeight,
                         () -> launcher.startNewGame(false, false, false));
-
-        Buttons playerVsBotButton =
+        Buttons pvBotButton =
                 new Buttons(
                         "Player against Bot",
                         buttonWidth,
                         buttonHeight,
                         () -> launcher.startNewGame(false, true, false));
-
-        Buttons randomBotvsBotButton =
+        Buttons botvBotButton =
                 new Buttons(
                         "Random Bot against Bot",
                         buttonWidth,
                         buttonHeight,
                         () -> launcher.startNewGame(false, true, true));
-
         Buttons backButton =
                 new Buttons("Back", buttonWidth, buttonHeight, () -> returnToMainMenu(scene, root));
 
         playLocalOptions
                 .getChildren()
                 .addAll(
-                        playerVsPlayerButton.getButton(),
-                        playerVsBotButton.getButton(),
-                        randomBotvsBotButton.getButton(),
+                        pvpButton.getButton(),
+                        pvBotButton.getButton(),
+                        botvBotButton.getButton(),
                         backButton.getButton());
-        playLocalOptions.setId("play-local-options");
-        root.getChildren().addAll(playLocalOptions);
+
+        root.getChildren().add(playLocalOptions);
     }
 
+    /** Returns to main menu by removing the local options and re-adding main menu buttons. */
     private void returnToMainMenu(Scene scene, Pane root) {
-        // Remove the play local options
-        Node playLocalOptions = root.lookup("#play-local-options");
-        if (playLocalOptions != null) {
-            root.getChildren().remove(playLocalOptions);
-        }
-
-        setMenuButtons(scene, root);
+        removeNodeById(root, "#play-local-options");
+        initMenuButtons(scene, root);
     }
 
-    public void setRecentGames(Scene scene, Pane root) {
-        VBox recentBoards = new VBox();
-        recentBoards.setSpacing(recentBoardsSpacingY);
-        recentBoards.setLayoutX(recentBoardsX);
-        recentBoards.setLayoutY(recentBoardsY);
+    /** Initializes the "Recent Games" boards. */
+    private void initRecentGames(Scene scene, Pane root) {
+        VBox recentContainer = new VBox(recentBoardsSpacingY);
+        recentContainer.setLayoutX(recentBoardsX);
+        recentContainer.setLayoutY(recentBoardsY);
+        recentContainer.setId("recent-boards");
 
-        Text recentBoardsTitle = new Text("Recent Boards");
-        recentBoardsTitle.getStyleClass().add("label");
+        Text title = new Text("Recent Boards");
+        title.getStyleClass().add("label");
 
-        float boardSize = recentBoardsSize;
-        HBox recentGames = new HBox();
-        recentGames.setSpacing(recentBoardsSpacingX);
+        HBox recentGames = new HBox(recentBoardsSpacingX);
 
-        // Locate PDN files in the platform-independent export directory
+        // Find PDN files in user's FrisianDraughtsExports folder
         Path exportPath = Paths.get(System.getProperty("user.home"), "FrisianDraughtsExports");
         File directory = exportPath.toFile();
 
         if (directory.exists() && directory.isDirectory()) {
-            // Filter and sort PDN files in descending order by filename
             File[] pdnFiles = directory.listFiles((_, name) -> name.endsWith(".pdn"));
             if (pdnFiles != null) {
+                // Sort in descending order by filename
                 Arrays.sort(pdnFiles, Comparator.comparing(File::getName).reversed());
 
-                // Load and display the 3 most recent games (if available)
+                // Load up to 3 recent boards
                 for (int i = 0; i < Math.min(3, pdnFiles.length); i++) {
                     File pdnFile = pdnFiles[i];
+
                     MainBoard mainBoard = new MainBoard();
                     mainBoard.setMovesListManager(new MovesListManager(new GridPane()));
-                    // Display the game on the board
+
+                    // Render the board
                     recentGames
                             .getChildren()
-                            .add(mainBoard.getRandomBoard(root, boardSize, pdnFile.getPath()));
+                            .add(
+                                    mainBoard.getRandomBoard(
+                                            root, recentBoardsSize, pdnFile.getPath()));
 
+                    // Click to load game if toggle is ready
                     if (Launcher.isRecentGameToggleReady) {
                         mainBoard
                                 .getBoard()
-                                .setOnMouseClicked(
-                                        _ -> {
-                                            launcher.startNewGame(mainBoard);
-                                        });
+                                .setOnMouseClicked(e -> launcher.startNewGame(mainBoard));
                     } else {
                         mainBoard
                                 .getBoard()
                                 .setOnMouseClicked(
                                         _ ->
                                                 System.out.println(
-                                                        "Currently unavailble, will be soon"));
+                                                        "Currently unavailable, will be soon"));
                     }
                 }
             }
         }
 
-        recentBoards.getChildren().addAll(recentBoardsTitle, recentGames);
-        recentBoards.setId("recent-boards");
-        root.getChildren().addAll(recentBoards);
+        recentContainer.getChildren().addAll(title, recentGames);
+        root.getChildren().add(recentContainer);
     }
 
-    private void setLiveGame(Scene scene, Pane root) {
+    /** Initializes the "Live Game" board preview. */
+    private void initLiveGame(Scene scene, Pane root) {
+        VBox liveGame = new VBox(liveGameSpacing);
+        liveGame.setLayoutX(liveGameX);
+        liveGame.setLayoutY(liveGameY);
+        liveGame.setAlignment(Pos.CENTER);
+        liveGame.setId("live-game");
 
         Text liveGameTitle = new Text("Live Game");
         liveGameTitle.getStyleClass().add("label");
 
         MainBoard mainBoard = new MainBoard();
-        GridPane liveboard = mainBoard.getRandomBoard(root, liveGameSize);
+        GridPane liveBoard = mainBoard.getRandomBoard(root, liveGameSize);
 
-        VBox liveGame = new VBox();
-        liveGame.setSpacing(liveGameSpacing);
-        liveGame.setAlignment(Pos.CENTER);
-        liveGame.setLayoutX(liveGameX);
-        liveGame.setLayoutY(liveGameY);
-
-        liveGame.getChildren().addAll(liveGameTitle, liveboard);
-        liveGame.setId("live-game");
-        root.getChildren().addAll(liveGame);
+        liveGame.getChildren().addAll(liveGameTitle, liveBoard);
+        root.getChildren().add(liveGame);
     }
 
-    private void setVersionStatus(Scene scene, Pane root) {
-
-        Rectangle versionStatus =
+    /** Initializes the "Version Status" section (rectangle + text). */
+    private void initVersionStatus(Scene scene, Pane root) {
+        Rectangle versionRect =
                 new Rectangle(
                         versionStatusX, versionStatusY, versionStatusWidth, versionStatusHeight);
-        versionStatus.setFill(Color.TRANSPARENT);
+        versionRect.setFill(Color.TRANSPARENT);
 
-        Text versionStatusText = new Text("Version Status");
-        versionStatusText.getStyleClass().add("label");
+        Text versionText = new Text("Version Status");
+        versionText.getStyleClass().add("label");
 
-        StackPane versionStatusPane = new StackPane();
-        versionStatusPane.getChildren().addAll(versionStatus, versionStatusText);
-        versionStatusPane.setLayoutX(versionStatusX);
-        versionStatusPane.setLayoutY(versionStatusY);
-        versionStatusPane.getStyleClass().add("version-status");
-        versionStatusPane.setId("version-status");
+        StackPane versionPane = new StackPane(versionRect, versionText);
+        versionPane.setLayoutX(versionStatusX);
+        versionPane.setLayoutY(versionStatusY);
+        versionPane.getStyleClass().add("version-status");
+        versionPane.setId("version-status");
 
-        root.getChildren().add(versionStatusPane);
+        root.getChildren().add(versionPane);
     }
 
+    /** Called when the window is resized. Rebuilds the entire layout using updated dimensions. */
     public void onResize(Pane root, Scene scene) {
-
-        Node topBar = root.lookup("#top-bar");
-        Node bottomBar = root.lookup("#bottom-bar");
-        Node controlButtons = root.lookup("#control-buttons");
-        Node recentBoards = root.lookup("#recent-boards");
-        Node liveGame = root.lookup("#live-game");
-        Node versionStatus = root.lookup("#version-status");
-
-        if (topBar != null) root.getChildren().remove(topBar);
-        if (bottomBar != null) root.getChildren().remove(bottomBar);
-        if (controlButtons != null) root.getChildren().remove(controlButtons);
-        if (recentBoards != null) root.getChildren().remove(recentBoards);
-        if (liveGame != null) root.getChildren().remove(liveGame);
-        if (versionStatus != null) root.getChildren().remove(versionStatus);
-
-        newDimensions(scene);
-        setTopBar(scene, root);
-        setBottomBar(scene, root);
-        setMenuButtons(scene, root);
-        setRecentGames(scene, root);
-        setLiveGame(scene, root);
-        setVersionStatus(scene, root);
+        rebuildLayout(scene, root);
     }
 
-    private void newDimensions(Scene scene) {
-        // Calculate the ratios using oldVal and newVal for width and height respectively
-        int newSceneWidth = (int) scene.getWidth();
-        int newSceneHeight = (int) scene.getHeight();
+    /** Updates dimension fields based on the current Scene width/height. */
+    private void updateDimensions(Scene scene) {
+        int newWidth = (int) scene.getWidth();
+        int newHeight = (int) scene.getHeight();
 
-        int oldValHeight = Launcher.REF_HEIGHT;
-        int oldValWidth = Launcher.REF_WIDTH;
+        int refWidth = Launcher.REF_WIDTH;
+        int refHeight = Launcher.REF_HEIGHT;
 
-        topBarHeight = convertDimensions(75, newSceneHeight, oldValHeight);
-        bottomBarHeight = convertDimensions(55, newSceneHeight, oldValHeight);
-        buttonWidth = convertDimensions(510, newSceneWidth, oldValWidth);
-        buttonHeight = convertDimensions(60, newSceneHeight, oldValHeight);
+        topBarHeight = scaleDimension(75, newHeight, refHeight);
+        bottomBarHeight = scaleDimension(55, newHeight, refHeight);
+        buttonWidth = scaleDimension(510, newWidth, refWidth);
+        buttonHeight = scaleDimension(60, newHeight, refHeight);
 
-        controlButtonsX = convertDimensions(75, newSceneWidth, oldValWidth);
-        controlButtonsY = convertDimensions(115, newSceneHeight, oldValHeight);
-        controlButtonsSpacing = convertDimensions(15, newSceneHeight, oldValHeight);
+        controlButtonsX = scaleDimension(75, newWidth, refWidth);
+        controlButtonsY = scaleDimension(115, newHeight, refHeight);
+        controlButtonsSpacing = scaleDimension(15, newHeight, refHeight);
 
-        recentBoardsX = convertDimensions(75, newSceneWidth, oldValWidth);
-        recentBoardsY = convertDimensions(422, newSceneHeight, oldValHeight);
-        recentBoardsSpacingY = convertDimensions(15, newSceneHeight, oldValHeight);
-        recentBoardsSize = convertDimensions(225, newSceneHeight, oldValHeight);
-        recentBoardsSpacingX = convertDimensions(105, newSceneWidth, oldValWidth);
+        recentBoardsX = scaleDimension(75, newWidth, refWidth);
+        recentBoardsY = scaleDimension(422, newHeight, refHeight);
+        recentBoardsSpacingY = scaleDimension(15, newHeight, refHeight);
+        recentBoardsSize = scaleDimension(225, newHeight, refHeight);
+        recentBoardsSpacingX = scaleDimension(105, newWidth, refWidth);
 
-        liveGameX = convertDimensions(695, newSceneWidth, oldValWidth);
-        liveGameY = convertDimensions(120, newSceneHeight, oldValHeight);
-        liveGameSpacing = convertDimensions(15, newSceneHeight, oldValHeight);
-        liveGameSize = convertDimensions(225, newSceneHeight, oldValHeight);
+        liveGameX = scaleDimension(695, newWidth, refWidth);
+        liveGameY = scaleDimension(120, newHeight, refHeight);
+        liveGameSpacing = scaleDimension(15, newHeight, refHeight);
+        liveGameSize = scaleDimension(225, newHeight, refHeight);
 
-        versionStatusX = convertDimensions(1030, newSceneWidth, oldValWidth);
-        versionStatusY = convertDimensions(99, newSceneHeight, oldValHeight);
-        versionStatusWidth = convertDimensions(300, newSceneWidth, oldValWidth);
-        versionStatusHeight = convertDimensions(570, newSceneHeight, oldValHeight);
+        versionStatusX = scaleDimension(1030, newWidth, refWidth);
+        versionStatusY = scaleDimension(99, newHeight, refHeight);
+        versionStatusWidth = scaleDimension(300, newWidth, refWidth);
+        versionStatusHeight = scaleDimension(570, newHeight, refHeight);
     }
 
-    private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
-        return (int)
-                ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
+    /** Helper to scale a single dimension. */
+    private int scaleDimension(int original, int newVal, int refVal) {
+        return (int) (original * (double) newVal / (double) refVal);
+    }
+
+    /** Removes all major nodes (bars, buttons, boards, etc.) from the root. */
+    private void removeExistingNodes(Pane root) {
+        String[] ids = {
+            "#top-bar",
+            "#bottom-bar",
+            "#control-buttons",
+            "#recent-boards",
+            "#live-game",
+            "#version-status",
+            "#play-local-options"
+        };
+        for (String id : ids) {
+            removeNodeById(root, id);
+        }
+    }
+
+    /** Utility to remove a single node by its CSS ID. */
+    private void removeNodeById(Pane root, String cssId) {
+        Node node = root.lookup(cssId);
+        if (node != null) {
+            root.getChildren().remove(node);
+        }
+    }
+
+    /** Helper to create a stack pane bar with background rectangle + centered text. */
+    private StackPane createStackedBar(
+            int x, int y, int width, int height, String textContent, String barId) {
+        Rectangle rect = new Rectangle(x, y, width, height);
+        rect.setId(barId);
+
+        Text text = new Text(textContent);
+        text.getStyleClass().add("label");
+
+        StackPane stack = new StackPane(rect, text);
+        stack.setId(barId);
+        stack.setLayoutX(x);
+        stack.setLayoutY(y);
+        return stack;
     }
 }
