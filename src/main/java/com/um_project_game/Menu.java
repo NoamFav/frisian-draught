@@ -4,6 +4,8 @@ import com.um_project_game.board.MainBoard;
 import com.um_project_game.board.MovesListManager;
 import com.um_project_game.util.Buttons;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ScaleTransition;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -11,6 +13,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -54,6 +57,9 @@ public class Menu {
         this.menuRoot = root;
         this.launcher = launcher;
         rebuildLayout(scene, root);
+
+        // Optional: fade in the entire menu on load
+        animateFadeIn(root, 300);
     }
 
     /**
@@ -63,15 +69,20 @@ public class Menu {
         return menuRoot;
     }
 
+    /**
+     * Called when the window is resized. Rebuilds the entire layout using updated dimensions, then
+     * animates in.
+     */
+    public void onResize(Pane root, Scene scene) {
+        rebuildLayout(scene, root);
+        animateFadeIn(root, 300);
+    }
+
     /** Rebuilds the entire menu layout (useful for first load and resizing). */
     private void rebuildLayout(Scene scene, Pane root) {
-        // Remove old nodes
         removeExistingNodes(root);
-
-        // Update dimension fields based on the new window size
         updateDimensions(scene);
 
-        // Build everything fresh
         initTopBar(scene, root);
         initBottomBar(scene, root);
         initMenuButtons(scene, root);
@@ -82,7 +93,6 @@ public class Menu {
 
     /** Initializes top bar. */
     private void initTopBar(Scene scene, Pane root) {
-        // Use a helper to create a stacked bar with text
         StackPane topBarPane =
                 createStackedBar(
                         0, 0, (int) scene.getWidth(), topBarHeight, "Frisian draughts", "top-bar");
@@ -137,6 +147,9 @@ public class Menu {
                         settingsButton.getButton());
 
         root.getChildren().add(controlButtons);
+
+        // Optional: If you want to animate the menu button container itself on hover
+        animateHoverScale(controlButtons, 1.02);
     }
 
     /** Shows the "play local" options, replacing the main menu buttons. */
@@ -178,6 +191,9 @@ public class Menu {
                         backButton.getButton());
 
         root.getChildren().add(playLocalOptions);
+
+        // Optional: Animate new local options container
+        animateFadeIn(playLocalOptions, 250);
     }
 
     /** Returns to main menu by removing the local options and re-adding main menu buttons. */
@@ -205,7 +221,6 @@ public class Menu {
         if (directory.exists() && directory.isDirectory()) {
             File[] pdnFiles = directory.listFiles((_, name) -> name.endsWith(".pdn"));
             if (pdnFiles != null) {
-                // Sort in descending order by filename
                 Arrays.sort(pdnFiles, Comparator.comparing(File::getName).reversed());
 
                 // Load up to 3 recent boards
@@ -216,11 +231,9 @@ public class Menu {
                     mainBoard.setMovesListManager(new MovesListManager(new GridPane()));
 
                     // Render the board
-                    recentGames
-                            .getChildren()
-                            .add(
-                                    mainBoard.getRandomBoard(
-                                            root, recentBoardsSize, pdnFile.getPath()));
+                    Node boardNode =
+                            mainBoard.getRandomBoard(root, recentBoardsSize, pdnFile.getPath());
+                    recentGames.getChildren().add(boardNode);
 
                     // Click to load game if toggle is ready
                     if (Launcher.isRecentGameToggleReady) {
@@ -235,6 +248,8 @@ public class Menu {
                                                 System.out.println(
                                                         "Currently unavailable, will be soon"));
                     }
+
+                    animateHoverScale(boardNode, 1.03);
                 }
             }
         }
@@ -259,6 +274,8 @@ public class Menu {
 
         liveGame.getChildren().addAll(liveGameTitle, liveBoard);
         root.getChildren().add(liveGame);
+
+        animateHoverScale(liveGame, 1.03);
     }
 
     /** Initializes the "Version Status" section (rectangle + text). */
@@ -278,11 +295,9 @@ public class Menu {
         versionPane.setId("version-status");
 
         root.getChildren().add(versionPane);
-    }
 
-    /** Called when the window is resized. Rebuilds the entire layout using updated dimensions. */
-    public void onResize(Pane root, Scene scene) {
-        rebuildLayout(scene, root);
+        // Could add a hover scale or fade if desired
+        animateHoverScale(versionPane, 1.02);
     }
 
     /** Updates dimension fields based on the current Scene width/height. */
@@ -362,5 +377,41 @@ public class Menu {
         stack.setLayoutX(x);
         stack.setLayoutY(y);
         return stack;
+    }
+
+    /* --------------------------------------------------------------------------------
+     *                          ANIMATION HELPERS
+     * -------------------------------------------------------------------------------- */
+
+    /** Fades in the given node over the specified duration (ms). */
+    private void animateFadeIn(Node node, int durationMs) {
+        node.setOpacity(0);
+        FadeTransition ft = new FadeTransition(Duration.millis(durationMs), node);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        ft.play();
+    }
+
+    /**
+     * Scales up the node slightly on hover, returning to normal when the mouse leaves.
+     *
+     * @param node - Node to add hover effect
+     * @param scaleFactor - e.g., 1.02 for a subtle effect, 1.1 for more noticeable
+     */
+    private void animateHoverScale(Node node, double scaleFactor) {
+        node.setOnMouseEntered(
+                _ -> {
+                    ScaleTransition st = new ScaleTransition(Duration.millis(150), node);
+                    st.setToX(scaleFactor);
+                    st.setToY(scaleFactor);
+                    st.play();
+                });
+        node.setOnMouseExited(
+                _ -> {
+                    ScaleTransition st = new ScaleTransition(Duration.millis(150), node);
+                    st.setToX(1.0);
+                    st.setToY(1.0);
+                    st.play();
+                });
     }
 }

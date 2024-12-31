@@ -5,7 +5,9 @@ import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 import com.um_project_game.util.GameExporter;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.geometry.Insets;
@@ -15,12 +17,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -41,7 +38,6 @@ public class Game {
     }
 
     private GridPane board;
-
     private GameInfo gameInfo = new GameInfo();
     private BooleanBinding isWhiteTurn;
 
@@ -55,6 +51,7 @@ public class Game {
     private Launcher launcher;
     private Stage gameStage;
 
+    // Dimensions
     private int mainBoardSize = 614;
     private int mainBoardX = 376;
     private int mainBoardY = 77;
@@ -82,6 +79,10 @@ public class Game {
 
     // Game export
     private GameExporter exporter = new GameExporter();
+
+    /* --------------------------------------------------------------------------------
+     *                               CONSTRUCTORS
+     * -------------------------------------------------------------------------------- */
 
     public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher) {
         this.launcher = launcher;
@@ -118,24 +119,15 @@ public class Game {
         buttonGameLogic(gameRoot, scene);
         moveList(gameRoot, scene);
 
+        // Fade in effect on first load
+        animateFadeIn(gameRoot, 300);
+
+        // Debounced resizing
         resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(
-                _ -> {
-                    onResize(gameRoot, scene);
-                });
+        resizePause.setOnFinished(_ -> onResize(gameRoot, scene));
 
-        // Add resize listeners
-        scene.widthProperty()
-                .addListener(
-                        (_, _, _) -> {
-                            resizePause.playFromStart();
-                        });
-
-        scene.heightProperty()
-                .addListener(
-                        (_, _, _) -> {
-                            resizePause.playFromStart();
-                        });
+        scene.widthProperty().addListener((_, _, _) -> resizePause.playFromStart());
+        scene.heightProperty().addListener((_, _, _) -> resizePause.playFromStart());
 
         // Handle close event
         this.gameStage.setOnCloseRequest(
@@ -155,9 +147,9 @@ public class Game {
                 mainBoard.isWhiteTurn
                         ? Bindings.createBooleanBinding(() -> true)
                         : Bindings.createBooleanBinding(() -> false);
-        mainBoard
-                .getBoard()
-                .setOnMouseClicked(null); // Disable board interaction when loading from PDN
+
+        // Disable board interaction when loading from PDN
+        mainBoard.getBoard().setOnMouseClicked(null);
 
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
@@ -175,8 +167,6 @@ public class Game {
         this.gameStage.setScene(scene);
 
         // Initialize game player
-
-        System.out.println("list " + this.movesListGridPane);
         board = mainBoard.getBoard(this.movesListGridPane, this.gameInfo);
         playerUI(gameRoot, scene, true);
         playerUI(gameRoot, scene, false);
@@ -184,24 +174,15 @@ public class Game {
         buttonGameLogic(gameRoot, scene);
         moveList(gameRoot, scene);
 
+        // Fade in effect on first load
+        animateFadeIn(gameRoot, 300);
+
+        // Debounced resizing
         resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(
-                _ -> {
-                    onResize(gameRoot, scene);
-                });
+        resizePause.setOnFinished(_ -> onResize(gameRoot, scene));
 
-        // Add resize listeners
-        scene.widthProperty()
-                .addListener(
-                        (_, _, _) -> {
-                            resizePause.playFromStart();
-                        });
-
-        scene.heightProperty()
-                .addListener(
-                        (_, _, _) -> {
-                            resizePause.playFromStart();
-                        });
+        scene.widthProperty().addListener((_, _, _) -> resizePause.playFromStart());
+        scene.heightProperty().addListener((_, _, _) -> resizePause.playFromStart());
 
         // Handle close event
         this.gameStage.setOnCloseRequest(
@@ -219,6 +200,9 @@ public class Game {
         return gameRoot;
     }
 
+    /* --------------------------------------------------------------------------------
+     *                               BOARD METHODS
+     * -------------------------------------------------------------------------------- */
     private void mainGameBoard(Pane root, Scene scene, boolean isBotActive) {
         board =
                 mainBoard.getMainBoard(
@@ -231,7 +215,6 @@ public class Game {
                         isBotvBot);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
-
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
     }
 
@@ -246,7 +229,6 @@ public class Game {
                         true);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
-
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
     }
 
@@ -257,20 +239,28 @@ public class Game {
         root.getChildren().add(board);
     }
 
+    /* --------------------------------------------------------------------------------
+     *                               PLAYER UI
+     * -------------------------------------------------------------------------------- */
     private void playerUI(Pane root, Scene scene, boolean isPlayerOne) {
         StackPane playerUI = new StackPane();
         playerUI.setPrefSize(scene.getWidth(), playerUIHeight);
+
+        // If isPlayerOne == false => we position it at the top, else at the bottom
+        // In your code, it's reversed, so let's keep your original logic:
         playerUI.setLayoutX(0);
         playerUI.setLayoutY(!isPlayerOne ? 0 : scene.getHeight() - playerUIHeight);
+
         playerUI.getStyleClass().add("playerUI");
         playerUI.setId(isPlayerOne ? "playerOne" : "playerTwo");
 
         Consumer<Text> setPlayerStyle =
-                (player) -> {
+                player -> {
                     if (player != null) {
                         boolean shouldBeBold =
                                 (isWhiteTurn.get() && isPlayerOne)
                                         || (!isWhiteTurn.get() && !isPlayerOne);
+
                         player.setStyle(
                                 "-fx-font-size: "
                                         + (shouldBeBold ? 20 : 15)
@@ -312,8 +302,17 @@ public class Game {
         playerUI.getChildren().add(playerInfo);
 
         root.getChildren().add(playerUI);
+
+        // OPTIONAL: if this player's turn, add a "pulse" animation
+        // (You could also call this after each move if you want more frequent pulses)
+        if ((isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne)) {
+            animatePulse(playerUI, 1.05, 500); // Pulse up to 105% size over 500ms
+        }
     }
 
+    /* --------------------------------------------------------------------------------
+     *                                CHAT UI
+     * -------------------------------------------------------------------------------- */
     private void chatUI(Pane root, Scene scene) {
         StackPane chatUI = new StackPane();
         chatUI.setPrefSize(chatUIWidth, chatUIHeight);
@@ -323,12 +322,14 @@ public class Game {
 
         Text chatText = new Text("Chat");
         chatText.getStyleClass().add("label");
-
         chatUI.getChildren().add(chatText);
 
         root.getChildren().add(chatUI);
     }
 
+    /* --------------------------------------------------------------------------------
+     *                            EXIT CONFIRMATION
+     * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
         ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
         if (exitConfirmation.showAndWait()) { // If user confirmed exit
@@ -339,19 +340,24 @@ public class Game {
                         isAgainstBot ? "1" : "0",
                         isMultiplayer ? "1" : "0",
                         gameInfo.getPlayerTurn() == 1 ? "W" : "B");
-
                 Launcher.viewManager
                         .getMenu()
                         .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
             }
             if (Launcher.menuStage == null) {
-                // Recreate the menu
                 launcher.showMenu();
             }
-            gameStage.close(); // Close the game window
+
+            // OPTIONAL: Fade out the stage for a smoother close
+            // fadeOutAndClose(gameStage, 300);
+
+            gameStage.close();
         }
     }
 
+    /* --------------------------------------------------------------------------------
+     *                           CONTROL BUTTONS
+     * -------------------------------------------------------------------------------- */
     private void buttonGameLogic(Pane root, Scene scene) {
         VBox controlButtons = new VBox();
         controlButtons.setSpacing(buttonSpacing);
@@ -366,16 +372,21 @@ public class Game {
                         () -> {
                             mainBoard.undoLastMove();
                         });
-        Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, () -> drawWarning());
+        Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, this::drawWarning);
         Buttons resignButton =
                 new Buttons(
-                        "Resign", buttonWidth, buttonHeight, () -> System.out.println("Resign"));
+                        "Resign",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> {
+                            System.out.println("Resign");
+                        });
         Buttons restartButton =
-                new Buttons("Restart", buttonWidth, buttonHeight, () -> restartWarning());
+                new Buttons("Restart", buttonWidth, buttonHeight, this::restartWarning);
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
         Buttons exitButton =
-                new Buttons("Exit", buttonWidth, buttonHeight, () -> showExitConfirmation());
+                new Buttons("Exit", buttonWidth, buttonHeight, this::showExitConfirmation);
 
         controlButtons
                 .getChildren()
@@ -389,6 +400,9 @@ public class Game {
         root.getChildren().addAll(controlButtons);
     }
 
+    /* --------------------------------------------------------------------------------
+     *                            MOVES LIST
+     * -------------------------------------------------------------------------------- */
     private void moveList(Pane root, Scene scene) {
         StackPane movesList = new StackPane();
         movesList.setPrefSize(movesListWidth, movesListHeight);
@@ -400,9 +414,7 @@ public class Game {
         Text movesListText = new Text("Moves List");
         movesListText.getStyleClass().add("label");
 
-        // Fetch the moves list grid pane
         movesListGridPane = mainBoard.getMovesListGridPane();
-
         if (movesListGridPane == null) {
             System.err.println(
                     "Error: movesListGridPane is null. Please check getMovesListGridPane() in"
@@ -412,16 +424,12 @@ public class Game {
 
         // Three columns: Turn - White - Black
         int numColumns = 3;
-
-        // Calculated width of columns
         double columnWidth = movesListWidth / numColumns;
 
-        // Add column constraints
         for (int i = 0; i < numColumns; i++) {
             movesListGridPane.getColumnConstraints().add(new ColumnConstraints(columnWidth));
         }
 
-        // Create a ScrollPane and add movesListGridPane to it
         ScrollPane scrollPane = new ScrollPane(movesListGridPane);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.getStyleClass().add("movesListScrollPane");
@@ -431,13 +439,14 @@ public class Game {
         scrollPaneWrapper.setPadding(new Insets(10));
         scrollPaneWrapper.setPrefSize(movesListWidth, movesListHeight);
 
-        // Add to StackPane
         movesList.getChildren().add(scrollPaneWrapper);
         root.getChildren().add(movesList);
     }
 
+    /* --------------------------------------------------------------------------------
+     *                     RESTART & DRAW CONFIRMATIONS
+     * -------------------------------------------------------------------------------- */
     private void restartWarning() {
-
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Restart Confirmation");
         alert.setHeaderText("Are you sure you want to restart the game?");
@@ -450,7 +459,6 @@ public class Game {
     }
 
     private void drawWarning() {
-
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Draw Confirmation");
         alert.setHeaderText("Are you sure you want to propose a draw?");
@@ -461,13 +469,13 @@ public class Game {
         alert.getButtonTypes().setAll(yesButton, noButton);
 
         Optional<ButtonType> result = alert.showAndWait();
-
         if (result.get() == yesButton) {
             String botDecision = "Bot is thinking...";
             Alert botAlert = new Alert(AlertType.INFORMATION);
             botAlert.setTitle("Bot Decision");
             botAlert.setContentText(botDecision);
             botAlert.showAndWait();
+
             Random rand = new Random();
             int n = rand.nextInt(2);
             if (n == 0) {
@@ -479,21 +487,30 @@ public class Game {
             }
             botAlert.setHeaderText(botDecision);
             botAlert.showAndWait();
+
             if (n == 0) {
                 mainBoard.resetGame(mainBoardSize);
             }
         }
     }
 
+    /* --------------------------------------------------------------------------------
+     *                            RESIZING LOGIC
+     * -------------------------------------------------------------------------------- */
     public void onResize(Pane root, Scene scene) {
         root.getChildren().clear();
         newDimension(scene);
+
+        // Rebuild everything
         resizeBoard(root);
         playerUI(root, scene, true);
         playerUI(root, scene, false);
         chatUI(root, scene);
         buttonGameLogic(root, scene);
         moveList(root, scene);
+
+        // Fade in after resizing
+        animateFadeIn(root, 300);
     }
 
     private void newDimension(Scene scene) {
@@ -531,5 +548,46 @@ public class Game {
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
         return (int)
                 ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
+    }
+
+    /* --------------------------------------------------------------------------------
+     *                           ANIMATION HELPERS
+     * -------------------------------------------------------------------------------- */
+
+    /** Smooth fade-in of the given parent node over a specified duration (in ms). */
+    private void animateFadeIn(Pane parent, int durationMs) {
+        parent.setOpacity(0); // Start fully transparent
+        FadeTransition ft = new FadeTransition(Duration.millis(durationMs), parent);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        ft.play();
+    }
+
+    /**
+     * Scale/pulse effect for a node. For example, call this on a player's UI if it's their turn.
+     * The node scales up and then back down once.
+     */
+    private void animatePulse(Pane node, double scaleTo, int durationMs) {
+        ScaleTransition st = new ScaleTransition(Duration.millis(durationMs), node);
+        st.setFromX(1.0);
+        st.setFromY(1.0);
+        st.setToX(scaleTo);
+        st.setToY(scaleTo);
+        st.setAutoReverse(true);
+        st.setCycleCount(2); // Go up, then back down
+        st.play();
+    }
+
+    /**
+     * Optional: fade out the window before closing. If you want to use it, call
+     * fadeOutAndClose(gameStage, 300) in showExitConfirmation().
+     */
+    private void fadeOutAndClose(Stage stage, int durationMs) {
+        FadeTransition ft =
+                new FadeTransition(Duration.millis(durationMs), stage.getScene().getRoot());
+        ft.setFromValue(1);
+        ft.setToValue(0);
+        ft.setOnFinished(_ -> stage.close());
+        ft.play();
     }
 }

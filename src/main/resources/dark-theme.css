@@ -1,87 +1,86 @@
-/* Root Background */
+/* -------------------------- */
+/*          ROOT STYLE        */
+/* -------------------------- */
 .root {
-  -fx-background-color: linear-gradient(
-    to bottom,
-    #1e1e1e,
-    #292929
-  ); /* Subtle dark gray gradient */
-  -fx-font-family: "Inter", sans-serif; /* Clean, modern font */
+  -fx-background-color: linear-gradient(to bottom, #1f1f1f, #2a2a2a);
+  -fx-font-family: "Inter", sans-serif;
   -fx-font-size: 14px;
   -fx-text-fill: #e0e0e0;
+
+  /* Remove default focus color outlines */
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
 }
 
-/* Top Bar */
-#top-bar {
-  -fx-fill: #252525; /* Neutral dark gray */
-  -fx-stroke: #4a4a4a; /* Softer border */
-  -fx-effect: dropshadow(
-    gaussian,
-    rgba(0, 0, 0, 0.5),
-    6,
-    0.3,
-    0,
-    2
-  ); /* Subtle shadow */
-}
-
-/* Bottom Bar */
+/* -------------------------- */
+/*    TOP & BOTTOM BARS       */
+/* -------------------------- */
+#top-bar,
 #bottom-bar {
   -fx-fill: #252525;
-  -fx-stroke: #4a4a4a;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 6, 0.3, 0, 2);
+  -fx-stroke: #404040;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 6, 0.4, 0, 3);
 }
 
-/* Label Styling */
+/* -------------------------- */
+/*          LABELS            */
+/* -------------------------- */
 .label {
-  -fx-fill: #f0f0f0; /* Light gray for better readability */
+  -fx-fill: #f2f2f2;
   -fx-font-size: 16px;
-  -fx-font-weight: 500; /* Medium weight */
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 2, 0, 1, 1);
+  -fx-font-weight: 500;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 1, 1);
 }
 
-/* Buttons */
+/* -------------------------- */
+/*          BUTTONS           */
+/* -------------------------- */
 .button {
-  -fx-background-color: linear-gradient(
-    to right,
-    #3a3a3a,
-    #444444
-  ); /* Neutral gradient */
-  -fx-background-radius: 10; /* Rounded corners */
-  -fx-border-color: #5a5a5a; /* Subtle border */
+  -fx-background-color: linear-gradient(to right, #3a3a3a, #484848);
+  -fx-background-radius: 10;
+  -fx-border-color: #5a5a5a;
   -fx-border-width: 1.5;
   -fx-border-radius: 10;
   -fx-text-fill: #ffffff;
   -fx-font-size: 15px;
-  -fx-padding: 10 20; /* Spacious buttons */
+  -fx-padding: 10 20;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 4, 0.3, 0, 1);
+
+  /* Attempt subtle scaling and transitions in JavaFX */
+  -fx-scale-x: 1;
+  -fx-scale-y: 1;
+  -fx-cursor: hand;
+  /* Pseudo 'transition'—not standard web CSS, but can help in some JavaFX builds */
+  -fx-transition: all 0.2s ease-in-out;
 }
 
 .button:hover {
-  -fx-background-color: linear-gradient(
-    to right,
-    #5157f2,
-    #6a7af3
-  ); /* Vibrant blue hover */
+  -fx-background-color: linear-gradient(to right, #5560f2, #6d7af3);
   -fx-text-fill: #ffffff;
-  -fx-border-color: #7880f5;
-  -fx-effect: dropshadow(
-    gaussian,
-    rgba(80, 100, 245, 0.8),
-    8,
-    0.6,
-    0,
-    3
-  ); /* Vibrant glow */
+  -fx-border-color: #7a82f5;
+  -fx-effect: dropshadow(gaussian, rgba(80, 100, 245, 0.8), 8, 0.6, 0, 3);
+
+  /* Slight scale up on hover */
+  -fx-scale-x: 1.03;
+  -fx-scale-y: 1.03;
 }
 
 .button:pressed {
-  -fx-background-color: #313131; /* Dark pressed state */
+  -fx-background-color: #2e2e2e;
   -fx-border-color: #525252;
+  -fx-effect: none;
+
+  /* Subtle "press" effect: push down, reduce scale a bit */
+  -fx-scale-x: 0.98;
+  -fx-scale-y: 0.98;
+  -fx-translate-y: 1;
 }
 
-/* Version Status Panel */
+/* -------------------------- */
+/*    VERSION STATUS PANEL    */
+/* -------------------------- */
 .version-status {
-  -fx-background-color: rgba(40, 40, 40, 0.95); /* Slight transparency */
+  -fx-background-color: rgba(40, 40, 40, 0.95);
   -fx-background-radius: 15;
   -fx-border-color: #5a5a5a;
   -fx-border-width: 1.5;
@@ -89,65 +88,88 @@
   -fx-padding: 15;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.3, 0, 2);
   -fx-text-fill: #e0e0e0;
+
+  /* Slight fade/scale on hover to emphasize focus */
+  -fx-scale-x: 1;
+  -fx-scale-y: 1;
+  -fx-transition: all 0.3s ease-in-out;
 }
 
-/* Boards */
+.version-status:hover {
+  -fx-scale-x: 1.02;
+  -fx-scale-y: 1.02;
+}
+
+/* -------------------------- */
+/*          BOARDS            */
+/* -------------------------- */
 .board {
-  -fx-background-color: linear-gradient(
-    to bottom,
-    #2e2e2e,
-    #393939
-  ); /* Slightly lighter gray */
+  -fx-background-color: linear-gradient(to bottom, #2c2c2c, #3a3a3a);
   -fx-background-radius: 15;
   -fx-border-color: #5a5a5a;
   -fx-border-width: 1.5;
   -fx-border-radius: 15;
   -fx-padding: 5;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 4, 0.3, 0, 1);
+
+  -fx-scale-x: 1;
+  -fx-scale-y: 1;
+  -fx-transition: all 0.2s ease-in-out;
 }
 
 .board:hover {
-  -fx-background-color: linear-gradient(
-    to bottom,
-    #5157f2,
-    #6a7af3
-  ); /* Blue hover */
+  -fx-background-color: linear-gradient(to bottom, #5560f2, #6d7af3);
   -fx-effect: dropshadow(gaussian, rgba(80, 100, 245, 0.8), 8, 0.6, 0, 2);
+  -fx-scale-x: 1.03;
+  -fx-scale-y: 1.03;
 }
 
 .board:focused {
-  -fx-border-color: #9ca8ff; /* Subtle blue focus */
+  -fx-border-color: #9ca8ff;
   -fx-effect: dropshadow(gaussian, rgba(156, 168, 255, 0.6), 10, 0.5, 0, 2);
 }
 
-/* Scroll Pane */
+/* -------------------------- */
+/*        SCROLL PANE         */
+/* -------------------------- */
 .movesListScrollPane {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #4a4a4a;
+  -fx-background-color: #1f1f1f;
+  -fx-border-color: #404040;
   -fx-border-radius: 10;
   -fx-padding: 10;
 }
 
 .movesListScrollPane .viewport {
-  -fx-background-color: #252525; /* Slight contrast for scrollable area */
+  -fx-background-color: #252525;
 }
 
-/* Sliders */
+/* -------------------------- */
+/*          SLIDERS           */
+/* -------------------------- */
 .settings-slider {
   -fx-padding: 5;
 }
 
 .settings-slider .track {
-  -fx-background-color: #2f2f2f; /* Neutral track */
+  -fx-background-color: #2f2f2f;
   -fx-background-radius: 5;
 }
 
 .settings-slider .thumb {
-  -fx-background-color: #5157f2; /* Vibrant blue thumb */
+  -fx-background-color: #5560f2;
   -fx-background-radius: 10;
   -fx-effect: dropshadow(gaussian, rgba(80, 100, 245, 0.8), 4, 0.5, 0, 2);
+
+  -fx-transition:
+    -fx-background-color 0.2s ease-in-out,
+    -fx-scale-x 0.2s ease-in-out,
+    -fx-scale-y 0.2s ease-in-out;
+  -fx-scale-x: 1;
+  -fx-scale-y: 1;
 }
 
 .settings-slider .thumb:hover {
-  -fx-background-color: #6a7af3; /* Lighter hover effect */
+  -fx-background-color: #6d7af3;
+  -fx-scale-x: 1.15; /* Subtle enlargement */
+  -fx-scale-y: 1.15;
 }
