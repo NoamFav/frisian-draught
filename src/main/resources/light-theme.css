@@ -1,112 +1,143 @@
-/* Light Theme */
+/* --------------------------
+   ROOT STYLE
+--------------------------- */
 .root {
-  -fx-background-color: #f4f4f4;
-}
-
-#top-bar {
-  -fx-fill: white;
-  -fx-stroke: black;
-}
-
-#bottom-bar {
-  -fx-fill: white;
-  -fx-stroke: black;
-}
-
-.label {
-  -fx-fill: #333333;
+  -fx-background-color: linear-gradient(to bottom, #fefefe, #f5f5f5);
+  -fx-font-family: "Inter", sans-serif;
   -fx-font-size: 14px;
+  -fx-text-fill: #333333; /* Dark text for readability on light background */
+
+  /* Remove default focus color outlines */
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
 }
 
+/* --------------------------
+   TOP & BOTTOM BARS
+--------------------------- */
+#top-bar,
+#bottom-bar {
+  -fx-fill: #dddddd;
+  -fx-stroke: #c4c4c4; /* Subtle border */
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 6, 0.3, 0, 2);
+  /* Slight shadow for a bit of depth */
+}
+
+/* --------------------------
+   LABELS
+--------------------------- */
+.label {
+  -fx-fill: #333333; /* Darker text for contrast */
+  -fx-font-size: 16px;
+  -fx-font-weight: 500;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 2, 0, 1, 1);
+  /* Very subtle text shadow */
+}
+
+/* --------------------------
+   BUTTONS
+--------------------------- */
 .button {
-  -fx-background-color: #ffffff;
-  -fx-background-radius: 15;
+  -fx-background-color: linear-gradient(to right, #ededed, #fafafa);
+  -fx-background-radius: 10;
+  -fx-border-color: #cccccc;
+  -fx-border-width: 1.5;
+  -fx-border-radius: 10;
   -fx-text-fill: #333333;
-  -fx-border-color: #333333;
-  -fx-border-radius: 15;
+  -fx-font-size: 15px;
+  -fx-padding: 10 20;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0.3, 0, 1);
+  -fx-cursor: hand;
+  -fx-transition: all 0.2s ease-in-out;
 }
 
 .button:hover {
-  -fx-background-color: #333333;
-  -fx-text-fill: #ffffff;
-}
-
-.version-status {
-  -fx-background-color: #ffffff;
-  -fx-background-radius: 15;
+  -fx-background-color: linear-gradient(to right, #a8d5ff, #badfff);
   -fx-text-fill: #333333;
-  -fx-border-color: #333333;
-  -fx-border-radius: 15;
+  -fx-border-color: #84c5ff;
+  -fx-effect: dropshadow(gaussian, rgba(100, 150, 245, 0.4), 8, 0.6, 0, 3);
+  -fx-transition: all 0.2s ease-in-out;
 }
 
-.board {
-  -fx-background-color: #ffffff;
+.button:pressed {
+  -fx-background-color: #e0e0e0;
+  -fx-border-color: #c2c2c2;
+  -fx-effect: none;
+  -fx-translate-y: 1; /* small nudge to simulate press */
+}
+
+/* --------------------------
+   VERSION STATUS PANEL
+--------------------------- */
+.version-status {
+  -fx-background-color: rgba(255, 255, 255, 0.95);
   -fx-background-radius: 15;
-  -fx-border-color: #333333;
+  -fx-border-color: #cccccc;
+  -fx-border-width: 1.5;
+  -fx-border-radius: 15;
+  -fx-padding: 15;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0.3, 0, 2);
+  -fx-text-fill: #333333;
+}
+
+/* --------------------------
+   BOARDS
+--------------------------- */
+.board {
+  -fx-background-color: linear-gradient(to bottom, #f3f3f3, #ffffff);
+  -fx-background-radius: 15;
+  -fx-border-color: #cccccc;
+  -fx-border-width: 1.5;
   -fx-border-radius: 15;
   -fx-padding: 5;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 4, 0.3, 0, 1);
+  -fx-transition: all 0.2s ease-in-out;
 }
 
 .board:hover {
-  -fx-background-color: #333333;
+  -fx-background-color: linear-gradient(to bottom, #a8d5ff, #badfff);
+  -fx-effect: dropshadow(gaussian, rgba(100, 150, 245, 0.4), 8, 0.6, 0, 2);
+  -fx-transition: all 0.2s ease-in-out;
 }
 
-.playerUI {
-  -fx-background-color: #ffffff;
-  -fx-border-color: #333333;
-  -fx-padding: 5;
+.board:focused {
+  -fx-border-color: #84c5ff;
+  -fx-effect: dropshadow(gaussian, rgba(130, 180, 255, 0.4), 10, 0.5, 0, 2);
 }
 
-.chatUI {
-  -fx-background-color: #ffffff;
-  -fx-border-color: #333333;
-  -fx-border-radius: 15;
-  -fx-background-radius: 15;
-}
-
-.movesList {
-  -fx-background-color: #ffffff;
-  -fx-border-color: #333333;
-  -fx-border-radius: 15;
-  -fx-background-radius: 15;
-}
-
+/* --------------------------
+   SCROLL PANE
+--------------------------- */
 .movesListScrollPane {
-  -fx-background-color: #ffffff;
-  -fx-text-fill: #333333;
-  -fx-background-radius: 15;
-  -fx-fill: #333333;
+  -fx-background-color: #fefefe;
+  -fx-border-color: #cccccc;
+  -fx-border-radius: 10;
+  -fx-padding: 10;
 }
 
 .movesListScrollPane .viewport {
-  -fx-background-color: #ffffff;
-  -fx-text-fill: #333333;
-  -fx-background-radius: 15;
-  -fx-fill: #333333;
+  -fx-background-color: #f5f5f5;
 }
 
-.settings-label {
-  -fx-text-fill: #333333;
-  -fx-font-size: 14px;
-  -fx-padding: 5 0 5 0;
-}
-
+/* --------------------------
+   SLIDERS
+--------------------------- */
 .settings-slider {
-  -fx-padding: 0 0 0 0;
+  -fx-padding: 5;
 }
 
 .settings-slider .track {
-  -fx-background-color: #e0e0e0;
+  -fx-background-color: #d9d9d9; /* Light track */
   -fx-background-radius: 5;
 }
 
 .settings-slider .thumb {
-  -fx-background-color: #ffffff;
-  -fx-background-insets: 0;
+  -fx-background-color: #a8d5ff; /* Light blue thumb */
   -fx-background-radius: 10;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0, 0, 1);
+  -fx-effect: dropshadow(gaussian, rgba(100, 150, 245, 0.4), 4, 0.5, 0, 2);
+  -fx-transition: -fx-background-color 0.2s ease-in-out;
 }
 
 .settings-slider .thumb:hover {
-  -fx-background-color: #333333;
+  -fx-background-color: #badfff;
 }
