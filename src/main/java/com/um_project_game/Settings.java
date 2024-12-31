@@ -3,14 +3,17 @@ package com.um_project_game;
 import com.um_project_game.util.Buttons;
 import com.um_project_game.util.SoundPlayer;
 
+import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.net.URL;
 
@@ -68,7 +71,6 @@ public class Settings {
         dqnbotLabel.getStyleClass().add("settings-label");
 
         final Buttons[] dqnbotToggleButton = new Buttons[1];
-
         dqnbotToggleButton[0] =
                 new Buttons(
                         Launcher.dqnbot ? "Disable" : "Enable",
@@ -133,7 +135,7 @@ public class Settings {
         grid.add(darkModeLabel, 0, 5);
         grid.add(darkModeButton.getButton(), 1, 5);
 
-        // Add Save and Cancel buttons
+        // Add "Done" button
         Buttons doneButtons = new Buttons("Done", 100, 30, () -> settingsStage.close());
 
         // Add buttons to a horizontal box
@@ -161,6 +163,13 @@ public class Settings {
         // Make the settings window modal
         settingsStage.initModality(Modality.APPLICATION_MODAL);
 
+        // Animations on hover for the "Done" button (optional)
+        animateHoverScale(doneButtons.getButton(), 1.05);
+
+        // If you want the DQN or darkMode toggles to have a hover effect:
+        // animateHoverScale(dqnbotToggleButton[0].getButton(), 1.05);
+        // animateHoverScale(darkModeButton.getButton(), 1.05);
+
         // Set up listeners
         setupListeners(
                 mainVolumeSlider, backgroundVolumeSlider, moveVolumeSlider, captureVolumeSlider);
@@ -182,10 +191,11 @@ public class Settings {
         mainVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (_, _, newValue) -> {
-                            mainVolume = newValue.doubleValue();
+                        (_, _, newVal) -> {
+                            mainVolume = newVal.doubleValue();
                             soundPlayer.setMainVolume(mainVolume);
 
+                            // Keep background, move, and capture sliders in sync proportionally
                             backgroundVolumeSlider.setValue(mainVolume);
                             moveVolumeSlider.setValue(mainVolume);
                             captureVolumeSlider.setValue(mainVolume);
@@ -195,8 +205,8 @@ public class Settings {
         backgroundVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (_, _, newValue) -> {
-                            double effectiveVolume = newValue.doubleValue();
+                        (_, _, newVal) -> {
+                            double effectiveVolume = newVal.doubleValue();
                             if (mainVolume != 0) {
                                 backgroundRelativeVolume = effectiveVolume / mainVolume;
                                 soundPlayer.setBackgroundVolume(backgroundRelativeVolume);
@@ -207,8 +217,8 @@ public class Settings {
         moveVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (_, _, newValue) -> {
-                            double effectiveVolume = newValue.doubleValue();
+                        (_, _, newVal) -> {
+                            double effectiveVolume = newVal.doubleValue();
                             if (mainVolume != 0) {
                                 moveRelativeVolume = effectiveVolume / mainVolume;
                                 soundPlayer.setMoveVolume(moveRelativeVolume);
@@ -219,8 +229,8 @@ public class Settings {
         captureVolumeSlider
                 .valueProperty()
                 .addListener(
-                        (_, _, newValue) -> {
-                            double effectiveVolume = newValue.doubleValue();
+                        (_, _, newVal) -> {
+                            double effectiveVolume = newVal.doubleValue();
                             if (mainVolume != 0) {
                                 captureRelativeVolume = effectiveVolume / mainVolume;
                                 soundPlayer.setCaptureVolume(captureRelativeVolume);
@@ -228,7 +238,46 @@ public class Settings {
                         });
     }
 
+    /** Shows the settings window. Also includes a quick fade-in for a smoother appearance. */
     public void show() {
-        settingsStage.showAndWait();
+        settingsStage.show();
+
+        // OPTIONAL: fade in the settings window
+        Platform.runLater(
+                () -> {
+                    animateFadeIn(settingsStage.getScene().getRoot(), 250);
+                });
+    }
+
+    /* --------------------------------------------------------------------------------
+     *                          ANIMATION HELPERS
+     * -------------------------------------------------------------------------------- */
+
+    /** Animate fade-in of a Node over a given duration (ms). */
+    private void animateFadeIn(Node node, int durationMs) {
+        node.setOpacity(0);
+        javafx.animation.FadeTransition ft =
+                new javafx.animation.FadeTransition(Duration.millis(durationMs), node);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        ft.play();
+    }
+
+    /** Slight hover scale transition. Node scales up on mouse enter, returns on mouse exit. */
+    private void animateHoverScale(Node node, double scaleFactor) {
+        node.setOnMouseEntered(
+                _ -> {
+                    ScaleTransition st = new ScaleTransition(Duration.millis(150), node);
+                    st.setToX(scaleFactor);
+                    st.setToY(scaleFactor);
+                    st.play();
+                });
+        node.setOnMouseExited(
+                _ -> {
+                    ScaleTransition st = new ScaleTransition(Duration.millis(150), node);
+                    st.setToX(1.0);
+                    st.setToY(1.0);
+                    st.play();
+                });
     }
 }
