@@ -370,7 +370,7 @@ public class Game {
                         buttonWidth,
                         buttonHeight,
                         () -> {
-                            mainBoard.undoLastMove();
+                            mainBoard.moveManager.undoLastMove();
                         });
         Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, this::drawWarning);
         Buttons resignButton =
