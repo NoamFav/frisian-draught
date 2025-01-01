@@ -9,17 +9,22 @@ import javafx.animation.ScaleTransition;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 public class Menu {
 
@@ -278,26 +283,102 @@ public class Menu {
         animateHoverScale(liveGame, 1.03);
     }
 
-    /** Initializes the "Version Status" section (rectangle + text). */
     private void initVersionStatus(Scene scene, Pane root) {
-        Rectangle versionRect =
-                new Rectangle(
-                        versionStatusX, versionStatusY, versionStatusWidth, versionStatusHeight);
-        versionRect.setFill(Color.TRANSPARENT);
+        // A VBox to hold commits
+        VBox commitsBox = new VBox(5); // 5px vertical spacing
+        commitsBox.setId("commit-list");
 
-        Text versionText = new Text("Version Status");
-        versionText.getStyleClass().add("label");
+        // Check GH CLI auth
+        boolean isAuthenticated = isGitHubCLIAuthenticated();
+        if (!isAuthenticated) {
+            Text notAuthText = new Text("Not Authenticated via GitHub CLI");
+            notAuthText.getStyleClass().add("commit-text");
+            commitsBox.getChildren().add(notAuthText);
+        } else {
+            // Fetch up to 50 commits
+            List<String> commits = fetchCommits(50);
+            if (commits.isEmpty()) {
+                Text noneText = new Text("Authenticated, but no commits found.");
+                noneText.getStyleClass().add("commit-text");
+                commitsBox.getChildren().add(noneText);
+            } else {
+                for (String commitLine : commits) {
+                    Label commitLabel = new Label(commitLine);
+                    commitLabel.getStyleClass().add("commit-text");
+                    commitLabel.setWrapText(true);
+                    commitLabel.setMaxWidth(versionStatusWidth - 30);
+                    commitsBox.getChildren().add(commitLabel);
+                }
+            }
+        }
 
-        StackPane versionPane = new StackPane(versionRect, versionText);
+        // Create the ScrollPane
+        ScrollPane scrollPane = new ScrollPane(commitsBox);
+        scrollPane.setPrefSize(versionStatusWidth, versionStatusHeight);
+        scrollPane.setMaxSize(versionStatusWidth, versionStatusHeight);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false);
+
+        // Instead of applying .version-status to the ScrollPane directly,
+        // create a StackPane to hold the ScrollPane, and apply the styling to that.
+        StackPane versionPane = new StackPane();
+        versionPane.setPrefSize(versionStatusWidth, versionStatusHeight);
         versionPane.setLayoutX(versionStatusX);
         versionPane.setLayoutY(versionStatusY);
-        versionPane.getStyleClass().add("version-status");
-        versionPane.setId("version-status");
 
+        // Use the same CSS class or id that has your gradient, corner radius, etc.
+        versionPane.setId("version-status");
+        versionPane.getStyleClass().add("version-status");
+
+        // Add the scrollPane inside the StackPane
+        versionPane.getChildren().add(scrollPane);
+
+        // Add the styled container to the root
         root.getChildren().add(versionPane);
 
-        // Could add a hover scale or fade if desired
+        // Optional: animate on hover of the entire versionPane
         animateHoverScale(versionPane, 1.02);
+    }
+
+    /** Checks if the user is authenticated via `gh auth status`. */
+    private boolean isGitHubCLIAuthenticated() {
+        try {
+            Process process = new ProcessBuilder("gh", "auth", "status").start();
+            int exitCode = process.waitFor();
+            return (exitCode == 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /** Fetches up to 'limit' commits using `git log --pretty=...`. */
+    private List<String> fetchCommits(int limit) {
+        List<String> result = new ArrayList<>();
+        try {
+            Process process =
+                    new ProcessBuilder(
+                                    "git",
+                                    "log",
+                                    "--pretty=format:%h %s by %cn (%cr)", // Include committer name
+                                    // here
+                                    "-" + limit)
+                            .start();
+
+            try (BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    result.add(line.trim());
+                }
+            }
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     /** Updates dimension fields based on the current Scene width/height. */

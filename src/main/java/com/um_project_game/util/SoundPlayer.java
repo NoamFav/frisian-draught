@@ -22,6 +22,8 @@ public class SoundPlayer {
         // Start playing background music
         playBackgroundMusic();
 
+        setMainVolume(0.4);
+
         // Add listeners to monitor volume changes
         mainVolume.addListener(
                 (obs, oldVal, newVal) -> {

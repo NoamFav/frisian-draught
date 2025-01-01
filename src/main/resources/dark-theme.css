@@ -80,24 +80,106 @@
 /*    VERSION STATUS PANEL    */
 /* -------------------------- */
 .version-status {
-  -fx-background-color: rgba(40, 40, 40, 0.95);
-  -fx-background-radius: 15;
+  /* A subtle linear gradient background */
+  -fx-background-color: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
+
+  /* Rounded corners & border */
+  -fx-background-radius: 12;
   -fx-border-color: #5a5a5a;
   -fx-border-width: 1.5;
-  -fx-border-radius: 15;
+  -fx-border-radius: 12;
+
+  /* Spacing & shadow */
   -fx-padding: 15;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.3, 0, 2);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0.4, 0, 3);
+
+  /* Text color for any direct text inside */
   -fx-text-fill: #e0e0e0;
 
-  /* Slight fade/scale on hover to emphasize focus */
+  /* Subtle scaling on hover */
   -fx-scale-x: 1;
   -fx-scale-y: 1;
   -fx-transition: all 0.3s ease-in-out;
 }
 
 .version-status:hover {
+  /* Slight growth on hover */
   -fx-scale-x: 1.02;
   -fx-scale-y: 1.02;
+}
+.scroll-pane {
+  /* Remove the default gray borders/padding */
+  -fx-background-color: transparent, transparent;
+  /* 'transparent, transparent' is for corners + main background */
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-border-color: transparent;
+  -fx-border-width: 0;
+  -fx-padding: 0;
+}
+
+/* Removes the small corner box background */
+.scroll-pane .corner {
+  -fx-background-color: transparent;
+}
+
+/* If you want the viewport itself to be transparent, too */
+.scroll-pane .viewport {
+  -fx-background-color: transparent;
+}
+
+/* Optional: style the vertical scrollbar track & thumb */
+.scroll-pane .scroll-bar:vertical .track {
+  -fx-background-color: #2a2a2a; /* track color */
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+  -fx-background-color: #444444; /* thumb color */
+  -fx-background-radius: 4;
+}
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+  -fx-background-color: #555555;
+}
+
+/* Similarly, if you have a horizontal scrollbar (rare for commit lines) */
+.scroll-pane .scroll-bar:horizontal .track {
+  -fx-background-color: #2a2a2a;
+}
+.scroll-pane .scroll-bar:horizontal .thumb {
+  -fx-background-color: #444444;
+  -fx-background-radius: 4;
+}
+.scroll-pane .scroll-bar:horizontal .thumb:hover {
+  -fx-background-color: #555555;
+}
+
+/* --------------------------------------------------------------------- */
+/*                  Individual commit line styling                       */
+/* --------------------------------------------------------------------- */
+.commit-text {
+  /* Light text on dark background */
+  -fx-text-fill: #eeeeee;
+
+  /* Monospace for that "git commit log" look */
+  -fx-font-family: "Consolas", monospace;
+  -fx-font-size: 13px;
+
+  /* Ensure wrapping if it's a Label or Text within a container */
+  -fx-wrap-text: true;
+  -fx-text-alignment: justify;
+
+  /* Subtle background with a small border around each line */
+  -fx-background-color: #2c2c2c;
+  -fx-background-radius: 6;
+  -fx-padding: 8;
+  -fx-border-color: #444444;
+  -fx-border-width: 1;
+  -fx-border-radius: 6;
+}
+
+.commit-text:hover {
+  -fx-background-color: #3a3a3a;
+  -fx-cursor: hand; /* pointer cursor on commit line hover */
 }
 
 /* -------------------------- */
