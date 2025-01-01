@@ -106,7 +106,10 @@ public class Settings {
                                         Launcher.viewManager
                                                 .getActiveGames()
                                                 .forEach(
-                                                        game -> game.getMainBoard().refreshBoard());
+                                                        game ->
+                                                                game.getMainBoard()
+                                                                        .boardRendered
+                                                                        .refreshBoard());
                                     });
                         });
 
