@@ -2,10 +2,8 @@ package com.um_project_game.board;
 
 import com.um_project_game.AI.DQNModel;
 import com.um_project_game.AI.Experience;
-import com.um_project_game.AI.ReplayBuffer;
 import com.um_project_game.Launcher;
 import com.um_project_game.util.PDNParser;
-import com.um_project_game.util.SoundPlayer;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -43,64 +41,23 @@ import java.util.stream.Collectors;
 /** Represents the main board of the game. */
 public class MainBoard {
 
-    // Constants
-    private static final int BOARD_SIZE = 10;
-
-    // Game state variables
-    public boolean isWhiteTurn = true; // White starts first
-    private boolean isActive = true;
-    private boolean boardInitialized = false;
-    private boolean isAnimating = false;
-    public boolean isMultiplayer = false;
-
-    // Board-related fields
-    private Vector2i boardSize = new Vector2i(BOARD_SIZE, BOARD_SIZE);
-    private float tileSize;
-    private GridPane board;
-    private Node[][] boardTiles = new Node[BOARD_SIZE][BOARD_SIZE];
-    private Pane root;
-
-    // Pawn and move management
-    private Pawn focusedPawn;
-    private List<Pawn> allPawns = new ArrayList<>();
-    private List<Pawn> pawns = new ArrayList<>();
-    private List<Pawn> requiredPawns = new ArrayList<>();
-    private List<Vector2i> possibleMoves = new ArrayList<>();
-    private List<CapturePath> currentCapturePaths = new ArrayList<>();
-
-    private List<Move> takenMoves = new ArrayList<>();
-    private MovesListManager movesListManager;
+    public BoardState boardState = new BoardState();
 
     public void setMovesListManager(MovesListManager movesListManager) {
-        this.movesListManager = movesListManager;
+        boardState.setMovesListManager(movesListManager);
     }
 
-    private List<GameState> pastStates = new ArrayList<>();
-    private Map<Pawn, ImageView> pawnViews = new HashMap<>();
-    private List<Node> highlightNodes = new ArrayList<>();
-
-    // Sound and game info
-    private SoundPlayer soundPlayer = Launcher.soundPlayer;
-
-    private GameInfo gameInfo;
-    private DQNModel botModel;
-    public boolean isBotActive = false;
-    public boolean isBotvsBot = false;
-    private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
-    private static final int BATCH_SIZE = 32;
-    private static final double GAMMA = 0.99;
-
     public GridPane getBoard(GridPane movesListGridPane, GameInfo gameInfo) {
-        movesListManager = new MovesListManager(movesListGridPane);
-        this.gameInfo = gameInfo;
-        isActive = true;
+        boardState.setMovesListManager(new MovesListManager(movesListGridPane));
+        boardState.setGameInfo(gameInfo);
+        boardState.setActive(true);
         renderPawns();
-        return board;
+        return boardState.getBoard();
     }
 
     public GridPane getBoard() {
 
-        return board;
+        return boardState.getBoard();
     }
 
     /**
@@ -119,37 +76,35 @@ public class MainBoard {
             GridPane movesListGridPane,
             boolean isBotActive,
             boolean isBotvsBot) {
-        tileSize = boardPixelSize / BOARD_SIZE;
-        pawns = new ArrayList<>();
-        board = new GridPane();
-        isWhiteTurn = true;
-        this.isBotActive = isBotActive;
-        this.isBotvsBot = isBotvsBot;
-        this.root = root;
-        this.gameInfo = gameInfo;
+        boardState.setTileSize(boardPixelSize / BoardState.getMainBoardSize());
+        boardState.setPawns(new ArrayList<>());
+        boardState.setBoard(new GridPane());
+        boardState.setWhiteTurn(true);
+        boardState.setBotActive(isBotActive);
+        boardState.setBotvsBot(isBotvsBot);
+        boardState.setRoot(root);
+        boardState.setGameInfo(gameInfo);
 
         System.out.println("isBotvsBot: " + isBotvsBot);
         gameInfo.playerTurn.set(1);
-        movesListManager = new MovesListManager(movesListGridPane);
+        boardState.setMovesListManager(new MovesListManager(movesListGridPane));
 
-        board.setLayoutX(boardPosition.x);
-        board.setLayoutY(boardPosition.y);
+        boardState.getBoard().setLayoutX(boardPosition.x);
+        boardState.getBoard().setLayoutY(boardPosition.y);
 
         setupBoard();
         renderBoard();
         renderPawns();
 
         if (isBotActive) {
-            botModel = new DQNModel(101, 100, 100, 0.1);
+            boardState.setBotModel(new DQNModel(101, 100, 100, 0.1));
         }
         if (isBotvsBot) {
-            botModel = new DQNModel(101, 100, 100, 0.1);
+            boardState.setBotModel(new DQNModel(101, 100, 100, 0.1));
             playBotVsBot();
         }
 
-        System.out.println("isMultiplayer: " + isMultiplayer);
-
-        return board;
+        return boardState.getBoard();
     }
 
     public GridPane getMainBoardMultiplayer(
@@ -159,14 +114,14 @@ public class MainBoard {
             GameInfo gameInfo,
             GridPane movesListGridPane,
             boolean isMultiplayer) {
-        this.isMultiplayer = isMultiplayer;
+        boardState.setMultiplayer(isMultiplayer);
         return getMainBoard(
                 root,
                 boardPixelSize,
                 boardPosition,
                 gameInfo,
                 movesListGridPane,
-                isBotActive,
+                boardState.isBotActive(),
                 false);
     }
 
@@ -177,37 +132,37 @@ public class MainBoard {
      * @return GridPane representing the resized board.
      */
     public GridPane resizeBoard(float boardPixelSize) {
-        tileSize = boardPixelSize / BOARD_SIZE;
+        boardState.setTileSize(boardPixelSize / BoardState.getMainBoardSize());
 
         // Update the size of each tile
-        for (int y = 0; y < boardSize.y; y++) {
-            for (int x = 0; x < boardSize.x; x++) {
-                Node node = boardTiles[x][y];
+        for (int y = 0; y < boardState.getBoardSize().y; y++) {
+            for (int x = 0; x < boardState.getBoardSize().x; x++) {
+                Node node = boardState.getBoardTiles()[x][y];
                 if (node instanceof Rectangle) {
                     Rectangle square = (Rectangle) node;
-                    square.setWidth(tileSize);
-                    square.setHeight(tileSize);
+                    square.setWidth(boardState.getTileSize());
+                    square.setHeight(boardState.getTileSize());
                 }
             }
         }
 
         // Update the size and hover effect of each pawn
         double scaleFactor = 0.8;
-        for (Map.Entry<Pawn, ImageView> entry : pawnViews.entrySet()) {
+        for (Map.Entry<Pawn, ImageView> entry : boardState.getPawnViews().entrySet()) {
             ImageView pawnView = entry.getValue();
-            pawnView.setFitWidth(tileSize * scaleFactor);
-            pawnView.setFitHeight(tileSize * scaleFactor);
+            pawnView.setFitWidth(boardState.getTileSize() * scaleFactor);
+            pawnView.setFitHeight(boardState.getTileSize() * scaleFactor);
         }
 
-        for (Node highlightNode : highlightNodes) {
+        for (Node highlightNode : boardState.getHighlightNodes()) {
             if (highlightNode instanceof Rectangle) {
                 Rectangle square = (Rectangle) highlightNode;
-                square.setWidth(tileSize);
-                square.setHeight(tileSize);
+                square.setWidth(boardState.getTileSize());
+                square.setHeight(boardState.getTileSize());
             }
         }
 
-        return board;
+        return boardState.getBoard();
     }
 
     /**
@@ -216,24 +171,24 @@ public class MainBoard {
      * @param boardPixelSize Size of the board in pixels.
      */
     public void resetGame(float boardPixelSize) {
-        tileSize = boardPixelSize / BOARD_SIZE;
-        isWhiteTurn = true;
-        isActive = true; // Ensure game is active
-        pastStates.clear(); // Clear game history
-        gameInfo.scorePlayerOne.set(0);
-        gameInfo.scorePlayerTwo.set(0);
-        gameInfo.playerTurn.set(1);
+        boardState.setTileSize(boardPixelSize / BoardState.getMainBoardSize());
+        boardState.setWhiteTurn(true);
+        boardState.setActive(true); // Ensure game is active
+        boardState.getPastStates().clear(); // Clear game history
+        boardState.getGameInfo().scorePlayerOne.set(0);
+        boardState.getGameInfo().scorePlayerTwo.set(0);
+        boardState.getGameInfo().playerTurn.set(1);
         resetTakenMoves();
         updateMovesListUI();
 
         // Reset board tiles
-        for (int y = 0; y < boardSize.y; y++) {
-            for (int x = 0; x < boardSize.x; x++) {
-                Node node = boardTiles[x][y];
+        for (int y = 0; y < boardState.getBoardSize().y; y++) {
+            for (int x = 0; x < boardState.getBoardSize().x; x++) {
+                Node node = boardState.getBoardTiles()[x][y];
                 if (node instanceof Rectangle) {
                     Rectangle square = (Rectangle) node;
-                    square.setWidth(tileSize);
-                    square.setHeight(tileSize);
+                    square.setWidth(boardState.getTileSize());
+                    square.setHeight(boardState.getTileSize());
                 }
             }
         }
@@ -244,12 +199,12 @@ public class MainBoard {
 
         // Resize pawns
         double scaleFactor = 0.8;
-        for (Map.Entry<Pawn, ImageView> entry : pawnViews.entrySet()) {
+        for (Map.Entry<Pawn, ImageView> entry : boardState.getPawnViews().entrySet()) {
             Pawn pawn = entry.getKey();
             ImageView pawnView = entry.getValue();
 
-            pawnView.setFitWidth(tileSize * scaleFactor);
-            pawnView.setFitHeight(tileSize * scaleFactor);
+            pawnView.setFitWidth(boardState.getTileSize() * scaleFactor);
+            pawnView.setFitHeight(boardState.getTileSize() * scaleFactor);
             pawn.setKing(false); // Reset pawn to non-king
             Vector2i initialPosition = pawn.getInitialPosition();
             pawn.setPosition(initialPosition);
@@ -266,11 +221,11 @@ public class MainBoard {
      * @return GridPane representing a random board.
      */
     public GridPane getRandomBoard(Pane root, float boardPixelSize, String filePath) {
-        tileSize = boardPixelSize / BOARD_SIZE;
-        pawns = new ArrayList<>();
-        board = new GridPane();
+        boardState.setTileSize(boardPixelSize / BoardState.getMainBoardSize());
+        boardState.setPawns(new ArrayList<>());
+        boardState.setBoard(new GridPane());
 
-        isActive = false;
+        boardState.setActive(true);
 
         setupBoard();
         renderBoard();
@@ -278,9 +233,9 @@ public class MainBoard {
         if (filePath != null) {
             loadGameFromPDN(filePath);
         }
-        board.getStyleClass().add("board");
+        boardState.getBoard().getStyleClass().add("board");
 
-        return board;
+        return boardState.getBoard();
     }
 
     public GridPane getRandomBoard(Pane root, float boardPixelSize) {
@@ -296,9 +251,9 @@ public class MainBoard {
         BiConsumer<Integer, Boolean> addPawns =
                 (startRow, isWhite) -> {
                     for (int y = startRow; y < startRow + 4; y++) {
-                        for (int x = 0; x < boardSize.x; x++) {
+                        for (int x = 0; x < boardState.getBoardSize().x; x++) {
                             if ((x + y) % 2 == 1) {
-                                pawns.add(new Pawn(new Vector2i(x, y), isWhite));
+                                boardState.getPawns().add(new Pawn(new Vector2i(x, y), isWhite));
                             }
                         }
                     }
@@ -309,8 +264,8 @@ public class MainBoard {
         // Add black pawns
         addPawns.accept(6, true);
 
-        allPawns.clear();
-        allPawns.addAll(pawns);
+        boardState.getAllPawns().clear();
+        boardState.getAllPawns().addAll(boardState.getPawns());
     }
 
     /**
@@ -320,27 +275,30 @@ public class MainBoard {
      * @param board GridPane to render the board onto.
      */
     public GridPane getMovesListGridPane() {
-        return movesListManager.getMovesListGridPane(); // Reference to the VBox for moves
+        return boardState
+                .getMovesListManager()
+                .getMovesListGridPane(); // Reference to the VBox for moves
     }
 
     private void updateMovesListUI() {
-        if (movesListManager != null) {
-            movesListManager.updateMovesListUI(takenMoves);
+        if (boardState.getMovesListManager() != null) {
+            boardState.getMovesListManager().updateMovesListUI(boardState.getTakenMoves());
         }
     }
 
     private void renderBoard() {
-        if (boardInitialized) return;
+        if (boardState.isBoardInitialized()) return;
 
-        for (int y = 0; y < boardSize.y; y++) {
-            for (int x = 0; x < boardSize.x; x++) {
-                Rectangle square = new Rectangle(tileSize, tileSize);
+        for (int y = 0; y < boardState.getBoardSize().y; y++) {
+            for (int x = 0; x < boardState.getBoardSize().x; x++) {
+                Rectangle square =
+                        new Rectangle(boardState.getTileSize(), boardState.getTileSize());
                 square.setFill((x + y) % 2 == 0 ? Color.WHITE : Color.BLACK);
-                board.add(square, x, y);
-                boardTiles[x][y] = square; // Keep a reference to each tile
+                boardState.getBoard().add(square, x, y);
+                boardState.getBoardTiles()[x][y] = square; // Keep a reference to each tile
             }
         }
-        boardInitialized = true;
+        boardState.setBoardInitialized(true);
     }
 
     /**
@@ -351,15 +309,15 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      */
     private void renderPawns() {
-        for (Pawn pawn : pawns) {
-            ImageView pawnView = pawnViews.get(pawn);
+        for (Pawn pawn : boardState.getPawns()) {
+            ImageView pawnView = boardState.getPawnViews().get(pawn);
 
             if (pawnView == null) {
                 pawnView = createPawnImageView(pawn, 0.8);
-                board.add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
+                boardState.getBoard().add(pawnView, pawn.getPosition().x, pawn.getPosition().y);
                 GridPane.setHalignment(pawnView, HPos.CENTER);
                 GridPane.setValignment(pawnView, VPos.CENTER);
-                pawnViews.put(pawn, pawnView);
+                boardState.getPawnViews().put(pawn, pawnView);
             }
 
             setupPawnInteractions(pawnView, pawn);
@@ -377,8 +335,8 @@ public class MainBoard {
     private ImageView createPawnImageView(Pawn pawn, double scaleFactor) {
         ImageView pawnView = new ImageView(pawn.getImage());
 
-        pawnView.setFitWidth(tileSize * scaleFactor);
-        pawnView.setFitHeight(tileSize * scaleFactor);
+        pawnView.setFitWidth(boardState.getTileSize() * scaleFactor);
+        pawnView.setFitHeight(boardState.getTileSize() * scaleFactor);
         pawnView.setPreserveRatio(true);
         pawnView.setUserData(pawn);
 
@@ -412,19 +370,19 @@ public class MainBoard {
                 .addListener(
                         (observable, oldValue, newValue) -> {
                             double scaleFactor = newValue ? 0.96 : 0.8; // Increase size on hover
-                            pawnView.setFitWidth(tileSize * scaleFactor);
-                            pawnView.setFitHeight(tileSize * scaleFactor);
+                            pawnView.setFitWidth(boardState.getTileSize() * scaleFactor);
+                            pawnView.setFitHeight(boardState.getTileSize() * scaleFactor);
                         });
 
-        if (!isActive) {
+        if (!boardState.isActive()) {
             return;
         }
 
         pawnView.setOnMouseClicked(
                 event -> {
                     clearHighlights();
-                    focusedPawn = pawn;
-                    seePossibleMove(focusedPawn);
+                    boardState.setFocusedPawn(pawn);
+                    seePossibleMove(pawn);
                     renderPawns();
                 });
     }
@@ -437,7 +395,7 @@ public class MainBoard {
      * @return Pawn at the position, or null if none.
      */
     private Pawn getPawnAtPosition(Vector2i position) {
-        return pawns.stream()
+        return boardState.getPawns().stream()
                 .filter(p -> p.getPosition().equals(position))
                 .findFirst()
                 .orElse(null);
@@ -452,14 +410,18 @@ public class MainBoard {
     private List<Pawn> findPawnsWithMaxCaptures() {
         Map<Pawn, List<CapturePath>> pawnCapturePaths = new HashMap<>();
 
-        for (Pawn pawn : pawns) { // Ensure only active pawns are iterated
+        for (Pawn pawn : boardState.getPawns()) { // Ensure only active pawns are iterated
             // Only consider pawns belonging to the current player
-            if (pawn.isWhite() != isWhiteTurn) continue;
+            if (pawn.isWhite() != boardState.isWhiteTurn()) continue;
 
             List<CapturePath> paths = new ArrayList<>();
             captureCheck(
                     pawn,
-                    (x, y) -> x >= 0 && x < boardSize.x && y >= 0 && y < boardSize.y,
+                    (x, y) ->
+                            x >= 0
+                                    && x < boardState.getBoardSize().x
+                                    && y >= 0
+                                    && y < boardState.getBoardSize().y,
                     pawn.getPosition().x,
                     pawn.getPosition().y,
                     new CapturePath(),
@@ -471,7 +433,7 @@ public class MainBoard {
         }
 
         if (pawnCapturePaths.isEmpty()) {
-            requiredPawns.clear();
+            boardState.getRequiredPawns().clear();
             return Collections.emptyList();
         }
 
@@ -495,9 +457,12 @@ public class MainBoard {
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList());
 
-        requiredPawns = required.stream().filter(pawns::contains).collect(Collectors.toList());
+        boardState.setRequiredPawns(
+                required.stream()
+                        .filter(boardState.getPawns()::contains)
+                        .collect(Collectors.toList()));
 
-        return requiredPawns;
+        return boardState.getRequiredPawns();
     }
 
     /**
@@ -509,24 +474,28 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      */
     private void seePossibleMove(Pawn pawn) {
-        possibleMoves.clear();
+        boardState.getPossibleMoves().clear();
         clearHighlights();
         Vector2i position = pawn.getPosition();
         int x = position.x;
         int y = position.y;
 
         BiPredicate<Integer, Integer> inBounds =
-                (newX, newY) -> newX >= 0 && newX < boardSize.x && newY >= 0 && newY < boardSize.y;
+                (newX, newY) ->
+                        newX >= 0
+                                && newX < boardState.getBoardSize().x
+                                && newY >= 0
+                                && newY < boardState.getBoardSize().y;
 
         List<CapturePath> allPaths = new ArrayList<>();
 
         captureCheck(pawn, inBounds, x, y, new CapturePath(), allPaths);
 
-        currentCapturePaths = new ArrayList<>(allPaths);
+        boardState.setCurrentCapturePaths(new ArrayList<>(allPaths));
 
         if (!allPaths.isEmpty()) {
             handleCaptureMoves(pawn, allPaths, true);
-        } else if (requiredPawns.isEmpty()) {
+        } else if (boardState.getRequiredPawns().isEmpty()) {
             handleNormalMoves(pawn, inBounds, x, y, true);
         }
     }
@@ -554,17 +523,18 @@ public class MainBoard {
             Vector2i landingPos = path.getLastPosition();
 
             Rectangle square = createHighlightSquare(Color.RED);
-            board.add(square, landingPos.x, landingPos.y);
-            possibleMoves.add(landingPos);
+            boardState.getBoard().add(square, landingPos.x, landingPos.y);
+            boardState.getPossibleMoves().add(landingPos);
 
             // Set up manual click event
             square.setOnMouseClicked(
                     event -> {
-                        if (isWhiteTurn != pawn.isWhite() || isAnimating) {
+                        if (boardState.isWhiteTurn() != pawn.isWhite()
+                                || boardState.isAnimating()) {
                             System.out.println("Not your turn or animation in progress!");
                             return;
                         }
-                        soundPlayer.playCaptureSound();
+                        boardState.getSoundPlayer().playCaptureSound();
 
                         // Clear highlights and reset move count
                         clearHighlights();
@@ -603,7 +573,7 @@ public class MainBoard {
 
     private void processCaptureStep(
             Pawn pawn, Vector2i nextPos, List<Pawn> capturedPawns, int stepIndex) {
-        ImageView pawnView = pawnViews.get(pawn);
+        ImageView pawnView = boardState.getPawnViews().get(pawn);
 
         // Update the pawn's position in the GridPane
         GridPane.setColumnIndex(pawnView, nextPos.x);
@@ -626,16 +596,22 @@ public class MainBoard {
         updateMovesListUI();
         recordBoardState();
         switchTurn();
-        focusedPawn = null;
+        boardState.setFocusedPawn(null);
         renderPawns();
 
         // Update scores
         int captures = path.getCaptureCount();
-        if (gameInfo != null) {
+        if (boardState.getGameInfo() != null) {
             if (pawn.isWhite()) {
-                gameInfo.scorePlayerOne.set(gameInfo.scorePlayerOne.get() + captures);
+                boardState
+                        .getGameInfo()
+                        .scorePlayerOne
+                        .set(boardState.getGameInfo().scorePlayerOne.get() + captures);
             } else {
-                gameInfo.scorePlayerTwo.set(gameInfo.scorePlayerTwo.get() + captures);
+                boardState
+                        .getGameInfo()
+                        .scorePlayerTwo
+                        .set(boardState.getGameInfo().scorePlayerTwo.get() + captures);
             }
         }
     }
@@ -656,24 +632,26 @@ public class MainBoard {
         BiConsumer<Integer, Integer> highlightMove =
                 (newX, newY) -> {
                     Rectangle square = createHighlightSquare(Color.GREEN);
-                    board.add(square, newX, newY);
-                    possibleMoves.add(new Vector2i(newX, newY));
+                    boardState.getBoard().add(square, newX, newY);
+                    boardState.getPossibleMoves().add(new Vector2i(newX, newY));
 
                     square.setOnMouseClicked(
                             event -> {
-                                if (isWhiteTurn != pawn.isWhite()) {
+                                if (boardState.isWhiteTurn() != pawn.isWhite()) {
                                     System.out.println("Not your turn!");
                                     return;
                                 }
-                                if (isAnimating) {
+                                if (boardState.isAnimating()) {
                                     System.out.println(
                                             "Please wait for the current move to finish.");
                                     return;
                                 }
-                                soundPlayer.playMoveSound();
+                                boardState.getSoundPlayer().playMoveSound();
                                 Vector2i landingPos = new Vector2i(newX, newY);
 
-                                takenMoves.add(new Move(pawn.getPosition(), landingPos));
+                                boardState
+                                        .getTakenMoves()
+                                        .add(new Move(pawn.getPosition(), landingPos));
 
                                 if (isAnimated) {
                                     animatePawnMovement(
@@ -725,7 +703,7 @@ public class MainBoard {
 
     private void executeMove(Pawn pawn, Vector2i landingPos) {
         pawn.setPosition(landingPos);
-        ImageView pawnView = pawnViews.get(pawn);
+        ImageView pawnView = boardState.getPawnViews().get(pawn);
         GridPane.setColumnIndex(pawnView, landingPos.x);
         GridPane.setRowIndex(pawnView, landingPos.y);
 
@@ -735,7 +713,7 @@ public class MainBoard {
         updateMovesListUI();
         recordBoardState();
         switchTurn();
-        focusedPawn = null;
+        boardState.setFocusedPawn(null);
     }
 
     private void addMoveToHistory(Pawn pawn, CapturePath path) {
@@ -744,7 +722,7 @@ public class MainBoard {
                 path.capturedPawns.stream().map(Pawn::getPosition).collect(Collectors.toList());
 
         // Create the Move object with the start and end positions
-        takenMoves.add(new Move(pawn.getPosition(), landingPos, capturedPositions));
+        boardState.getTakenMoves().add(new Move(pawn.getPosition(), landingPos, capturedPositions));
     }
 
     /**
@@ -777,7 +755,7 @@ public class MainBoard {
             int dx = dir[0];
             int dy = dir[1];
 
-            int maxSteps = pawn.isKing() ? boardSize.x : 1;
+            int maxSteps = pawn.isKing() ? boardState.getBoardSize().x : 1;
 
             for (int i = 1; i <= maxSteps; i++) {
                 int captureX = x + dx * i;
@@ -847,15 +825,16 @@ public class MainBoard {
     /** Records the current state of the board. */
     private void recordBoardState() {
         Map<Vector2i, Pawn> currentState = new HashMap<>();
-        for (Pawn pawn : pawns) {
+        for (Pawn pawn : boardState.getPawns()) {
             currentState.put(pawn.getPosition(), pawn);
         }
-        GameState newState = new GameState(currentState, isWhiteTurn, this);
+        GameState newState = new GameState(currentState, boardState.isWhiteTurn(), this);
 
-        pastStates.add(newState);
+        boardState.getPastStates().add(newState);
 
         // Check for threefold repetition
-        long repetitionCount = pastStates.stream().filter(state -> state.equals(newState)).count();
+        long repetitionCount =
+                boardState.getPastStates().stream().filter(state -> state.equals(newState)).count();
 
         if (repetitionCount >= 3) {
             // Declare a draw
@@ -867,7 +846,7 @@ public class MainBoard {
                         drawAlert.setContentText(
                                 "The game is a draw due to repeated board positions.");
                         drawAlert.showAndWait();
-                        resetGame(tileSize * BOARD_SIZE);
+                        resetGame(boardState.getTileSize() * BoardState.getMainBoardSize());
                     });
         }
     }
@@ -875,7 +854,9 @@ public class MainBoard {
     /** Checks if the game is over. */
     public void checkGameOver() {
         // Check if the current player has any pawns
-        boolean oppositePlayerHasPawns = pawns.stream().anyMatch(p -> p.isWhite() == !isWhiteTurn);
+        boolean oppositePlayerHasPawns =
+                boardState.getPawns().stream()
+                        .anyMatch(p -> p.isWhite() == !boardState.isWhiteTurn());
 
         Platform.runLater(
                 () -> {
@@ -883,11 +864,12 @@ public class MainBoard {
                         Alert gameOverAlert = new Alert(Alert.AlertType.INFORMATION);
                         gameOverAlert.setTitle("Game Over");
                         gameOverAlert.setHeaderText("Game Over!");
-                        gameOverAlert.setContentText("Player " + (isWhiteTurn ? 2 : 1) + " wins!");
+                        gameOverAlert.setContentText(
+                                "Player " + (boardState.isWhiteTurn() ? 2 : 1) + " wins!");
                         gameOverAlert.showAndWait();
-                        resetGame(tileSize * BOARD_SIZE);
+                        resetGame(boardState.getTileSize() * BoardState.getMainBoardSize());
 
-                        isActive = false;
+                        boardState.setActive(false);
                     }
                 });
     }
@@ -900,9 +882,9 @@ public class MainBoard {
      * @return Rectangle representing the highlight.
      */
     private Rectangle createHighlightSquare(Color color) {
-        Rectangle square = new Rectangle(tileSize, tileSize);
+        Rectangle square = new Rectangle(boardState.getTileSize(), boardState.getTileSize());
         square.setFill(color);
-        highlightNodes.add(square); // Keep track of highlights
+        boardState.getHighlightNodes().add(square); // Keep track of highlights
         return square;
     }
 
@@ -914,9 +896,9 @@ public class MainBoard {
      */
     private void promotePawnIfNeeded(Pawn pawn, Vector2i landingPos) {
         if ((pawn.isWhite() && landingPos.y == 0)
-                || (!pawn.isWhite() && landingPos.y == boardSize.y - 1)) {
+                || (!pawn.isWhite() && landingPos.y == boardState.getBoardSize().y - 1)) {
             pawn.setKing(true);
-            ImageView pawnView = pawnViews.get(pawn);
+            ImageView pawnView = boardState.getPawnViews().get(pawn);
             pawnView.setImage(pawn.getImage());
         }
     }
@@ -928,8 +910,8 @@ public class MainBoard {
      * @param tileSize Size of each tile.
      */
     private void clearHighlights() {
-        board.getChildren().removeAll(highlightNodes);
-        highlightNodes.clear();
+        boardState.getBoard().getChildren().removeAll(boardState.getHighlightNodes());
+        boardState.getHighlightNodes().clear();
     }
 
     /**
@@ -940,10 +922,10 @@ public class MainBoard {
      * @param capturedPawn The pawn to remove.
      */
     private void removePawn(Pawn capturedPawn) {
-        pawns.remove(capturedPawn);
-        requiredPawns.remove(capturedPawn);
+        boardState.getPawns().remove(capturedPawn);
+        boardState.getRequiredPawns().remove(capturedPawn);
 
-        ImageView capturedPawnView = pawnViews.get(capturedPawn);
+        ImageView capturedPawnView = boardState.getPawnViews().get(capturedPawn);
 
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(300), capturedPawnView);
         fadeTransition.setFromValue(1.0);
@@ -951,8 +933,8 @@ public class MainBoard {
 
         fadeTransition.setOnFinished(
                 _ -> {
-                    board.getChildren().remove(capturedPawnView);
-                    pawnViews.remove(capturedPawn);
+                    boardState.getBoard().getChildren().remove(capturedPawnView);
+                    boardState.getPawnViews().remove(capturedPawn);
                 });
 
         fadeTransition.play();
@@ -960,28 +942,28 @@ public class MainBoard {
 
     /** Switches the turn to the opposite player. */
     private void switchTurn() {
-        if (gameInfo == null) {
+        if (boardState.getGameInfo() == null) {
             return;
         }
-        requiredPawns.clear();
-        isWhiteTurn = !isWhiteTurn;
-        gameInfo.playerTurn.set(isWhiteTurn ? 1 : 2);
+        boardState.getRequiredPawns().clear();
+        boardState.setWhiteTurn(!boardState.isWhiteTurn());
+        boardState.getGameInfo().playerTurn.set(boardState.isWhiteTurn() ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
 
-        if (!isWhiteTurn && isBotActive) {
+        if (!boardState.isWhiteTurn() && boardState.isBotActive()) {
             if (Launcher.dqnbot) {
                 triggerBotMove();
             } else {
                 triggerBotMoveR();
             }
         }
-        System.out.println("Player " + (isWhiteTurn ? 1 : 2) + "'s turn");
+        System.out.println("Player " + (boardState.isWhiteTurn() ? 1 : 2) + "'s turn");
     }
 
     /** Checks if it is the white player's turn. */
     public boolean isWhiteTurn() {
-        return isWhiteTurn;
+        return boardState.isWhiteTurn();
     }
 
     /**
@@ -994,7 +976,7 @@ public class MainBoard {
         Vector2i initialPos = move.getStartPosition();
         Vector2i finalPos = move.getEndPosition();
 
-        requiredPawns.clear();
+        boardState.getRequiredPawns().clear();
         // Find the pawn that needs to be moved back
         Pawn movedPawn = getPawnAtPosition(finalPos);
         if (movedPawn != null) {
@@ -1002,9 +984,9 @@ public class MainBoard {
             movedPawn.setPosition(initialPos);
 
             // Clear the existing pawn view for the moved pawn
-            ImageView movedPawnView = pawnViews.remove(movedPawn);
+            ImageView movedPawnView = boardState.getPawnViews().remove(movedPawn);
             if (movedPawnView != null) {
-                board.getChildren().remove(movedPawnView);
+                boardState.getBoard().getChildren().remove(movedPawnView);
             }
             List<Vector2i> capturedPostions = move.getCapturedPositions();
             // If a capture occurred during the move, restore the captured pawn
@@ -1014,13 +996,13 @@ public class MainBoard {
                     Pawn capturedPawn = new Pawn(capturedPostion, !movedPawn.isWhite());
 
                     // Restore the captured pawn to its original position
-                    pawns.add(capturedPawn);
+                    boardState.getPawns().add(capturedPawn);
                 }
             }
         }
 
         updateMovesListUI();
-        if (!isBotActive) {
+        if (!boardState.isBotActive()) {
             switchTurn();
         }
         // Clear any highlights and re-render the board
@@ -1029,13 +1011,13 @@ public class MainBoard {
     }
 
     public void undoLastMove() {
-        if (takenMoves.size() > 0) {
-            if (pastStates.size() > 0) {
-                pastStates.removeLast();
+        if (boardState.getTakenMoves().size() > 0) {
+            if (boardState.getPastStates().size() > 0) {
+                boardState.getPastStates().removeLast();
             }
-            undoMove(takenMoves.removeLast());
-            if (isBotActive) {
-                undoMove(takenMoves.removeLast());
+            undoMove(boardState.getTakenMoves().removeLast());
+            if (boardState.isBotActive()) {
+                undoMove(boardState.getTakenMoves().removeLast());
             }
             updateMovesListUI();
         }
@@ -1044,28 +1026,30 @@ public class MainBoard {
     /** Resets the pawns to their initial positions. */
     private void resetPawnsToInitialPositions() {
         // Re-add any missing pawns
-        for (Pawn pawn : allPawns) {
-            if (!pawnViews.containsKey(pawn)) {
+        for (Pawn pawn : boardState.getAllPawns()) {
+            if (!boardState.getPawnViews().containsKey(pawn)) {
                 ImageView pawnView = createPawnImageView(pawn, 0.8);
-                pawns = new ArrayList<>(allPawns);
+                boardState.setPawns(new ArrayList<>(boardState.getAllPawns()));
                 setupPawnInteractions(pawnView, pawn);
-                board.add(pawnView, pawn.getInitialPosition().x, pawn.getInitialPosition().y);
+                boardState
+                        .getBoard()
+                        .add(pawnView, pawn.getInitialPosition().x, pawn.getInitialPosition().y);
                 GridPane.setHalignment(pawnView, HPos.CENTER);
                 GridPane.setValignment(pawnView, VPos.CENTER);
-                pawnViews.put(pawn, pawnView);
+                boardState.getPawnViews().put(pawn, pawnView);
             }
 
             // Reset pawn properties
             pawn.setKing(false);
-            pawnViews.get(pawn).setImage(pawn.getImage());
+            boardState.getPawnViews().get(pawn).setImage(pawn.getImage());
             pawn.setPosition(pawn.getInitialPosition());
 
-            if (!pawns.contains(pawn)) {
-                pawns.add(pawn);
+            if (!boardState.getPawns().contains(pawn)) {
+                boardState.getPawns().add(pawn);
             }
 
             // Update the pawn's ImageView position
-            ImageView pawnView = pawnViews.get(pawn);
+            ImageView pawnView = boardState.getPawnViews().get(pawn);
             GridPane.setColumnIndex(pawnView, pawn.getPosition().x);
             GridPane.setRowIndex(pawnView, pawn.getPosition().y);
         }
@@ -1079,17 +1063,17 @@ public class MainBoard {
      * @param onFinished Callback to run after the animation finishes.
      */
     private void animatePawnMovement(Pawn pawn, Vector2i landingPos, Runnable onFinished) {
-        if (isAnimating) return; // Prevent new animations during an ongoing one
-        isAnimating = true;
-        ImageView pawnView = pawnViews.get(pawn);
+        if (boardState.isAnimating()) return; // Prevent new animations during an ongoing one
+        boardState.setAnimating(true);
+        ImageView pawnView = boardState.getPawnViews().get(pawn);
 
         // Bring pawnView to front by moving it to the end of the children list
-        board.getChildren().remove(pawnView);
-        board.getChildren().add(pawnView);
+        boardState.getBoard().getChildren().remove(pawnView);
+        boardState.getBoard().getChildren().add(pawnView);
 
         // Calculate translation distances
-        double deltaX = (landingPos.x - pawn.getPosition().x) * tileSize;
-        double deltaY = (landingPos.y - pawn.getPosition().y) * tileSize;
+        double deltaX = (landingPos.x - pawn.getPosition().x) * boardState.getTileSize();
+        double deltaY = (landingPos.y - pawn.getPosition().y) * boardState.getTileSize();
 
         // Create TranslateTransition
         TranslateTransition transition = new TranslateTransition(Duration.millis(300), pawnView);
@@ -1109,7 +1093,7 @@ public class MainBoard {
                     GridPane.setRowIndex(pawnView, landingPos.y);
                     pawn.setPosition(landingPos);
 
-                    isAnimating = false;
+                    boardState.setAnimating(false);
 
                     // Call the onFinished callback
                     if (onFinished != null) {
@@ -1131,7 +1115,7 @@ public class MainBoard {
      */
     private void animatePawnCaptureMovement(Pawn pawn, CapturePath path, Runnable onFinished) {
         System.out.println("Animating capture moves");
-        ImageView pawnView = pawnViews.get(pawn);
+        ImageView pawnView = boardState.getPawnViews().get(pawn);
         List<Vector2i> positions = path.positions;
         List<Pawn> capturedPawns = path.capturedPawns;
 
@@ -1143,8 +1127,8 @@ public class MainBoard {
         for (int i = 0; i < positions.size(); i++) {
             Vector2i nextPos = positions.get(i);
 
-            double deltaX = (nextPos.x - currentPos.x) * tileSize;
-            double deltaY = (nextPos.y - currentPos.y) * tileSize;
+            double deltaX = (nextPos.x - currentPos.x) * boardState.getTileSize();
+            double deltaY = (nextPos.y - currentPos.y) * boardState.getTileSize();
 
             TranslateTransition transition =
                     new TranslateTransition(Duration.millis(300), pawnView);
@@ -1177,30 +1161,28 @@ public class MainBoard {
 
         sequentialTransition.setOnFinished(
                 _ -> {
-                    isAnimating = false;
+                    boardState.setAnimating(false);
                     onFinished.run();
                 });
-
-        isAnimating = true;
-
+        boardState.setAnimating(true);
         // Add whole CapturePath to takenMoves list
         List<Vector2i> capturedPositions = new ArrayList<>();
         path.capturedPawns.forEach(
                 capturedPawn -> {
                     capturedPositions.add(capturedPawn.getPosition());
                 });
-        System.out.println(takenMoves.getLast());
+        System.out.println(boardState.getTakenMoves().getLast());
 
         // Bring pawnView to front
-        board.getChildren().remove(pawnView);
-        board.getChildren().add(pawnView);
+        boardState.getBoard().getChildren().remove(pawnView);
+        boardState.getBoard().getChildren().add(pawnView);
 
         sequentialTransition.play();
     }
 
     /** Checks if only kings are left on the board. */
     private boolean onlyKingsLeft() {
-        return pawns.stream().allMatch(Pawn::isKing);
+        return boardState.getPawns().stream().allMatch(Pawn::isKing);
     }
 
     /** Updates the styles of the player names based on the current turn. */
@@ -1209,7 +1191,8 @@ public class MainBoard {
                 (player, isPlayerOne) -> {
                     if (player != null) {
                         boolean shouldBeBold =
-                                (isWhiteTurn && isPlayerOne) || (!isWhiteTurn && !isPlayerOne);
+                                (boardState.isWhiteTurn() && isPlayerOne)
+                                        || (!boardState.isWhiteTurn() && !isPlayerOne);
                         player.setStyle(
                                 "-fx-font-size: "
                                         + (shouldBeBold ? 20 : 15)
@@ -1219,12 +1202,12 @@ public class MainBoard {
                     }
                 };
 
-        Text playerOne = (Text) root.lookup("#playerOneText");
-        Text playerTwo = (Text) root.lookup("#playerTwoText");
-        Text playerOneScore = (Text) root.lookup("#playerOneScore");
-        Text playerTwoScore = (Text) root.lookup("#playerTwoScore");
-        Text playerOneTime = (Text) root.lookup("#playerOneTime");
-        Text playerTwoTime = (Text) root.lookup("#playerTwoTime");
+        Text playerOne = (Text) boardState.getRoot().lookup("#playerOneText");
+        Text playerTwo = (Text) boardState.getRoot().lookup("#playerTwoText");
+        Text playerOneScore = (Text) boardState.getRoot().lookup("#playerOneScore");
+        Text playerTwoScore = (Text) boardState.getRoot().lookup("#playerTwoScore");
+        Text playerOneTime = (Text) boardState.getRoot().lookup("#playerOneTime");
+        Text playerTwoTime = (Text) boardState.getRoot().lookup("#playerTwoTime");
 
         setPlayerStyle.accept(playerOne, true);
         setPlayerStyle.accept(playerTwo, false);
@@ -1266,9 +1249,9 @@ public class MainBoard {
             }
 
             renderPawns();
-            isBotActive = pdnParser.getIsBot().equals("1");
-            isMultiplayer = pdnParser.getIsMultiplayer().equals("1");
-            isWhiteTurn = pdnParser.getTurn().equals("W");
+            boardState.setBotActive(pdnParser.getIsBot().equals("1"));
+            boardState.setMultiplayer(pdnParser.getIsMultiplayer().equals("1"));
+            boardState.setWhiteTurn(pdnParser.getTurn().equals("W"));
 
         } catch (Exception e) {
             System.err.println("Error loading game from PDN: " + e.getMessage());
@@ -1281,7 +1264,11 @@ public class MainBoard {
 
         // Define a boundary check for positions within board limits
         BiPredicate<Integer, Integer> inBounds =
-                (x, y) -> x >= 0 && x < boardSize.x && y >= 0 && y < boardSize.y;
+                (x, y) ->
+                        x >= 0
+                                && x < boardState.getBoardSize().x
+                                && y >= 0
+                                && y < boardState.getBoardSize().y;
 
         // Start capture path search from the pawn's current position
         captureCheck(
@@ -1311,14 +1298,14 @@ public class MainBoard {
             // Generate moves for this pawn
             seePossibleMove(pawn);
             validMoves.addAll(
-                    possibleMoves.stream()
+                    boardState.getPossibleMoves().stream()
                             .map(
                                     move ->
                                             new Move(
                                                     position,
                                                     move,
                                                     new ArrayList<>(
-                                                            requiredPawns.stream()
+                                                            boardState.getRequiredPawns().stream()
                                                                     .map(Pawn::getPosition)
                                                                     .collect(Collectors.toList()))))
                             .collect(Collectors.toList()));
@@ -1338,14 +1325,14 @@ public class MainBoard {
     }
 
     private void resetTakenMoves() {
-        takenMoves.clear();
-        pastStates.clear();
-        requiredPawns.clear();
+        boardState.getTakenMoves().clear();
+        boardState.getPastStates().clear();
+        boardState.getRequiredPawns().clear();
         updateMovesListUI();
     }
 
     public List<Move> getTakenMoves() {
-        return takenMoves;
+        return boardState.getTakenMoves();
     }
 
     private void triggerBotMove() {
@@ -1358,7 +1345,8 @@ public class MainBoard {
 
                         // Compute capture paths for the bot
                         List<CapturePath> capturePaths = computeCapturePathsForBot();
-                        Map<Vector2i, Double> qValues = botModel.predict(currentState);
+                        Map<Vector2i, Double> qValues =
+                                boardState.getBotModel().predict(currentState);
 
                         if (capturePaths != null && !capturePaths.isEmpty()) {
                             System.out.println("Bot has capture opportunities. Available paths:");
@@ -1397,11 +1385,13 @@ public class MainBoard {
                                             pawn,
                                             bestPath,
                                             () -> processAfterCaptureMove(pawn, bestPath));
-                                    takenMoves.add(
-                                            new Move(
-                                                    pawn.getPosition(),
-                                                    bestPath.getLastPosition(),
-                                                    capturedPawnPositions));
+                                    boardState
+                                            .getTakenMoves()
+                                            .add(
+                                                    new Move(
+                                                            pawn.getPosition(),
+                                                            bestPath.getLastPosition(),
+                                                            capturedPawnPositions));
                                     return; // Ensure no fallback to normal moves
                                 }
                             }
@@ -1429,7 +1419,7 @@ public class MainBoard {
                         if (selectedMove != null) {
                             Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
                             if (pawn != null) {
-                                takenMoves.add(selectedMove);
+                                boardState.getTakenMoves().add(selectedMove);
                                 animatePawnMovement(
                                         pawn,
                                         selectedMove.getEndPosition(),
@@ -1437,7 +1427,7 @@ public class MainBoard {
                                 return;
                             } else {
                                 System.out.println("Fallback for takenMoves: " + selectedMove);
-                                takenMoves.add(selectedMove);
+                                boardState.getTakenMoves().add(selectedMove);
                                 applyMove(currentState.applyMove(selectedMove));
                                 return;
                             }
@@ -1491,13 +1481,15 @@ public class MainBoard {
                                 if (pawn != null) {
                                     System.out.println("Bot executing capture path: " + bestPath);
 
-                                    takenMoves.add(
-                                            new Move(
-                                                    pawn.getPosition(),
-                                                    bestPath.getLastPosition(),
-                                                    bestPath.capturedPawns.stream()
-                                                            .map(Pawn::getPosition)
-                                                            .collect(Collectors.toList())));
+                                    boardState
+                                            .getTakenMoves()
+                                            .add(
+                                                    new Move(
+                                                            pawn.getPosition(),
+                                                            bestPath.getLastPosition(),
+                                                            bestPath.capturedPawns.stream()
+                                                                    .map(Pawn::getPosition)
+                                                                    .collect(Collectors.toList())));
                                     animatePawnCaptureMovement(
                                             pawn,
                                             bestPath,
@@ -1523,13 +1515,13 @@ public class MainBoard {
                         if (selectedMove != null) {
                             Pawn pawn = getPawnAtPosition(selectedMove.getStartPosition());
                             if (pawn != null) {
-                                takenMoves.add(selectedMove);
+                                boardState.getTakenMoves().add(selectedMove);
                                 animatePawnMovement(
                                         pawn,
                                         selectedMove.getEndPosition(),
                                         () -> applyMove(currentState.applyMove(selectedMove)));
                             } else {
-                                takenMoves.add(selectedMove);
+                                boardState.getTakenMoves().add(selectedMove);
                                 applyMove(currentState.applyMove(selectedMove));
                             }
                         }
@@ -1542,20 +1534,22 @@ public class MainBoard {
     private List<CapturePath> computeCapturePathsForBot() {
 
         List<Pawn> whitepawns =
-                this.pawns.stream()
+                this.boardState.getPawns().stream()
                         .filter(pawn -> pawn.isWhite())
                         .collect(Collectors.toList()); // Bot's pawns
 
         List<Pawn> botPawnsblack =
-                pawns.stream()
+                boardState.getPawns().stream()
                         .filter(pawn -> !pawn.isWhite())
                         .collect(Collectors.toList()); // Bot's pawns
         List<CapturePath> allCapturePaths = new ArrayList<>();
 
-        for (Pawn pawn : isWhiteTurn && isBotvsBot ? whitepawns : botPawnsblack) {
+        for (Pawn pawn :
+                boardState.isWhiteTurn() && boardState.isBotvsBot() ? whitepawns : botPawnsblack) {
             seePossibleMove(pawn);
-            if (currentCapturePaths != null && !currentCapturePaths.isEmpty()) {
-                allCapturePaths.addAll(currentCapturePaths); // Add computed paths
+            if (boardState.getCurrentCapturePaths() != null
+                    && !boardState.getCurrentCapturePaths().isEmpty()) {
+                allCapturePaths.addAll(boardState.getCurrentCapturePaths()); // Add computed paths
             }
         }
 
@@ -1565,14 +1559,21 @@ public class MainBoard {
     private void trainModel(List<Experience> batch) {
         double totalLoss = 0.0;
         for (Experience experience : batch) {
-            Map<Vector2i, Double> qValues = botModel.predict(experience.state);
+            Map<Vector2i, Double> qValues = boardState.getBotModel().predict(experience.state);
             double target = experience.reward;
             if (!experience.isTerminal) {
-                Map<Vector2i, Double> nextQValues = botModel.predict(experience.nextState);
-                target += GAMMA * nextQValues.values().stream().max(Double::compareTo).orElse(0.0);
+                Map<Vector2i, Double> nextQValues =
+                        boardState.getBotModel().predict(experience.nextState);
+                target +=
+                        BoardState.getGamma()
+                                * nextQValues.values().stream().max(Double::compareTo).orElse(0.0);
             }
-            botModel.updateWeights(
-                    experience.state, experience.action, target - qValues.get(experience.action));
+            boardState
+                    .getBotModel()
+                    .updateWeights(
+                            experience.state,
+                            experience.action,
+                            target - qValues.get(experience.action));
             totalLoss += Math.abs(target - qValues.get(experience.action));
         }
         System.out.println("Average Loss: " + (totalLoss / batch.size()));
@@ -1581,7 +1582,7 @@ public class MainBoard {
     private void applyMove(MoveResult result) {
         if (result != null) {
             // Update the board state
-            pastStates.add(result.getNextState());
+            boardState.getPastStates().add(result.getNextState());
             renderPawns();
 
             if (result.isGameOver()) {
@@ -1597,30 +1598,31 @@ public class MainBoard {
         Map<Vector2i, Pawn> currentState = new HashMap<>();
 
         // Iterate over all pawns and add their positions to the state
-        for (Pawn pawn : pawns) {
+        for (Pawn pawn : boardState.getPawns()) {
             currentState.put(pawn.getPosition(), pawn);
         }
 
-        return new GameState(currentState, isWhiteTurn, this);
+        return new GameState(currentState, boardState.isWhiteTurn(), this);
     }
 
     private GameState createGameState() {
         return new GameState(
-                pawns.stream().collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
-                isWhiteTurn,
+                boardState.getPawns().stream()
+                        .collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
+                boardState.isWhiteTurn(),
                 this);
     }
 
     public void playBotVsBot() {
         Platform.runLater(
                 () -> {
-                    if (!isActive) {
+                    if (!boardState.isActive()) {
                         System.out.println("Game is inactive. Stopping bot-vs-bot.");
                         return;
                     }
 
-                    if (isBotvsBot) {
-                        if (isWhiteTurn) {
+                    if (boardState.isBotvsBot()) {
+                        if (boardState.isWhiteTurn()) {
                             triggerBotMoveR(); // Random bot for White
                         } else {
                             triggerBotMove(); // Other bot for Black
@@ -1635,9 +1637,12 @@ public class MainBoard {
     }
 
     public void refreshBoard() {
-        if (!root.getChildren().contains(board)) {
-            root.getChildren().add(board); // Re-add the board if not already in the root
+        if (!boardState.getRoot().getChildren().contains(boardState.getBoard())) {
+            boardState
+                    .getRoot()
+                    .getChildren()
+                    .add(boardState.getBoard()); // Re-add the board if not already in the root
         }
-        board.toFront(); // Bring the board to the front
+        boardState.getBoard().toFront(); // Bring the board to the front
     }
 }
