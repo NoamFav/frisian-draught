@@ -16,6 +16,9 @@ import javafx.util.Duration;
 
 import org.joml.Vector2i;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -93,12 +96,25 @@ public class MainBoard {
         boardRendered.renderBoard();
         boardRendered.renderPawns();
 
-        if (isBotActive) {
-            boardState.setBotModel(new DQNModel(101, 100, 100, 0.1));
+        Path home = Path.of(System.getProperty("user.home"));
+        Path savePath = home.resolve("FrisianDraughtAIBin");
+
+        // Ensure the directory exists
+        if (!Files.exists(savePath)) {
+            try {
+                Files.createDirectories(savePath);
+            } catch (IOException e) {
+                System.err.println("Failed to create directory: " + savePath);
+                e.printStackTrace();
+            }
         }
-        if (isBotvsBot) {
+        if (isBotActive || isBotvsBot) {
             boardState.setBotModel(new DQNModel(101, 100, 100, 0.1));
-            botManager.playBotVsBot();
+            botManager.loadLatestModel(savePath);
+        }
+
+        if (isBotvsBot) {
+            botManager.playBotVsBot(savePath.toString());
         }
 
         return boardState.getBoard();

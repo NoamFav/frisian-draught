@@ -8,10 +8,14 @@ import javafx.util.Duration;
 
 import org.joml.Vector2i;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -20,6 +24,9 @@ public class BotManager {
     private final MainBoard mainboard;
     private MoveManager moveManager;
     private BoardRendered boardRendered;
+
+    private static final int BATCH_SIZE = 32;
+    private int episodeCounter = 0;
 
     public BotManager(BoardState boardState, MainBoard mainboard) {
         this.boardState = boardState;
@@ -140,6 +147,102 @@ public class BotManager {
                 });
     }
 
+    public void playBotVsBot(String savePath) {
+        Platform.runLater(
+                () -> {
+                    if (!boardState.isActive()) {
+                        System.out.println("Game is inactive. Stopping bot-vs-bot.");
+                        return;
+                    }
+
+                    if (boardState.isBotvsBot()) {
+                        if (boardState.isWhiteTurn()) {
+                            triggerBotMove(); // Random bot for White
+                        } else {
+                            triggerBotMove(); // Trained bot for Black
+                        }
+
+                        // Save the model every 100 episodes
+                        episodeCounter++;
+                        if (episodeCounter % 100 == 0) {
+                            String filename = generateUniqueFilename(savePath + "/dqn_model");
+                            boardState.getBotModel().saveModel(filename);
+                        }
+
+                        PauseTransition pause = new PauseTransition(Duration.millis(1000));
+                        pause.setOnFinished(_ -> playBotVsBot(savePath));
+                        pause.play();
+                    }
+                });
+    }
+
+    private List<CapturePath> computeCapturePathsForBot() {
+        List<Pawn> whitepawns =
+                this.boardState.getPawns().stream()
+                        .filter(Pawn::isWhite)
+                        .collect(Collectors.toList()); // Bot's pawns
+
+        List<Pawn> botPawnsblack =
+                boardState.getPawns().stream()
+                        .filter(pawn -> !pawn.isWhite())
+                        .collect(Collectors.toList()); // Bot's pawns
+        List<CapturePath> allCapturePaths = new ArrayList<>();
+
+        for (Pawn pawn :
+                boardState.isWhiteTurn() && boardState.isBotvsBot() ? whitepawns : botPawnsblack) {
+            moveManager.seePossibleMove(pawn);
+            if (boardState.getCurrentCapturePaths() != null
+                    && !boardState.getCurrentCapturePaths().isEmpty()) {
+                allCapturePaths.addAll(boardState.getCurrentCapturePaths()); // Add computed paths
+            }
+        }
+
+        return allCapturePaths;
+    }
+
+    private void trainModel(List<Experience> batch) {
+        double totalLoss = 0.0;
+        for (Experience experience : batch) {
+            Map<Vector2i, Double> qValues = boardState.getBotModel().predict(experience.state);
+            double target = experience.reward;
+            if (!experience.isTerminal) {
+                Map<Vector2i, Double> nextQValues =
+                        boardState.getBotModel().predict(experience.nextState);
+                target +=
+                        BoardState.getGamma()
+                                * nextQValues.values().stream().max(Double::compareTo).orElse(0.0);
+            }
+            boardState
+                    .getBotModel()
+                    .updateWeights(
+                            experience.state,
+                            experience.action,
+                            target - qValues.get(experience.action));
+            totalLoss += Math.abs(target - qValues.get(experience.action));
+        }
+        System.out.println("Average Loss: " + (totalLoss / batch.size()));
+    }
+
+    private void applyMove(MoveResult result) {
+        if (result != null) {
+            // Update the board state
+
+            boardState.getPastStates().add(result.getNextState());
+            boardRendered.renderPawns();
+
+            if (result.isGameOver()) {
+                moveManager.checkGameOver();
+            }
+
+            // Switch turn
+            moveManager.switchTurn();
+        }
+    }
+
+    private String generateUniqueFilename(String baseName) {
+        return baseName + "_" + System.currentTimeMillis() + ".bin";
+    }
+
     public void triggerBotMoveR() {
         Platform.runLater(
                 () -> {
@@ -236,89 +339,21 @@ public class BotManager {
                 });
     }
 
-    private List<CapturePath> computeCapturePathsForBot() {
+    public void loadLatestModel(Path savePath) {
+        try {
+            Optional<Path> latestFile =
+                    Files.list(savePath)
+                            .filter(path -> path.toString().endsWith(".bin"))
+                            .max(Comparator.comparingLong(path -> path.toFile().lastModified()));
 
-        List<Pawn> whitepawns =
-                this.boardState.getPawns().stream()
-                        .filter(pawn -> pawn.isWhite())
-                        .collect(Collectors.toList()); // Bot's pawns
-
-        List<Pawn> botPawnsblack =
-                boardState.getPawns().stream()
-                        .filter(pawn -> !pawn.isWhite())
-                        .collect(Collectors.toList()); // Bot's pawns
-        List<CapturePath> allCapturePaths = new ArrayList<>();
-
-        for (Pawn pawn :
-                boardState.isWhiteTurn() && boardState.isBotvsBot() ? whitepawns : botPawnsblack) {
-            moveManager.seePossibleMove(pawn);
-            if (boardState.getCurrentCapturePaths() != null
-                    && !boardState.getCurrentCapturePaths().isEmpty()) {
-                allCapturePaths.addAll(boardState.getCurrentCapturePaths()); // Add computed paths
+            if (latestFile.isPresent()) {
+                boardState.getBotModel().loadModel(latestFile.get().toString());
+                System.out.println("Loaded model: " + latestFile.get());
+            } else {
+                System.out.println("No saved models found. Starting fresh.");
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return allCapturePaths;
-    }
-
-    private void trainModel(List<Experience> batch) {
-        double totalLoss = 0.0;
-        for (Experience experience : batch) {
-            Map<Vector2i, Double> qValues = boardState.getBotModel().predict(experience.state);
-            double target = experience.reward;
-            if (!experience.isTerminal) {
-                Map<Vector2i, Double> nextQValues =
-                        boardState.getBotModel().predict(experience.nextState);
-                target +=
-                        BoardState.getGamma()
-                                * nextQValues.values().stream().max(Double::compareTo).orElse(0.0);
-            }
-            boardState
-                    .getBotModel()
-                    .updateWeights(
-                            experience.state,
-                            experience.action,
-                            target - qValues.get(experience.action));
-            totalLoss += Math.abs(target - qValues.get(experience.action));
-        }
-        System.out.println("Average Loss: " + (totalLoss / batch.size()));
-    }
-
-    private void applyMove(MoveResult result) {
-        if (result != null) {
-            // Update the board state
-            boardState.getPastStates().add(result.getNextState());
-            boardRendered.renderPawns();
-
-            if (result.isGameOver()) {
-                moveManager.checkGameOver();
-            }
-
-            // Switch turn
-            moveManager.switchTurn();
-        }
-    }
-
-    public void playBotVsBot() {
-        Platform.runLater(
-                () -> {
-                    if (!boardState.isActive()) {
-                        System.out.println("Game is inactive. Stopping bot-vs-bot.");
-                        return;
-                    }
-
-                    if (boardState.isBotvsBot()) {
-                        if (boardState.isWhiteTurn()) {
-                            triggerBotMoveR(); // Random bot for White
-                        } else {
-                            triggerBotMove(); // Other bot for Black
-                        }
-                        // Delay to make the moves visually distinguishable and avoid crash due to
-                        // the game buffer
-                        PauseTransition pause = new PauseTransition(Duration.millis(1000));
-                        pause.setOnFinished(_ -> playBotVsBot());
-                        pause.play();
-                    }
-                });
     }
 }
