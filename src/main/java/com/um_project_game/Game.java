@@ -144,7 +144,7 @@ public class Game {
         this.movesListGridPane = mainBoard.getMovesListGridPane();
         this.mainBoard = mainBoard;
         this.isWhiteTurn =
-                mainBoard.isWhiteTurn
+                mainBoard.boardState.isWhiteTurn()
                         ? Bindings.createBooleanBinding(() -> true)
                         : Bindings.createBooleanBinding(() -> false);
 
