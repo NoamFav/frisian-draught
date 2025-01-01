@@ -6,9 +6,11 @@ import com.um_project_game.util.Buttons;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
@@ -285,7 +287,7 @@ public class Menu {
 
     private void initVersionStatus(Scene scene, Pane root) {
         // A VBox to hold commits
-        VBox commitsBox = new VBox(5); // 5px vertical spacing
+        VBox commitsBox = new VBox(5);
         commitsBox.setId("commit-list");
 
         // Check GH CLI auth
@@ -294,6 +296,27 @@ public class Menu {
             Text notAuthText = new Text("Not Authenticated via GitHub CLI");
             notAuthText.getStyleClass().add("commit-text");
             commitsBox.getChildren().add(notAuthText);
+            Button notAuthButton = new Button("Authenticate");
+            notAuthButton.getStyleClass().add("button");
+            notAuthButton.setOnAction(
+                    _ -> {
+                        try {
+                            ProcessBuilder processBuilder =
+                                    new ProcessBuilder("gh", "auth", "login", "--with-token");
+                            processBuilder
+                                    .environment()
+                                    .put("GITHUB_TOKEN", System.getenv("GITHUB_TOKEN"));
+                            Process process = processBuilder.start();
+                            int exitCode = process.waitFor();
+                            if (exitCode == 0) {
+                                // Rebuild layout on the JavaFX thread
+                                Platform.runLater(() -> rebuildLayout(scene, root));
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+            commitsBox.getChildren().add(notAuthButton);
         } else {
             // Fetch up to 50 commits
             List<String> commits = fetchCommits(50);
@@ -321,7 +344,6 @@ public class Menu {
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(false);
 
-        // Instead of applying .version-status to the ScrollPane directly,
         // create a StackPane to hold the ScrollPane, and apply the styling to that.
         StackPane versionPane = new StackPane();
         versionPane.setPrefSize(versionStatusWidth, versionStatusHeight);
@@ -338,7 +360,6 @@ public class Menu {
         // Add the styled container to the root
         root.getChildren().add(versionPane);
 
-        // Optional: animate on hover of the entire versionPane
         animateHoverScale(versionPane, 1.02);
     }
 
@@ -350,6 +371,7 @@ public class Menu {
             return (exitCode == 0);
         } catch (Exception e) {
             e.printStackTrace();
+
             return false;
         }
     }
@@ -360,11 +382,7 @@ public class Menu {
         try {
             Process process =
                     new ProcessBuilder(
-                                    "git",
-                                    "log",
-                                    "--pretty=format:%h %s by %cn (%cr)", // Include committer name
-                                    // here
-                                    "-" + limit)
+                                    "git", "log", "--pretty=format:%h %s by %cn (%cr)", "-" + limit)
                             .start();
 
             try (BufferedReader reader =
