@@ -5,6 +5,11 @@ import com.um_project_game.board.Move;
 
 import org.joml.Vector2i;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,5 +92,24 @@ public class DQNModel {
     // Evaluate the maximum Q-value for a given state
     public double evaluate(GameState state) {
         return predict(state).values().stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+    }
+
+    public void saveModel(String filename) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
+            out.writeObject(this.network.getWeights());
+            System.out.println("Model saved to " + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadModel(String filename) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
+            double[][][] weights = (double[][][]) in.readObject();
+            this.network.setWeights(weights);
+            System.out.println("Model loaded from " + filename);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }
