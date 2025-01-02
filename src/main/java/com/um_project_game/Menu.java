@@ -126,9 +126,6 @@ public class Menu {
         controlButtons.setLayoutY(controlButtonsY);
         controlButtons.setId("control-buttons");
 
-        // Example no-op
-        Runnable noAction = () -> {};
-
         Buttons playLocalButton =
                 new Buttons(
                         "Play Local",
@@ -141,7 +138,8 @@ public class Menu {
                         buttonWidth,
                         buttonHeight,
                         () -> launcher.startNewGame(true, false, false));
-        Buttons tutorialButton = new Buttons("Tutorial", buttonWidth, buttonHeight, noAction);
+        Buttons tutorialButton =
+                new Buttons("Tutorial", buttonWidth, buttonHeight, () -> launcher.launchTutorial());
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
 

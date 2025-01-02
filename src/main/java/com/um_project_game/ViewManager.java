@@ -87,6 +87,13 @@ public class ViewManager {
                 activeGames.add(game);
                 game.showGameWindow();
                 break;
+            case 5:
+                // Start tutorial
+                System.out.println("Starting tutorial");
+                Tutorial tutorial = new Tutorial(launcher);
+                tutorial.showTutorialWindow();
+
+                break;
             default:
                 break;
         }

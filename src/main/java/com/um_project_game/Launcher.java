@@ -121,6 +121,10 @@ public class Launcher extends Application {
         }
     }
 
+    public void launchTutorial() {
+        viewManager.gameStateSwitch(5);
+    }
+
     public void startNewGame(MainBoard board) {
         viewManager.gameStateSwitch(
                 board.boardState.isMultiplayer() ? 1 : board.boardState.isBotActive() ? 2 : 3,
