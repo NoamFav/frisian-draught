@@ -3,20 +3,14 @@ package com.um_project_game;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
-import com.um_project_game.util.GameExporter;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -26,10 +20,8 @@ import org.joml.Vector2i;
 
 import java.net.URL;
 import java.util.Optional;
-import java.util.Random;
-import java.util.function.Consumer;
 
-public class Game {
+public class Tutorial {
 
     private MainBoard mainBoard = new MainBoard();
 
@@ -39,11 +31,6 @@ public class Game {
 
     private GridPane board;
     private GameInfo gameInfo = new GameInfo();
-    private BooleanBinding isWhiteTurn;
-
-    private boolean isMultiplayer;
-    private boolean isAgainstBot;
-    private boolean isBotvBot;
 
     private PauseTransition resizePause;
 
@@ -71,26 +58,19 @@ public class Game {
     private int controlButtonsX = 1069;
     private int controlButtonsY = 99;
 
-    private int movesListX = 1069;
-    private int movesListY = 469;
-    private int movesListWidth = buttonWidth;
-    private int movesListHeight = 222;
     private GridPane movesListGridPane = new GridPane();
 
-    // Game export
-    private GameExporter exporter = new GameExporter();
+    private int currentTutorialStep = 0;
+    private int totalTutorialSteps = 10;
 
     /* --------------------------------------------------------------------------------
      *                               CONSTRUCTORS
      * -------------------------------------------------------------------------------- */
 
-    public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher) {
+    public Tutorial(Launcher launcher) {
         this.launcher = launcher;
         this.gameStage = new Stage();
         this.gameStage.setTitle("Frisian Draughts - Game");
-        this.isMultiplayer = isMultiplayer;
-        this.isAgainstBot = isAgainstBot;
-        this.isBotvBot = isBotvBot;
 
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
@@ -107,17 +87,12 @@ public class Game {
 
         this.gameStage.setScene(scene);
 
-        // Initialize game UI
-        if (isMultiplayer) {
-            mainGameBoardMultiplayer(gameRoot, scene);
-        } else {
-            mainGameBoard(gameRoot, scene, isAgainstBot);
-        }
+        mainGameBoard(gameRoot, scene);
+
         playerUI(gameRoot, scene, true);
         playerUI(gameRoot, scene, false);
         chatUI(gameRoot, scene);
         buttonGameLogic(gameRoot, scene);
-        moveList(gameRoot, scene);
 
         // Fade in effect on first load
         animateFadeIn(gameRoot, 300);
@@ -137,73 +112,18 @@ public class Game {
                 });
     }
 
-    public Game(Launcher launcher, MainBoard mainBoard) {
-        this.launcher = launcher;
-        this.gameStage = new Stage();
-        this.gameStage.setTitle("Frisian Draughts - Game");
-        this.movesListGridPane = mainBoard.getMovesListGridPane();
-        this.mainBoard = mainBoard;
-        this.isWhiteTurn =
-                mainBoard.boardState.isWhiteTurn()
-                        ? Bindings.createBooleanBinding(() -> true)
-                        : Bindings.createBooleanBinding(() -> false);
-
-        // Disable board interaction when loading from PDN
-        mainBoard.getBoard().setOnMouseClicked(null);
-
-        this.gameRoot = new Pane();
-        Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
-        Launcher.registerScene(scene);
-
-        // Load CSS
-        URL cssUrl =
-                getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
-        if (cssUrl != null) {
-            scene.getStylesheets().add(cssUrl.toExternalForm());
-        } else {
-            System.err.println("Stylesheet not found");
-        }
-
-        this.gameStage.setScene(scene);
-
-        // Initialize game player
-        board = mainBoard.getBoard(this.movesListGridPane, this.gameInfo);
-        playerUI(gameRoot, scene, true);
-        playerUI(gameRoot, scene, false);
-        chatUI(gameRoot, scene);
-        buttonGameLogic(gameRoot, scene);
-        moveList(gameRoot, scene);
-
-        // Fade in effect on first load
-        animateFadeIn(gameRoot, 300);
-
-        // Debounced resizing
-        resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(_ -> onResize(gameRoot, scene));
-
-        scene.widthProperty().addListener((_, _, _) -> resizePause.playFromStart());
-        scene.heightProperty().addListener((_, _, _) -> resizePause.playFromStart());
-
-        // Handle close event
-        this.gameStage.setOnCloseRequest(
-                e -> {
-                    e.consume();
-                    showExitConfirmation();
-                });
-    }
-
-    public void showGameWindow() {
+    public void showTutorialWindow() {
         this.gameStage.show();
     }
 
-    public Pane getGameRoot() {
+    public Pane getTutorialRoot() {
         return gameRoot;
     }
 
     /* --------------------------------------------------------------------------------
      *                               BOARD METHODS
      * -------------------------------------------------------------------------------- */
-    private void mainGameBoard(Pane root, Scene scene, boolean isBotActive) {
+    private void mainGameBoard(Pane root, Scene scene) {
         board =
                 mainBoard.getMainBoard(
                         root,
@@ -211,25 +131,10 @@ public class Game {
                         new Vector2i(mainBoardX, mainBoardY),
                         gameInfo,
                         movesListGridPane,
-                        isBotActive,
-                        isBotvBot);
+                        false,
+                        false);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
-        isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
-    }
-
-    private void mainGameBoardMultiplayer(Pane root, Scene scene) {
-        board =
-                mainBoard.getMainBoardMultiplayer(
-                        root,
-                        mainBoardSize,
-                        new Vector2i(mainBoardX, mainBoardY),
-                        gameInfo,
-                        movesListGridPane,
-                        true);
-        board.getStyleClass().add("mainboard");
-        root.getChildren().add(board);
-        isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
     }
 
     private void resizeBoard(Pane root) {
@@ -252,32 +157,15 @@ public class Game {
         playerUI.setLayoutY(!isPlayerOne ? 0 : scene.getHeight() - playerUIHeight);
 
         playerUI.getStyleClass().add("playerUI");
-        playerUI.setId(isPlayerOne ? "playerOne" : "playerTwo");
+        playerUI.setId(isPlayerOne ? "playerOne" : "Teacher");
 
-        Consumer<Text> setPlayerStyle =
-                player -> {
-                    if (player != null) {
-                        boolean shouldBeBold =
-                                (isWhiteTurn.get() && isPlayerOne)
-                                        || (!isWhiteTurn.get() && !isPlayerOne);
-
-                        player.setStyle(
-                                "-fx-font-size: "
-                                        + (shouldBeBold ? 20 : 15)
-                                        + ";"
-                                        + "-fx-font-weight: "
-                                        + (shouldBeBold ? "bold" : "normal"));
-                    }
-                };
-
-        Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
+        Text playerText = new Text(isPlayerOne ? "Player 1" : "Teacher");
         playerText.getStyleClass().add("label");
-        setPlayerStyle.accept(playerText);
-        playerText.setId(isPlayerOne ? "playerOneText" : "playerTwoText");
+        playerText.setId(isPlayerOne ? "playerOneText" : "teacherText");
 
         Text playerScore = new Text();
         playerScore.getStyleClass().add("label");
-        playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
+        playerScore.setId(isPlayerOne ? "playerOneScore" : "teacherScore");
         if (isPlayerOne) {
             playerScore
                     .textProperty()
@@ -287,14 +175,8 @@ public class Game {
                     .textProperty()
                     .bind(Bindings.concat("Score: ", gameInfo.scorePlayerTwoProperty()));
         }
-        setPlayerStyle.accept(playerScore);
 
-        Text playerTime = new Text("Time: 10:00");
-        playerTime.getStyleClass().add("label");
-        setPlayerStyle.accept(playerTime);
-        playerTime.setId(isPlayerOne ? "playerOneTime" : "playerTwoTime");
-
-        HBox playerInfo = new HBox(playerText, playerScore, playerTime);
+        HBox playerInfo = new HBox(playerText, playerScore);
         playerInfo.getStyleClass().add("playerInfo");
         playerInfo.setSpacing(playerInfoSpacing);
         playerInfo.setAlignment(javafx.geometry.Pos.CENTER);
@@ -302,16 +184,10 @@ public class Game {
         playerUI.getChildren().add(playerInfo);
 
         root.getChildren().add(playerUI);
-
-        // OPTIONAL: if this player's turn, add a "pulse" animation
-        // (You could also call this after each move if you want more frequent pulses)
-        if ((isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne)) {
-            animatePulse(playerUI, 1.05, 500); // Pulse up to 105% size over 500ms
-        }
     }
 
     /* --------------------------------------------------------------------------------
-     *                                CHAT UI
+     *                                CHAT UI -- INSTRUCTIONS
      * -------------------------------------------------------------------------------- */
     private void chatUI(Pane root, Scene scene) {
         StackPane chatUI = new StackPane();
@@ -333,17 +209,7 @@ public class Game {
     private void showExitConfirmation() {
         ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
         if (exitConfirmation.showAndWait()) { // If user confirmed exit
-            if (exitConfirmation.shouldSaveOnExit()) {
-                exporter.exportGameToPDN(
-                        mainBoard.getTakenMoves(),
-                        null,
-                        isAgainstBot ? "1" : "0",
-                        isMultiplayer ? "1" : "0",
-                        gameInfo.getPlayerTurn() == 1 ? "W" : "B");
-                Launcher.viewManager
-                        .getMenu()
-                        .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
-            }
+
             if (Launcher.menuStage == null) {
                 launcher.showMenu();
             }
@@ -371,17 +237,17 @@ public class Game {
                         () -> {
                             mainBoard.moveManager.undoLastMove();
                         });
-        Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, this::drawWarning);
-        Buttons resignButton =
+
+        Buttons nextButton =
+                new Buttons("Next", buttonWidth, buttonHeight, () -> tutorialNext()); // TODO - next
+
+        Buttons previousButton =
                 new Buttons(
-                        "Resign",
+                        "Previous",
                         buttonWidth,
                         buttonHeight,
-                        () -> {
-                            System.out.println("Resign");
-                        });
-        Buttons restartButton =
-                new Buttons("Restart", buttonWidth, buttonHeight, this::restartWarning);
+                        () -> tutorialPrevious()); // TODO - previous
+
         Buttons settingsButton =
                 new Buttons("Settings", buttonWidth, buttonHeight, Launcher.settings::show);
         Buttons exitButton =
@@ -391,106 +257,158 @@ public class Game {
                 .getChildren()
                 .addAll(
                         undoButton.getButton(),
-                        drawButton.getButton(),
-                        resignButton.getButton(),
-                        restartButton.getButton(),
+                        nextButton.getButton(),
+                        previousButton.getButton(),
                         settingsButton.getButton(),
                         exitButton.getButton());
         root.getChildren().addAll(controlButtons);
     }
 
     /* --------------------------------------------------------------------------------
-     *                            MOVES LIST
+     *                            TUTORIAL LOGIC
      * -------------------------------------------------------------------------------- */
-    private void moveList(Pane root, Scene scene) {
-        StackPane movesList = new StackPane();
-        movesList.setPrefSize(movesListWidth, movesListHeight);
-        movesList.setMaxWidth(movesListWidth);
-        movesList.setLayoutX(movesListX);
-        movesList.setLayoutY(movesListY);
-        movesList.getStyleClass().add("movesList");
 
-        Text movesListText = new Text("Moves List");
-        movesListText.getStyleClass().add("label");
-
-        movesListGridPane = mainBoard.getMovesListGridPane();
-        if (movesListGridPane == null) {
-            System.err.println(
-                    "Error: movesListGridPane is null. Please check getMovesListGridPane() in"
-                            + " MainBoard.");
-            return;
-        }
-
-        // Three columns: Turn - White - Black
-        int numColumns = 3;
-        double columnWidth = movesListWidth / numColumns;
-
-        for (int i = 0; i < numColumns; i++) {
-            movesListGridPane.getColumnConstraints().add(new ColumnConstraints(columnWidth));
-        }
-
-        ScrollPane scrollPane = new ScrollPane(movesListGridPane);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.getStyleClass().add("movesListScrollPane");
-
-        VBox scrollPaneWrapper = new VBox(scrollPane);
-        scrollPaneWrapper.getStyleClass().add("movesListScrollPane");
-        scrollPaneWrapper.setPadding(new Insets(10));
-        scrollPaneWrapper.setPrefSize(movesListWidth, movesListHeight);
-
-        movesList.getChildren().add(scrollPaneWrapper);
-        root.getChildren().add(movesList);
-    }
-
-    /* --------------------------------------------------------------------------------
-     *                     RESTART & DRAW CONFIRMATIONS
-     * -------------------------------------------------------------------------------- */
-    private void restartWarning() {
-        Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("Restart Confirmation");
-        alert.setHeaderText("Are you sure you want to restart the game?");
-        alert.setContentText("All progress will be lost.");
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
-            mainBoard.resetGame(mainBoardSize);
+    public void tutorialSteps() {
+        // TODO - implement tutorial steps
+        switch (currentTutorialStep) {
+            case 1:
+                tutorialLesson1();
+                break;
+            case 2:
+                tutorialLesson2();
+                break;
+            case 3:
+                tutorialLesson3();
+                break;
+            case 4:
+                tutorialLesson4();
+                break;
+            case 5:
+                tutorialLesson5();
+                break;
+            case 6:
+                tutorialLesson6();
+                break;
+            case 7:
+                tutorialLesson7();
+                break;
+            case 8:
+                tutorialLesson8();
+                break;
+            case 9:
+                tutorialLesson9();
+                break;
+            case 10:
+                tutorialLesson10();
+                break;
+            default:
+                break;
         }
     }
 
-    private void drawWarning() {
-        Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("Draw Confirmation");
-        alert.setHeaderText("Are you sure you want to propose a draw?");
-        alert.setContentText("Both players will receive 1 point.");
+    public void tutorialStart() {
+        // TODO - implement tutorial start
+        if (currentTutorialStep == 0) {
+            currentTutorialStep = 1;
+            tutorialLesson1();
+        } else {
+            tutorialReset();
+        }
+    }
 
-        ButtonType yesButton = new ButtonType("Yes", ButtonData.OK_DONE);
-        ButtonType noButton = new ButtonType("No", ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(yesButton, noButton);
+    public void tutorialEnd() {
+        currentTutorialStep = 0;
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Tutorial Complete");
+        alert.setHeaderText("Congratulations! You have completed the tutorial.");
+        alert.setContentText("You can now play the game or restart the tutorial.");
+
+        ButtonType buttonTypePlay = new ButtonType("Play Game");
+        ButtonType buttonTypeRestart = new ButtonType("Restart Tutorial");
+
+        alert.getButtonTypes().setAll(buttonTypePlay, buttonTypeRestart);
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == yesButton) {
-            String botDecision = "Bot is thinking...";
-            Alert botAlert = new Alert(AlertType.INFORMATION);
-            botAlert.setTitle("Bot Decision");
-            botAlert.setContentText(botDecision);
-            botAlert.showAndWait();
-
-            Random rand = new Random();
-            int n = rand.nextInt(2);
-            if (n == 0) {
-                botDecision = "Bot has accepted the draw!";
-                botAlert.setContentText("Game over - draw!");
-            } else {
-                botDecision = "Bot has declined the draw!";
-                botAlert.setContentText("Game continues!");
-            }
-            botAlert.setHeaderText(botDecision);
-            botAlert.showAndWait();
-
-            if (n == 0) {
-                mainBoard.resetGame(mainBoardSize);
-            }
+        if (result.isPresent() && result.get() == buttonTypePlay) {
+            gameStage.close(); // Close tutorial and start the game
+        } else {
+            currentTutorialStep = 1;
+            tutorialLesson1();
         }
+    }
+
+    public void tutorialReset() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Reset Tutorial");
+        alert.setHeaderText("You have previously started the tutorial. Do you want to reset it?");
+        alert.setContentText("This will reset your progress.");
+
+        ButtonType buttonTypeYes = new ButtonType("Yes - Reset Tutorial");
+        ButtonType buttonTypeNo = new ButtonType("No - Continue Tutorial");
+
+        alert.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == buttonTypeYes) {
+            currentTutorialStep = 1;
+            tutorialLesson1();
+        } else {
+            tutorialSteps();
+        }
+    }
+
+    public void tutorialNext() {
+        if (currentTutorialStep < totalTutorialSteps) { // Ensure it doesn't go above total steps
+            currentTutorialStep++;
+        }
+        tutorialSteps();
+    }
+
+    public void tutorialPrevious() {
+        if (currentTutorialStep > 1) { // Ensure it doesn't go below step 1
+            currentTutorialStep--;
+        }
+        tutorialSteps();
+    }
+
+    public void tutorialLesson1() {
+        // TODO - implement tutorial lesson 1
+    }
+
+    public void tutorialLesson2() {
+        // TODO - implement tutorial lesson 2
+    }
+
+    public void tutorialLesson3() {
+        // TODO - implement tutorial lesson 3
+    }
+
+    public void tutorialLesson4() {
+        // TODO - implement tutorial lesson 4
+    }
+
+    public void tutorialLesson5() {
+        // TODO - implement tutorial lesson 5
+    }
+
+    public void tutorialLesson6() {
+        // TODO - implement tutorial lesson 6
+    }
+
+    public void tutorialLesson7() {
+        // TODO - implement tutorial lesson 7
+    }
+
+    public void tutorialLesson8() {
+        // TODO - implement tutorial lesson 8
+    }
+
+    public void tutorialLesson9() {
+        // TODO - implement tutorial lesson 9
+    }
+
+    public void tutorialLesson10() {
+        // TODO - implement tutorial lesson 10
     }
 
     /* --------------------------------------------------------------------------------
@@ -506,7 +424,6 @@ public class Game {
         playerUI(root, scene, false);
         chatUI(root, scene);
         buttonGameLogic(root, scene);
-        moveList(root, scene);
 
         // Fade in after resizing
         animateFadeIn(root, 300);
@@ -537,11 +454,6 @@ public class Game {
 
         controlButtonsX = convertDimensions(1069, newSceneWidth, referenceWidth);
         controlButtonsY = convertDimensions(99, newSceneHeight, referenceHeight);
-
-        movesListX = controlButtonsX;
-        movesListY = convertDimensions(469, newSceneHeight, referenceHeight);
-        movesListWidth = buttonWidth;
-        movesListHeight = convertDimensions(222, newSceneHeight, referenceHeight);
     }
 
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
