@@ -4,14 +4,22 @@ import com.um_project_game.Server.MainServer;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.SoundPlayer;
 
+import javafx.animation.Animation;
+import javafx.animation.Interpolator;
 import javafx.animation.PauseTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -52,7 +60,92 @@ public class Launcher extends Application {
     public void start(Stage stage) {
         menuStage = stage;
         settings = new Settings(soundPlayer, viewManager.getRoot(), viewManager.getScene());
-        setupMenuStage(menuStage);
+        showLoadingScreen(stage);
+    }
+
+    private void showLoadingScreen(Stage stage) {
+        // Create the root pane and apply the CSS ID
+        Pane loadingRoot = new Pane();
+        loadingRoot.setId("loading-root");
+
+        // Create the scene and add the CSS stylesheet
+        Scene loadingScene = new Scene(loadingRoot, REF_WIDTH, REF_HEIGHT);
+        loadingScene
+                .getStylesheets()
+                .add(
+                        getClass()
+                                .getResource(DARK_MODE ? "/dark-theme.css" : "/light-theme.css")
+                                .toExternalForm());
+
+        // Create a group of dots (dotted circle) and apply a style class
+        Group dotCircle = createDottedCircle(REF_WIDTH / 2.0, REF_HEIGHT / 2.0, 50, 12);
+        dotCircle.getStyleClass().add("dot-circle");
+
+        // Rotate the dot circle
+        RotateTransition rotateTransition = new RotateTransition(Duration.seconds(5), dotCircle);
+        rotateTransition.setByAngle(360);
+        rotateTransition.setCycleCount(Animation.INDEFINITE);
+        rotateTransition.setInterpolator(Interpolator.EASE_BOTH);
+        rotateTransition.play();
+
+        // Loading Text
+        Text loadingText = new Text("Loading...");
+        loadingText.setId("loading-text");
+        loadingText.setX(REF_WIDTH / 2.0 - 70);
+        loadingText.setY(REF_HEIGHT / 2.0 + 100);
+
+        ScaleTransition textPulse = new ScaleTransition(Duration.seconds(1), loadingText);
+        textPulse.setFromX(1.0);
+        textPulse.setToX(1.2);
+        textPulse.setFromY(1.0);
+        textPulse.setToY(1.2);
+        textPulse.setCycleCount(Animation.INDEFINITE);
+        textPulse.setAutoReverse(true);
+        textPulse.play();
+
+        // Add everything to the root
+        loadingRoot.getChildren().addAll(dotCircle, loadingText);
+
+        // Set the scene and show the stage
+        stage.setScene(loadingScene);
+        stage.show();
+
+        // Simulate loading delay
+        PauseTransition pause = new PauseTransition(Duration.seconds(5));
+        pause.setOnFinished(_ -> setupMenuStage(stage));
+        pause.play();
+    }
+
+    // Helper method to create a dotted circle
+    private Group createDottedCircle(double centerX, double centerY, double radius, int dotCount) {
+        Group group = new Group();
+        double angleStep = 360.0 / dotCount;
+
+        for (int i = 0; i < dotCount; i++) {
+            double angle = Math.toRadians(i * angleStep);
+            double x = centerX + radius * Math.cos(angle);
+            double y = centerY + radius * Math.sin(angle);
+
+            Circle dot = new Circle(5, Color.WHITE); // Small dots
+            dot.setCenterX(x);
+            dot.setCenterY(y);
+            dot.getStyleClass().add("dot");
+
+            // Scale animation to make dots pulse
+            ScaleTransition scaleTransition = new ScaleTransition(Duration.seconds(0.6), dot);
+            scaleTransition.setFromX(1.0);
+            scaleTransition.setToX(1.3);
+            scaleTransition.setFromY(1.0);
+            scaleTransition.setToY(1.3);
+            scaleTransition.setCycleCount(Animation.INDEFINITE);
+            scaleTransition.setAutoReverse(true);
+            scaleTransition.setDelay(Duration.millis(i * 100)); // Stagger the pulse animation
+            scaleTransition.play();
+
+            group.getChildren().add(dot);
+        }
+
+        return group;
     }
 
     private void setupMenuStage(Stage stage) {

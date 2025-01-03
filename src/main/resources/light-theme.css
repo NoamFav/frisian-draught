@@ -12,6 +12,60 @@
   -fx-faint-focus-color: transparent;
 }
 
+/* -------------------------- */
+/*       LOADING SCREEN       */
+/* -------------------------- */
+#loading-root {
+  -fx-background-color: linear-gradient(to bottom, #fefefe, #f5f5f5);
+}
+
+/* Dotted Circle Styling */
+.dot-circle .dot {
+  -fx-fill: #84c5ff; /* Soft light blue color */
+  -fx-radius: 5;
+  -fx-effect: dropshadow(
+    gaussian,
+    rgba(130, 180, 255, 0.4),
+    10,
+    0.5,
+    0,
+    2
+  ); /* Light blue glow */
+}
+
+.dot-circle .dot:hover {
+  -fx-fill: #a8d5ff;
+  -fx-effect: dropshadow(
+    gaussian,
+    rgba(160, 200, 255, 0.6),
+    12,
+    0.6,
+    0,
+    3
+  ); /* Stronger light blue glow */
+}
+
+/* Loading Text Styling */
+#loading-text {
+  -fx-font-family: "Inter", sans-serif;
+  -fx-font-size: 24px;
+  -fx-fill: #333333; /* Dark text for readability */
+  -fx-effect: dropshadow(
+    gaussian,
+    rgba(0, 0, 0, 0.1),
+    4,
+    0.5,
+    0,
+    1
+  ); /* Subtle shadow */
+}
+
+/* Pulsing Text Animation */
+#loading-text:hover {
+  -fx-fill: #5588ff;
+  -fx-effect: dropshadow(gaussian, rgba(100, 150, 255, 0.3), 8, 0.4, 0, 2);
+}
+
 /* --------------------------
    TOP & BOTTOM BARS
 --------------------------- */
@@ -70,14 +124,110 @@
    VERSION STATUS PANEL
 --------------------------- */
 .version-status {
-  -fx-background-color: rgba(255, 255, 255, 0.95);
-  -fx-background-radius: 15;
+  /* Light background with subtle gradient */
+  -fx-background-color: linear-gradient(to bottom, #ffffff, #f5f5f5);
+
+  /* Rounded corners & border */
+  -fx-background-radius: 12;
   -fx-border-color: #cccccc;
   -fx-border-width: 1.5;
-  -fx-border-radius: 15;
+  -fx-border-radius: 12;
+
+  /* Spacing & shadow */
   -fx-padding: 15;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0.3, 0, 2);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0.3, 0, 2);
+
+  /* Text color for any direct text inside */
   -fx-text-fill: #333333;
+
+  /* Subtle scaling on hover */
+  -fx-scale-x: 1;
+  -fx-scale-y: 1;
+  -fx-transition: all 0.3s ease-in-out;
+}
+
+.version-status:hover {
+  /* Slight growth on hover */
+  -fx-scale-x: 1.02;
+  -fx-scale-y: 1.02;
+
+  /* Subtle shadow enhancement */
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.4, 0, 3);
+}
+
+/* --------------------------
+   SCROLL PANE
+--------------------------- */
+.scroll-pane {
+  /* Light background */
+  -fx-background-color: #ffffff, #f9f9f9;
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-border-color: #cccccc;
+  -fx-border-width: 1;
+  -fx-padding: 0;
+}
+
+/* Removes the small corner box background */
+.scroll-pane .corner {
+  -fx-background-color: #ffffff;
+}
+
+/* Style the vertical scrollbar track & thumb */
+.scroll-pane .scroll-bar:vertical .track {
+  -fx-background-color: #f0f0f0; /* Track color */
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+  -fx-background-color: #cccccc; /* Thumb color */
+  -fx-background-radius: 4;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+  -fx-background-color: #bbbbbb; /* Slightly darker thumb on hover */
+}
+
+/* Similarly, style the horizontal scrollbar */
+.scroll-pane .scroll-bar:horizontal .track {
+  -fx-background-color: #f0f0f0;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb {
+  -fx-background-color: #cccccc;
+  -fx-background-radius: 4;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb:hover {
+  -fx-background-color: #bbbbbb;
+}
+
+/* --------------------------
+   INDIVIDUAL COMMIT LINE STYLING
+--------------------------- */
+.commit-text {
+  /* Dark text on light background */
+  -fx-text-fill: #333333;
+
+  /* Monospace font for that "git commit log" look */
+  -fx-font-family: "Consolas", monospace;
+  -fx-font-size: 13px;
+
+  /* Ensure wrapping if it's a Label or Text within a container */
+  -fx-wrap-text: true;
+  -fx-text-alignment: justify;
+
+  /* Subtle background with a small border around each line */
+  -fx-background-color: #f9f9f9;
+  -fx-background-radius: 6;
+  -fx-padding: 8;
+  -fx-border-color: #e0e0e0;
+  -fx-border-width: 1;
+  -fx-border-radius: 6;
+}
+
+.commit-text:hover {
+  -fx-background-color: #e0f0ff; /* Slight blue tint on hover */
+  -fx-cursor: hand; /* Pointer cursor on hover */
 }
 
 /* --------------------------

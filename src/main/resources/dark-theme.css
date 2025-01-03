@@ -13,6 +13,46 @@
 }
 
 /* -------------------------- */
+/*       LOADING SCREEN       */
+/* -------------------------- */
+#loading-root {
+  -fx-background-color: linear-gradient(to bottom, #1f1f1f, #292929);
+}
+
+/* Dotted Circle Styling */
+.dot-circle .dot {
+  -fx-fill: #5560f2; /* Soft blue color */
+  -fx-radius: 5;
+  -fx-effect: dropshadow(gaussian, 10, 0.5, 0, 2); /* Blue glow */
+}
+
+.dot-circle .dot:hover {
+  -fx-fill: #6d7af3;
+  -fx-effect: dropshadow(
+    gaussian,
+    rgba(130, 160, 255, 0.9),
+    12,
+    0.6,
+    0,
+    3
+  ); /* Stronger glow */
+}
+
+/* Loading Text Styling */
+#loading-text {
+  -fx-font-family: "Inter", sans-serif;
+  -fx-font-size: 24px;
+  -fx-fill: #e0e0e0;
+  -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.3), 4, 0.5, 0, 1);
+}
+
+/* Pulsing Text Animation */
+#loading-text:hover {
+  -fx-fill: #7a82f5;
+  -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.6), 8, 0.4, 0, 2);
+}
+
+/* -------------------------- */
 /*    TOP & BOTTOM BARS       */
 /* -------------------------- */
 #top-bar,
