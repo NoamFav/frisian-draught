@@ -33,7 +33,7 @@ public class Menu {
     private final Pane menuRoot;
     private final Launcher launcher;
 
-    // Dimensions (initialized with defaults)
+    // Dimensions
     private int topBarHeight = 75;
     private int bottomBarHeight = 55;
     private int buttonWidth = 510;
@@ -114,7 +114,7 @@ public class Menu {
                         (int) (scene.getHeight() - bottomBarHeight),
                         (int) scene.getWidth(),
                         bottomBarHeight,
-                        "© 2024 UM Project - Version 2.1.4",
+                        "© 2024 UM Project - Version 3.5.2",
                         "bottom-bar");
         root.getChildren().add(bottomBarPane);
     }

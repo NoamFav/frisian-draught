@@ -331,27 +331,25 @@ public class Game {
      *                            EXIT CONFIRMATION
      * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
-        ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
-        if (exitConfirmation.showAndWait()) { // If user confirmed exit
-            if (exitConfirmation.shouldSaveOnExit()) {
-                exporter.exportGameToPDN(
-                        mainBoard.getTakenMoves(),
-                        null,
-                        isAgainstBot ? "1" : "0",
-                        isMultiplayer ? "1" : "0",
-                        gameInfo.getPlayerTurn() == 1 ? "W" : "B");
-                Launcher.viewManager
-                        .getMenu()
-                        .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
-            }
-            if (Launcher.menuStage == null) {
-                launcher.showMenu();
-            }
 
-            fadeOutAndClose(gameStage, 300);
-
-            gameStage.close();
+        if (ExitGameConfirmation.showSaveConfirmation(true)) {
+            exporter.exportGameToPDN(
+                    mainBoard.getTakenMoves(),
+                    null,
+                    isAgainstBot ? "1" : "0",
+                    isMultiplayer ? "1" : "0",
+                    gameInfo.getPlayerTurn() == 1 ? "W" : "B");
+            Launcher.viewManager
+                    .getMenu()
+                    .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
         }
+        if (Launcher.menuStage == null) {
+            launcher.showMenu();
+        }
+
+        fadeOutAndClose(gameStage, 300);
+
+        gameStage.close();
     }
 
     /* --------------------------------------------------------------------------------

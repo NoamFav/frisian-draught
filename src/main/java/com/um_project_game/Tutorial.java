@@ -207,8 +207,8 @@ public class Tutorial {
      *                            EXIT CONFIRMATION
      * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
-        ExitGameConfirmation exitConfirmation = new ExitGameConfirmation();
-        if (exitConfirmation.showAndWait()) { // If user confirmed exit
+
+        if (ExitGameConfirmation.showSaveConfirmation(false)) { // If user confirmed exit
 
             if (Launcher.menuStage == null) {
                 launcher.showMenu();
