@@ -15,7 +15,12 @@ public class SoundPlayer {
     private DoubleProperty captureVolume = new SimpleDoubleProperty(1.0);
 
     public SoundPlayer() {
-        backgroundMusic = new AudioClip(getClass().getResource("/sound/background.wav").toString());
+        backgroundMusic =
+                new AudioClip(
+                        getClass()
+                                .getResource(
+                                        "/sound/important-to-you-pecan-pie-main-version-18025-02-06.mp3")
+                                .toString());
         moveSound = new AudioClip(getClass().getResource("/sound/move.mp3").toString());
         captureSound = new AudioClip(getClass().getResource("/sound/move.mp3").toString());
 
