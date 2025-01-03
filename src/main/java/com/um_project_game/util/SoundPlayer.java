@@ -3,9 +3,11 @@ package com.um_project_game.util;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 public class SoundPlayer {
-    private AudioClip backgroundMusic;
+    private MediaPlayer backgroundMusic;
     private AudioClip moveSound;
     private AudioClip captureSound;
 
@@ -15,64 +17,52 @@ public class SoundPlayer {
     private DoubleProperty captureVolume = new SimpleDoubleProperty(1.0);
 
     public SoundPlayer() {
-        backgroundMusic =
-                new AudioClip(
+        Media backgroundMedia =
+                new Media(
                         getClass()
                                 .getResource(
                                         "/sound/important-to-you-pecan-pie-main-version-18025-02-06.mp3")
-                                .toString());
-        moveSound = new AudioClip(getClass().getResource("/sound/move.mp3").toString());
-        captureSound = new AudioClip(getClass().getResource("/sound/move.mp3").toString());
+                                .toExternalForm());
+        backgroundMusic = new MediaPlayer(backgroundMedia);
+        moveSound = new AudioClip(getClass().getResource("/sound/move.mp3").toExternalForm());
+        captureSound = new AudioClip(getClass().getResource("/sound/move.mp3").toExternalForm());
 
         // Start playing background music
         playBackgroundMusic();
 
-        setMainVolume(0.4);
-        setBackgroundVolume(0.4);
-        setMoveVolume(0.4);
-        setCaptureVolume(0.4);
-
         // Add listeners to monitor volume changes
-        mainVolume.addListener(
-                (obs, oldVal, newVal) -> {
-                    updateBackgroundMusicVolume();
-                    updateMoveSoundVolume();
-                    updateCaptureSoundVolume();
-                });
-        backgroundVolume.addListener((obs, oldVal, newVal) -> updateBackgroundMusicVolume());
-        moveVolume.addListener((obs, oldVal, newVal) -> updateMoveSoundVolume());
-        captureVolume.addListener((obs, oldVal, newVal) -> updateCaptureSoundVolume());
+        mainVolume.addListener((_, _, _) -> updateVolumes());
+        backgroundVolume.addListener((_, _, _) -> updateBackgroundMusicVolume());
+        moveVolume.addListener((_, _, _) -> updateMoveSoundVolume());
+        captureVolume.addListener((_, _, _) -> updateCaptureSoundVolume());
+    }
+
+    private void updateVolumes() {
+        updateBackgroundMusicVolume();
+        updateMoveSoundVolume();
+        updateCaptureSoundVolume();
     }
 
     private void updateBackgroundMusicVolume() {
         double volume = mainVolume.get() * backgroundVolume.get();
-        volumeCheck(backgroundMusic, volume);
+        backgroundMusic.setVolume(volume);
     }
 
     private void updateMoveSoundVolume() {
         double volume = mainVolume.get() * moveVolume.get();
-        volumeCheck(moveSound, volume);
+        moveSound.setVolume(volume);
     }
 
     private void updateCaptureSoundVolume() {
         double volume = mainVolume.get() * captureVolume.get();
-        volumeCheck(captureSound, volume);
-    }
-
-    private void volumeCheck(AudioClip sound, double volume) {
-        sound.setVolume(volume);
-        if (volume == 0) {
-            sound.stop();
-        } else {
-            sound.stop();
-            sound.play();
-        }
+        captureSound.setVolume(volume);
     }
 
     public void playBackgroundMusic() {
-        backgroundMusic.setCycleCount(AudioClip.INDEFINITE);
-        backgroundMusic.setVolume(mainVolume.get() * backgroundVolume.get());
-        backgroundMusic.play();
+        if (backgroundMusic.getStatus() != MediaPlayer.Status.PLAYING) {
+            backgroundMusic.setCycleCount(MediaPlayer.INDEFINITE);
+            backgroundMusic.play();
+        }
     }
 
     public void playMoveSound() {
