@@ -214,4 +214,7 @@ This is located in the `com.um_project_game.board` package. In the `MainBoard` c
 ### License
 
 D9_pawn.mp3 by Iamgiorgio -- https://freesound.org/s/371352/ -- License: Creative Commons 0
-piano background 5.wav by Nick_Simon-Adams -- https://freesound.org/s/647614/ -- License: Attribution 4.0
+
+Music from #Uppbeat (free for Creators!):
+https://uppbeat.io/t/pecan-pie/important-to-you
+License code: 0V6UVBKUHDBDI1XW
