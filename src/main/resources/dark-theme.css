@@ -23,7 +23,14 @@
 .dot-circle .dot {
   -fx-fill: #5560f2; /* Soft blue color */
   -fx-radius: 5;
-  -fx-effect: dropshadow(gaussian, 10, 0.5, 0, 2); /* Blue glow */
+  -fx-effect: dropshadow(
+    gaussian,
+    rgba(85, 96, 242, 0.8),
+    10,
+    0.5,
+    0,
+    2
+  ); /* Blue glow */
 }
 
 .dot-circle .dot:hover {
@@ -50,6 +57,38 @@
 #loading-text:hover {
   -fx-fill: #7a82f5;
   -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.6), 8, 0.4, 0, 2);
+}
+
+/* -------------------------- */
+/*          DIALOGS           */
+/* -------------------------- */
+
+.alert-root {
+  -fx-background-color: linear-gradient(to bottom, #1f1f1f, #292929);
+  -fx-background-radius: 12;
+  -fx-padding: 20px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 16, 0.4, 0, 4);
+  -fx-border-color: transparent;
+  -fx-border-width: 0;
+}
+
+/* Header Label */
+.header-label {
+  -fx-text-fill: #ffffff;
+  -fx-font-size: 20px;
+  -fx-font-weight: bold;
+}
+
+/* Message Label */
+.message-label {
+  -fx-text-fill: #dcdcdc;
+  -fx-font-size: 16px;
+}
+
+/* Checkbox Styling */
+.checkbox {
+  -fx-text-fill: #dcdcdc;
+  -fx-font-size: 14px;
 }
 
 /* -------------------------- */

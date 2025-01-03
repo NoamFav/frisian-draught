@@ -1,6 +1,5 @@
 package com.um_project_game;
 
-import com.um_project_game.Server.MainServer;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.SoundPlayer;
 
@@ -13,9 +12,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -26,7 +22,6 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Launcher extends Application {
     private PauseTransition resizePause;
@@ -82,7 +77,7 @@ public class Launcher extends Application {
         dotCircle.getStyleClass().add("dot-circle");
 
         // Rotate the dot circle
-        RotateTransition rotateTransition = new RotateTransition(Duration.seconds(5), dotCircle);
+        RotateTransition rotateTransition = new RotateTransition(Duration.seconds(3), dotCircle);
         rotateTransition.setByAngle(360);
         rotateTransition.setCycleCount(Animation.INDEFINITE);
         rotateTransition.setInterpolator(Interpolator.EASE_BOTH);
@@ -111,7 +106,7 @@ public class Launcher extends Application {
         stage.show();
 
         // Simulate loading delay
-        PauseTransition pause = new PauseTransition(Duration.seconds(5));
+        PauseTransition pause = new PauseTransition(Duration.seconds(3));
         pause.setOnFinished(_ -> setupMenuStage(stage));
         pause.play();
     }
@@ -164,7 +159,7 @@ public class Launcher extends Application {
                 event -> {
                     switch (event.getCode()) {
                         case ESCAPE:
-                            showExitConfirmation();
+                            ExitGameConfirmation.showExitConfirmation();
                             break;
                         default:
                             break;
@@ -239,36 +234,6 @@ public class Launcher extends Application {
             setupMenuStage(menuStage);
         } else {
             menuStage.show();
-        }
-    }
-
-    public void foolproofExit() {
-        showExitConfirmation();
-    }
-
-    private void showExitConfirmation() {
-        // Create a confirmation dialog
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Exit Confirmation");
-        alert.setHeaderText("Are you sure you want to quit?");
-        alert.setContentText("Do you really want to close the application?");
-
-        // Customize the button labels
-        ButtonType yesButton = new ButtonType("Yes, I'm sure", ButtonData.OK_DONE);
-        ButtonType noButton = new ButtonType("Nah, I'm good", ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(yesButton, noButton);
-
-        // Show the dialog and wait for the user's response
-        Optional<ButtonType> result = alert.showAndWait();
-
-        if (result.isPresent() && result.get() == yesButton) {
-            MainServer server = viewManager.getServer();
-            if (server.isRunning()) {
-                server.close();
-                System.out.println("Server closed");
-            }
-            Platform.exit(); // Close the application
         }
     }
 
