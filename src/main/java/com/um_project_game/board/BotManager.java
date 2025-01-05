@@ -1,6 +1,7 @@
 package com.um_project_game.board;
 
 import com.um_project_game.AI.Experience;
+import com.um_project_game.AI.ReplayBuffer;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -26,11 +27,14 @@ public class BotManager {
     private BoardRendered boardRendered;
 
     private static final int BATCH_SIZE = 32;
+    private static final int REPLAY_BUFFER_SIZE = 10000;
+    private ReplayBuffer replayBuffer;
     private int episodeCounter = 0;
 
     public BotManager(BoardState boardState, MainBoard mainboard) {
         this.boardState = boardState;
         this.mainboard = mainboard;
+        this.replayBuffer = new ReplayBuffer(REPLAY_BUFFER_SIZE);
     }
 
     public void setMoveManager(MoveManager moveManager) {
@@ -141,6 +145,14 @@ public class BotManager {
                                 return;
                             }
                         }
+                        // Add experience to replay buffer
+                        Experience experience = new Experience(
+                                currentState,
+                                chosenAction,
+                                computeReward(currentState.applyMove(selectedMove)),
+                                mainboard.getBoardState(),
+                                currentState.isTerminal());
+                        replayBuffer.addExperience(experience);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -160,6 +172,12 @@ public class BotManager {
                             triggerBotMove(); // Random bot for White
                         } else {
                             triggerBotMove(); // Trained bot for Black
+                        }
+
+                        // Train the model with a batch from the replay buffer
+                        if (replayBuffer.size() >= BATCH_SIZE) {
+                            List<Experience> batch = replayBuffer.sample(BATCH_SIZE);
+                            trainModel(batch);
                         }
 
                         // Save the model every 100 episodes
@@ -223,6 +241,10 @@ public class BotManager {
         System.out.println("Average Loss: " + (totalLoss / batch.size()));
     }
 
+    private double computeReward(MoveResult result) {
+        return result.getReward();
+    }
+    
     private void applyMove(MoveResult result) {
         if (result != null) {
             // Update the board state
