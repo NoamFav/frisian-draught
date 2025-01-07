@@ -1,5 +1,6 @@
 package com.um_project_game;
 
+import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
@@ -32,6 +33,7 @@ import java.util.function.Consumer;
 public class Game {
 
     private MainBoard mainBoard = new MainBoard();
+    private NetworkClient networkClient;
 
     public MainBoard getMainBoard() {
         return mainBoard;
@@ -109,6 +111,7 @@ public class Game {
 
         // Initialize game UI
         if (isMultiplayer) {
+            networkClient = new NetworkClient("localhost", 9000, this);
             mainGameBoardMultiplayer(gameRoot, scene);
         } else {
             mainGameBoard(gameRoot, scene, isAgainstBot);
