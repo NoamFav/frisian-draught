@@ -52,12 +52,14 @@ public class NetworkClient {
         // 2) "UPDATE White moved from 3,5 to 4,6"
         // 3) "You are White" (role assignment)
 
+        String name = "Server"; // Default name
+
         if (message.startsWith("CHAT")) {
             String chatText = message.substring(4).trim();
             // Update your chatUI in Game
             Platform.runLater(
                     () -> {
-                        gameReference.appendChatMessage(chatText);
+                        gameReference.appendChatMessage(chatText, name);
                     });
 
         } else if (message.startsWith("UPDATE")) {
@@ -74,7 +76,8 @@ public class NetworkClient {
             // e.g. "You are White"
             Platform.runLater(
                     () -> {
-                        gameReference.setPlayerRole(message.substring("You are".length()).trim());
+                        gameReference.setPlayerRole(
+                                message.substring("You are".length()).trim(), name);
                     });
         }
     }
