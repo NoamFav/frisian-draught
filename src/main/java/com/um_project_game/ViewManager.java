@@ -79,11 +79,6 @@ public class ViewManager {
         GAME_STATE = state;
         switch (GAME_STATE) {
             case 0:
-                if (server.isRunning()) {
-                    server.close();
-                    System.out.println("Server closed");
-                }
-
                 root.getChildren().clear();
                 root.getChildren().add(menu.getMenuRoot());
                 break;
