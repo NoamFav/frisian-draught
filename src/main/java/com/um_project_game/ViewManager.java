@@ -107,7 +107,7 @@ public class ViewManager {
         activeGames.remove(gameToClose);
         root.getChildren().remove(gameToClose.getGameRoot());
         if (activeGames.isEmpty()) {
-            gameStateSwitch(0); // Go back to menu
+            gameStateSwitch(0);
         }
     }
 
