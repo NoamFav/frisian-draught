@@ -486,10 +486,67 @@ public class Game {
         alert.setHeaderText("Are you sure you want to restart the game?");
         alert.setContentText("All progress will be lost.");
 
+        // when restart the game also reset the timer
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+
+            // Stop the timers if they are running
+            if (gameTimerPlayerOne != null) {
+                gameTimerPlayerOne.stop();
+                remainingTimePlayerOne = gameTimeLimit; // Reset Player 1 time
+            }
+            if (gameTimerPlayerTwo != null) {
+                gameTimerPlayerTwo.stop();
+                remainingTimePlayerTwo = gameTimeLimit; // Reset Player 2 time
+            }
+
+            // Reset the board and game state
             mainBoard.resetGame(mainBoardSize);
+
+            // Restart the timers for both players with full time
+            startTimers();
         }
+    }
+
+    /**
+     * Initializes and starts the countdown timers for both Player One and Player Two.
+     * Each player's timer counts down from the preset game time limit.
+     * If a player's timer reaches zero, the game will end for that player.
+     * This method is called when the game starts or restarts.
+     */
+
+    private void startTimers() {
+        // Timer for Player One
+        gameTimerPlayerOne = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            remainingTimePlayerOne--;
+            int minutes = remainingTimePlayerOne / 60;
+            int seconds = remainingTimePlayerOne % 60;
+            // Update the Player One UI time
+            ((Text) gameRoot.lookup("#playerOneTime")).setText(String.format("Time: %02d:%02d", minutes, seconds));
+
+            if (remainingTimePlayerOne <= 0) {
+                gameTimerPlayerOne.stop();
+                handleTimeUp(true);
+            }
+        }));
+        gameTimerPlayerOne.setCycleCount(Timeline.INDEFINITE);
+        gameTimerPlayerOne.play();
+
+        // Timer for Player Two
+        gameTimerPlayerTwo = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            remainingTimePlayerTwo--;
+            int minutes = remainingTimePlayerTwo / 60;
+            int seconds = remainingTimePlayerTwo % 60;
+            // Update the Player Two UI time
+            ((Text) gameRoot.lookup("#playerTwoTime")).setText(String.format("Time: %02d:%02d", minutes, seconds));
+
+            if (remainingTimePlayerTwo <= 0) {
+                gameTimerPlayerTwo.stop();
+                handleTimeUp(false);
+            }
+        }));
+        gameTimerPlayerTwo.setCycleCount(Timeline.INDEFINITE);
+        gameTimerPlayerTwo.play();
     }
 
     private void drawWarning() {
