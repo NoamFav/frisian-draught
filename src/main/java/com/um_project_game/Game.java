@@ -26,6 +26,8 @@ import javafx.util.Duration;
 import org.joml.Vector2i;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -46,6 +48,10 @@ public class Game {
     private boolean isMultiplayer;
     private boolean isAgainstBot;
     private boolean isBotvBot;
+
+    private Player playerWhite;
+    private Player playerBlack;
+    private List<Player> spectators = new ArrayList<>();
 
     private PauseTransition resizePause;
 
@@ -322,6 +328,7 @@ public class Game {
         chatUI.setLayoutX(chatUIX);
         chatUI.setLayoutY(chatUIY);
         chatUI.getStyleClass().add("chatUI");
+        chatUI.setId("chatUI");
 
         Text chatText = new Text("Chat");
         chatText.getStyleClass().add("label");
@@ -589,5 +596,30 @@ public class Game {
         ft.setToValue(0);
         ft.setOnFinished(_ -> stage.close());
         ft.play();
+    }
+
+    /* --------------------------------------------------------------------------------
+     *                           SERVER COMMUNICATION
+     * -------------------------------------------------------------------------------- */
+
+    public void appendChatMessage(String message, String name) {
+        StackPane chatUI = (StackPane) gameRoot.lookup("#chatUI");
+        chatUI.getChildren().add(new Text(name + ": " + message));
+    }
+
+    public void setPlayerRole(String role, String name) {
+        switch (role) {
+            case "WHITE":
+                playerWhite = new Player(name, true);
+                break;
+            case "BLACK":
+                playerBlack = new Player(name, false);
+                break;
+            case "SPEC":
+                spectators.add(new Player(name, false, true));
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid role: " + role);
+        }
     }
 }
