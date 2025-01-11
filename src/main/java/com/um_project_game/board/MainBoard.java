@@ -12,6 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import org.joml.Vector2i;
@@ -538,5 +539,15 @@ public class MainBoard {
                         .collect(Collectors.toMap(Pawn::getPosition, pawn -> pawn)),
                 boardState.isWhiteTurn(),
                 this);
+    }
+
+    private Stage primaryStage;
+
+    public void setPrimaryStage(Stage stage) {
+        this.primaryStage = stage;
+    }
+
+    public Stage getPrimaryStage() {
+        return primaryStage;
     }
 }
