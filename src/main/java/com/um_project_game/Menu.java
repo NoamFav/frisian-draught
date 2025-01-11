@@ -3,30 +3,28 @@ package com.um_project_game;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.board.MovesListManager;
 import com.um_project_game.util.Buttons;
+import com.um_project_game.util.PawnImages;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
-import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 public class Menu {
 
@@ -95,7 +93,7 @@ public class Menu {
         initMenuButtons(scene, root);
         initRecentGames(scene, root);
         initLiveGame(scene, root);
-        initVersionStatus(scene, root);
+        initPlayerStatus(scene, root, Launcher.user);
     }
 
     /** Initializes top bar. */
@@ -283,118 +281,126 @@ public class Menu {
         animateHoverScale(liveGame, 1.03);
     }
 
-    private void initVersionStatus(Scene scene, Pane root) {
-        // A VBox to hold commits
-        VBox commitsBox = new VBox(5);
-        commitsBox.setId("commit-list");
+    private void initPlayerStatus(Scene scene, Pane root, UserInfo user) {
+        // Create a VBox to hold player info
+        VBox playerInfoBox = new VBox(15);
+        playerInfoBox.setId("player-info-box");
+        playerInfoBox.setAlignment(Pos.CENTER);
+        playerInfoBox.setPadding(new Insets(20));
+        playerInfoBox.setSpacing(10);
 
-        // Check GH CLI auth
-        boolean isAuthenticated = isGitHubCLIAuthenticated();
-        if (!isAuthenticated) {
-            Text notAuthText = new Text("Not Authenticated via GitHub CLI");
-            notAuthText.getStyleClass().add("commit-text");
-            commitsBox.getChildren().add(notAuthText);
-            Button notAuthButton = new Button("Authenticate");
-            notAuthButton.getStyleClass().add("button");
-            notAuthButton.setOnAction(
-                    _ -> {
-                        try {
-                            ProcessBuilder processBuilder =
-                                    new ProcessBuilder("gh", "auth", "login", "--with-token");
-                            processBuilder
-                                    .environment()
-                                    .put("GITHUB_TOKEN", System.getenv("GITHUB_TOKEN"));
-                            Process process = processBuilder.start();
-                            int exitCode = process.waitFor();
-                            if (exitCode == 0) {
-                                // Rebuild layout on the JavaFX thread
-                                Platform.runLater(() -> rebuildLayout(scene, root));
-                            }
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    });
-            commitsBox.getChildren().add(notAuthButton);
-        } else {
-            // Fetch up to 50 commits
-            List<String> commits = fetchCommits(50);
-            if (commits.isEmpty()) {
-                Text noneText = new Text("Authenticated, but no commits found.");
-                noneText.getStyleClass().add("commit-text");
-                commitsBox.getChildren().add(noneText);
-            } else {
-                for (String commitLine : commits) {
-                    Label commitLabel = new Label(commitLine);
-                    commitLabel.getStyleClass().add("commit-text");
-                    commitLabel.setWrapText(true);
-                    commitLabel.setMaxWidth(versionStatusWidth - 30);
-                    commitsBox.getChildren().add(commitLabel);
-                }
-            }
-        }
+        // Profile Avatar
+        ImageView avatarImage = new ImageView(PawnImages.getPawnImage().blackKing());
+        avatarImage.setFitWidth(100);
+        avatarImage.setFitHeight(100);
+        avatarImage.getStyleClass().add("profile-avatar");
 
-        // Create the ScrollPane
-        ScrollPane scrollPane = new ScrollPane(commitsBox);
+        // Profile Labels
+        Label nameLabel = new Label(user.getName());
+        nameLabel.getStyleClass().add("profile-name");
+
+        Label levelLabel = new Label("Level: " + user.getLevel());
+        levelLabel.getStyleClass().add("profile-info-label");
+
+        Label experienceLabel = new Label("Experience: " + user.getExperience() + " XP");
+        experienceLabel.getStyleClass().add("profile-info-label");
+
+        // Progress Bar for Experience
+        ProgressBar experienceProgress = new ProgressBar();
+        experienceProgress.setProgress(
+                user.getExperience() / 100.0); // Assuming max XP is 100 for demo
+        experienceProgress.getStyleClass().add("progress-bar");
+
+        Label rankLabel = new Label("Rank: " + user.getRank());
+        rankLabel.getStyleClass().add("profile-info-label");
+
+        // Add statistics
+        Label gamesPlayedLabel = new Label("Games Played: " + user.getGamesPlayed());
+        Label gamesWonLabel = new Label("Games Won: " + user.getGamesWon());
+        Label gamesLostLabel = new Label("Games Lost: " + user.getGamesLost());
+        Label winStreakLabel = new Label("Win Streak: " + user.getWinStreak());
+        Label highestWinStreakLabel =
+                new Label("Highest Win Streak: " + user.getHighestWinStreak());
+
+        // Add trophies and achievements
+        Label trophiesUnlockedLabel =
+                new Label("Trophies Unlocked: " + user.getTrophiesUnlocked().size());
+        Label achievementsUnlockedLabel =
+                new Label("Achievements: " + user.getAchievements().size());
+
+        // Multiplayer Stats
+        Label multiplayerGamesPlayedLabel =
+                new Label("Multiplayer Games Played: " + user.getMultiplayerGamesPlayed());
+        Label multiplayerGamesWonLabel =
+                new Label("Multiplayer Games Won: " + user.getMultiplayerGamesWon());
+        Label multiplayerRankLabel =
+                new Label(
+                        "Multiplayer Rank: "
+                                + user.getMultiplayerRank()); // Trophies and Achievements Badges
+        //
+        gamesPlayedLabel.getStyleClass().add("profile-info-label");
+        gamesWonLabel.getStyleClass().add("profile-info-label");
+        gamesLostLabel.getStyleClass().add("profile-info-label");
+        winStreakLabel.getStyleClass().add("profile-info-label");
+        highestWinStreakLabel.getStyleClass().add("profile-info-label");
+        trophiesUnlockedLabel.getStyleClass().add("profile-info-label");
+        achievementsUnlockedLabel.getStyleClass().add("profile-info-label");
+        multiplayerGamesPlayedLabel.getStyleClass().add("profile-info-label");
+        multiplayerGamesWonLabel.getStyleClass().add("profile-info-label");
+        multiplayerRankLabel.getStyleClass().add("profile-info-label");
+
+        HBox badgesBox = new HBox(10);
+        badgesBox.setAlignment(Pos.CENTER);
+        badgesBox.setPadding(new Insets(10));
+
+        Label trophiesBadge = new Label("🏆");
+        trophiesBadge.getStyleClass().add("badge");
+
+        badgesBox.getChildren().addAll(trophiesBadge);
+
+        // Add all components to the VBox
+        playerInfoBox
+                .getChildren()
+                .addAll(
+                        avatarImage,
+                        nameLabel,
+                        levelLabel,
+                        experienceLabel,
+                        experienceProgress,
+                        rankLabel,
+                        gamesPlayedLabel,
+                        gamesWonLabel,
+                        gamesLostLabel,
+                        winStreakLabel,
+                        highestWinStreakLabel,
+                        trophiesUnlockedLabel,
+                        achievementsUnlockedLabel,
+                        multiplayerGamesPlayedLabel,
+                        multiplayerGamesWonLabel,
+                        multiplayerRankLabel,
+                        badgesBox);
+
+        // ScrollPane to handle overflow
+        ScrollPane scrollPane = new ScrollPane(playerInfoBox);
         scrollPane.setPrefSize(versionStatusWidth, versionStatusHeight);
-        scrollPane.setMaxSize(versionStatusWidth, versionStatusHeight);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(false);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.getStyleClass().add("player-scroll-pane");
 
-        // create a StackPane to hold the ScrollPane, and apply the styling to that.
-        StackPane versionPane = new StackPane();
-        versionPane.setPrefSize(versionStatusWidth, versionStatusHeight);
-        versionPane.setLayoutX(versionStatusX);
-        versionPane.setLayoutY(versionStatusY);
+        // StackPane for the profile card
+        StackPane playerStatusPane = new StackPane(scrollPane);
+        playerStatusPane.setPrefSize(versionStatusWidth, versionStatusHeight);
+        playerStatusPane.setLayoutX(versionStatusX);
+        playerStatusPane.setLayoutY(versionStatusY);
+        playerStatusPane.getStyleClass().add("player-status-card");
+        playerStatusPane.setId("player-status-card");
 
-        // Use the same CSS class or id that has your gradient, corner radius, etc.
-        versionPane.setId("version-status");
-        versionPane.getStyleClass().add("version-status");
+        // Add the profile card to the root
+        root.getChildren().add(playerStatusPane);
 
-        // Add the scrollPane inside the StackPane
-        versionPane.getChildren().add(scrollPane);
-
-        // Add the styled container to the root
-        root.getChildren().add(versionPane);
-
-        animateHoverScale(versionPane, 1.02);
-    }
-
-    /** Checks if the user is authenticated via `gh auth status`. */
-    private boolean isGitHubCLIAuthenticated() {
-        try {
-            Process process = new ProcessBuilder("gh", "auth", "status").start();
-            int exitCode = process.waitFor();
-            return (exitCode == 0);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return false;
-        }
-    }
-
-    /** Fetches up to 'limit' commits using `git log --pretty=...`. */
-    private List<String> fetchCommits(int limit) {
-        List<String> result = new ArrayList<>();
-        try {
-            Process process =
-                    new ProcessBuilder(
-                                    "git", "log", "--pretty=format:%h %s by %cn (%cr)", "-" + limit)
-                            .start();
-
-            try (BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.add(line.trim());
-                }
-            }
-            process.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
+        // Animate hover effect
+        animateHoverScale(playerStatusPane, 1.02);
     }
 
     /** Updates dimension fields based on the current Scene width/height. */
@@ -444,8 +450,8 @@ public class Menu {
             "#control-buttons",
             "#recent-boards",
             "#live-game",
-            "#version-status",
-            "#play-local-options"
+            "#player-info-box",
+            "#player-status-card"
         };
         for (String id : ids) {
             removeNodeById(root, id);

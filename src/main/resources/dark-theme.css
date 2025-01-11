@@ -156,109 +156,160 @@
 }
 
 /* -------------------------- */
-/*    VERSION STATUS PANEL    */
+/*      PLAYER STATUS BOX      */
 /* -------------------------- */
-.version-status {
-  /* A subtle linear gradient background */
-  -fx-background-color: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
-
-  /* Rounded corners & border */
-  -fx-background-radius: 12;
-  -fx-border-color: #5a5a5a;
-  -fx-border-width: 1.5;
-  -fx-border-radius: 12;
-
-  /* Spacing & shadow */
-  -fx-padding: 15;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0.4, 0, 3);
-
-  /* Text color for any direct text inside */
-  -fx-text-fill: #e0e0e0;
-
-  /* Subtle scaling on hover */
-  -fx-scale-x: 1;
-  -fx-scale-y: 1;
-  -fx-transition: all 0.3s ease-in-out;
+/* Profile Card Container */
+.player-status-card {
+  -fx-background-color: linear-gradient(to bottom, #1f1f1f, #292929);
+  -fx-background-radius: 20;
+  -fx-padding: 20;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.5, 0, 4);
+  -fx-border-color: #404040;
+  -fx-border-width: 2;
+  -fx-border-radius: 20;
 }
 
-.version-status:hover {
-  /* Slight growth on hover */
-  -fx-scale-x: 1.02;
-  -fx-scale-y: 1.02;
+/* Scroll Pane Styling */
+.player-scroll-pane .viewport {
+  -fx-background-color: transparent;
 }
-.scroll-pane {
-  /* Remove the default gray borders/padding */
-  -fx-background-color: transparent, transparent;
-  /* 'transparent, transparent' is for corners + main background */
-  -fx-background-insets: 0;
-  -fx-background-radius: 0;
-  -fx-border-color: transparent;
-  -fx-border-width: 0;
+
+.player-scroll-pane {
+  -fx-background-color: transparent;
   -fx-padding: 0;
 }
 
-/* Removes the small corner box background */
-.scroll-pane .corner {
-  -fx-background-color: transparent;
+/* Profile Avatar Styling */
+.profile-avatar {
+  -fx-background-radius: 50%;
+  -fx-border-color: #5560f2;
+  -fx-border-width: 3;
+  -fx-effect: dropshadow(gaussian, rgba(85, 96, 242, 0.8), 10, 0.5, 0, 3);
+  -fx-background-size: cover;
 }
 
-/* If you want the viewport itself to be transparent, too */
-.scroll-pane .viewport {
-  -fx-background-color: transparent;
+/* Profile Name Styling */
+.profile-name {
+  -fx-text-fill: #ffffff;
+  -fx-font-size: 24px;
+  -fx-font-weight: bold;
+  -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.3), 4, 0.5, 0, 1);
+  -fx-padding: 10 0;
 }
 
-/* Optional: style the vertical scrollbar track & thumb */
-.scroll-pane .scroll-bar:vertical .track {
-  -fx-background-color: #2a2a2a; /* track color */
+/* Profile Info Label Styling */
+.profile-info-label {
+  -fx-text-fill: #d0d0d0;
+  -fx-font-size: 16px;
+  -fx-padding: 5 0;
 }
 
-.scroll-pane .scroll-bar:vertical .thumb {
-  -fx-background-color: #444444; /* thumb color */
-  -fx-background-radius: 4;
-}
-.scroll-pane .scroll-bar:vertical .thumb:hover {
-  -fx-background-color: #555555;
-}
-
-/* Similarly, if you have a horizontal scrollbar (rare for commit lines) */
-.scroll-pane .scroll-bar:horizontal .track {
-  -fx-background-color: #2a2a2a;
-}
-.scroll-pane .scroll-bar:horizontal .thumb {
-  -fx-background-color: #444444;
-  -fx-background-radius: 4;
-}
-.scroll-pane .scroll-bar:horizontal .thumb:hover {
-  -fx-background-color: #555555;
+/* Hover Effects */
+.player-status-card:hover {
+  -fx-background-color: linear-gradient(to bottom, #5560f2, #6d7af3);
+  -fx-border-color: #7a82f5;
+  -fx-effect: dropshadow(gaussian, rgba(80, 100, 245, 0.8), 12, 0.6, 0, 4);
 }
 
-/* --------------------------------------------------------------------- */
-/*                  Individual commit line styling                       */
-/* --------------------------------------------------------------------- */
-.commit-text {
-  /* Light text on dark background */
-  -fx-text-fill: #eeeeee;
-
-  /* Monospace for that "git commit log" look */
-  -fx-font-family: "Consolas", monospace;
-  -fx-font-size: 13px;
-
-  /* Ensure wrapping if it's a Label or Text within a container */
-  -fx-wrap-text: true;
-  -fx-text-alignment: justify;
-
-  /* Subtle background with a small border around each line */
-  -fx-background-color: #2c2c2c;
-  -fx-background-radius: 6;
-  -fx-padding: 8;
-  -fx-border-color: #444444;
-  -fx-border-width: 1;
-  -fx-border-radius: 6;
+/* Avatar Hover */
+.profile-avatar:hover {
+  -fx-border-color: #7a82f5;
+  -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.9), 12, 0.6, 0, 3);
 }
 
-.commit-text:hover {
-  -fx-background-color: #3a3a3a;
-  -fx-cursor: hand; /* pointer cursor on commit line hover */
+/* Smooth Transitions */
+.player-status-card,
+.profile-avatar {
+  -fx-transition: all 0.3s ease-in-out;
+}
+.progress-bar {
+  -fx-background-color: transparent; /* Remove any default background */
+  -fx-border-color: #404040; /* Border color for the bar */
+  -fx-border-width: 2px; /* Border width */
+  -fx-border-radius: 15px; /* Rounded corners for the entire bar */
+  -fx-pref-height: 30px; /* Adjust height */
+  -fx-pref-width: 300px; /* Adjust width */
+  -fx-padding: 2px;
+  -fx-transition: all 0.3s ease-in-out;
+}
+
+/* Background Track Styling */
+.progress-bar .track {
+  -fx-background-color: linear-gradient(
+    to bottom,
+    #1f1f1f,
+    #292929
+  ); /* Dark gradient track */
+  -fx-background-radius: 15px; /* Match border radius for full rounding */
+  -fx-padding: 2px;
+}
+
+/* Progress Fill (Thumb) Styling */
+.progress-bar .bar {
+  -fx-background-color: linear-gradient(
+    to right,
+    #5560f2,
+    #6d7af3
+  ); /* Gradient fill */
+  -fx-background-radius: 13px; /* Rounded corners for the fill */
+  -fx-effect: dropshadow(gaussian, rgba(85, 96, 242, 0.6), 6, 0.5, 0, 1);
+  -fx-transition: all 0.3s ease-in-out;
+}
+
+/* Hover State on Progress Fill */
+.progress-bar:hover .bar {
+  -fx-background-color: linear-gradient(to right, #7a82f5, #9ba5ff);
+  -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.8), 8, 0.6, 0, 2);
+}
+
+/* Base Badge Styling */
+.badge {
+  -fx-background-color: linear-gradient(
+    to bottom,
+    #3a3a3a,
+    #2e2e2e
+  ); /* Subtle gradient */
+  -fx-text-fill: #ffffff;
+  -fx-border-color: #5560f2;
+  -fx-border-width: 2px;
+  -fx-border-radius: 20px; /* Fully rounded corners for a pill shape */
+  -fx-background-radius: 20px;
+  -fx-padding: 8 16; /* Increase padding for better readability */
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-effect: dropshadow(
+    gaussian,
+    rgba(85, 96, 242, 0.6),
+    6,
+    0.4,
+    0,
+    2
+  ); /* Softer shadow */
+  -fx-transition: all 0.3s ease-in-out;
+}
+
+/* Hover State for Badge */
+.badge:hover {
+  -fx-background-color: linear-gradient(to bottom, #5560f2, #6d7af3);
+  -fx-text-fill: #ffffff;
+  -fx-border-color: #7a82f5;
+  -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.8), 8, 0.5, 0, 2);
+  -fx-scale-x: 1.05; /* Subtle scaling on hover */
+  -fx-scale-y: 1.05;
+}
+
+/* Badge for Disabled State */
+.badge:disabled {
+  -fx-background-color: linear-gradient(to bottom, #3a3a3a, #2c2c2c);
+  -fx-text-fill: #7a7a7a;
+  -fx-border-color: #404040;
+  -fx-effect: none;
+}
+
+/* Animation for Smooth Hover Effect */
+.badge,
+.badge:hover {
+  -fx-transition: all 0.3s ease-in-out;
 }
 
 /* -------------------------- */

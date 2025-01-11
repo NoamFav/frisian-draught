@@ -11,6 +11,7 @@ module com.um_project_game {
     requires com.almasb.fxgl.all;
     requires transitive javafx.media;
     requires javafx.base;
+    requires toml4j;
 
     opens com.um_project_game to
             javafx.graphics;
