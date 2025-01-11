@@ -169,7 +169,7 @@ public class BotManager {
 
                     if (boardState.isBotvsBot()) {
                         if (boardState.isWhiteTurn()) {
-                            triggerBotMove(); // Random bot for White
+                            triggerBotMoveR(); // Random bot for White
                         } else {
                             triggerBotMove(); // Trained bot for Black
                         }
