@@ -175,6 +175,10 @@ public class BoardRendered {
      * @param tileSize Size of each tile.
      */
     public void clearHighlights() {
+        if (boardState.getBoard() == null) {
+            boardState.setBoard(new GridPane());
+            renderBoard();
+        }
         boardState.getBoard().getChildren().removeAll(boardState.getHighlightNodes());
         boardState.getHighlightNodes().clear();
     }

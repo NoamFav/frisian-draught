@@ -2,11 +2,15 @@ package com.um_project_game.Simulation;
 
 import com.um_project_game.board.*;
 import com.um_project_game.AI.*;
+import javafx.application.Platform;
+import org.joml.Vector2i;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 public class GameSimulator {
 
@@ -50,19 +54,41 @@ public class GameSimulator {
         }
     }
 
+    public void setupBoard(BoardState boardState) {
+        BiConsumer<Integer, Boolean> addPawns =
+                (startRow, isWhite) -> {
+                    for (int y = startRow; y < startRow + 4; y++) {
+                        for (int x = 0; x < boardState.getBoardSize().x; x++) {
+                            if ((x + y) % 2 == 1) {
+                                boardState.getPawns().add(new Pawn(new Vector2i(x, y), isWhite));
+                            }
+                        }
+                    }
+                };
+
+        // Add white pawns
+        addPawns.accept(0, false);
+        // Add black pawns
+        addPawns.accept(6, true);
+
+        boardState.getAllPawns().clear();
+        boardState.getAllPawns().addAll(boardState.getPawns());
+    }
     /**
      * Simulates a single game.
      */
     private void simulateGame() {
+        BoardState boardState = new BoardState();
+        boardState.setTileSize(50); // Example tile size
+        boardState.setBoardSize(new Vector2i(10, 10)); // Example board size
+        setupBoard(boardState);
         MainBoard mainBoard = new MainBoard();
-        BoardState boardState = mainBoard.boardState;
-        GameState initialState = mainBoard.getBoardState();
+        mainBoard.boardState = boardState;
         boolean isGameOver = false;
         int moveCount = 0;
-
         while (!isGameOver && moveCount < maxMoves) {
             GameState currentState = mainBoard.getBoardState();
-
+            currentState.printBoardState();
             // Choose action
             Move action = chooseActionEpsilonGreedy(currentState, model, epsilon);
 
@@ -113,20 +139,28 @@ public class GameSimulator {
      * Chooses an action using the epsilon-greedy strategy.
      */
     private Move chooseActionEpsilonGreedy(GameState state, DQNModel model, double epsilon) {
+        List<Move> validMoves = state.generateMoves();
+        if (validMoves.isEmpty()) {
+            return null; // No valid moves available
+        }
+
         if (Math.random() < epsilon) {
-            // Exploration: Choose a random move
-            var moves = state.generateMoves();
-            return moves.isEmpty() ? null : moves.get((int) (Math.random() * moves.size()));
+            // Choose a random move
+            return validMoves.get((int) (Math.random() * validMoves.size()));
         } else {
-            // Exploitation: Choose the best move
-            return state.generateMoves().stream()
-                    .max((move1, move2) -> Double.compare(
-                            model.predict(state).getOrDefault(move1.getStartPosition(), 0.0),
-                            model.predict(state).getOrDefault(move2.getStartPosition(), 0.0)))
-                    .orElse(null);
+            // Choose the best move according to the model
+            double bestValue = Double.NEGATIVE_INFINITY;
+            Move bestMove = null;
+            for (Move move : validMoves) {
+                double value = model.predict(state).getOrDefault(move.getStartPosition(), 0.0);
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                }
+            }
+            return bestMove;
         }
     }
-
     /**
      * Saves the current model to a file.
      */
@@ -141,10 +175,13 @@ public class GameSimulator {
         }
     }
 
+
     /**
      * Main method to run the simulation.
      */
     public static void main(String[] args) {
+
+        Platform.startup(() -> {});
         int inputSize = 101;
         int hiddenSize = 100;
         int outputSize = 100;

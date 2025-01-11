@@ -164,6 +164,37 @@ public class GameState {
         return new MoveResult(newState, reward, newState.isTerminal());
     }
 
+    public void printBoardState() {
+        int boardSize = 10; // Assuming a 10x10 board
+        char[][] board = new char[boardSize][boardSize];
+
+        // Initialize the board with empty spaces
+        for (int y = 0; y < boardSize; y++) {
+            for (int x = 0; x < boardSize; x++) {
+                board[y][x] = '.';
+            }
+        }
+
+        // Place the pawns on the board
+        for (Map.Entry<Vector2i, Pawn> entry : boardState.entrySet()) {
+            Vector2i position = entry.getKey();
+            Pawn pawn = entry.getValue();
+            char pawnChar = pawn.isWhite() ? 'W' : 'B';
+            if (pawn.isKing()) {
+                pawnChar = Character.toLowerCase(pawnChar); // Use lowercase for kings
+            }
+            board[position.y][position.x] = pawnChar;
+        }
+
+        // Print the board
+        for (int y = 0; y < boardSize; y++) {
+            for (int x = 0; x < boardSize; x++) {
+                System.out.print(board[y][x] + " ");
+            }
+            System.out.println();
+        }
+    }
+
     public boolean isTerminal() {
         if (generateMoves().isEmpty()) {
             return true;
