@@ -33,10 +33,10 @@ public class Game {
 
     private MainBoard mainBoard = new MainBoard();
 
-
     public MainBoard getMainBoard() {
         return mainBoard;
     }
+
     private Timeline gameTimerPlayerOne;
     private Timeline gameTimerPlayerTwo;
     private int gameTimeLimit = 10 * 60; // 10 minutes in seconds
@@ -263,13 +263,20 @@ public class Game {
         playerUI.getStyleClass().add("playerUI");
         playerUI.setId(isPlayerOne ? "playerOne" : "playerTwo");
 
-        Consumer<Text> setPlayerStyle = player -> {
-            if (player != null) {
-                boolean shouldBeBold = (isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne);
-                player.setStyle("-fx-font-size: " + (shouldBeBold ? 20 : 15) + ";"
-                        + "-fx-font-weight: " + (shouldBeBold ? "bold" : "normal"));
-            }
-        };
+        Consumer<Text> setPlayerStyle =
+                player -> {
+                    if (player != null) {
+                        boolean shouldBeBold =
+                                (isWhiteTurn.get() && isPlayerOne)
+                                        || (!isWhiteTurn.get() && !isPlayerOne);
+                        player.setStyle(
+                                "-fx-font-size: "
+                                        + (shouldBeBold ? 20 : 15)
+                                        + ";"
+                                        + "-fx-font-weight: "
+                                        + (shouldBeBold ? "bold" : "normal"));
+                    }
+                };
 
         // Player text and score setup
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
@@ -281,9 +288,13 @@ public class Game {
         playerScore.getStyleClass().add("label");
         playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
         if (isPlayerOne) {
-            playerScore.textProperty().bind(Bindings.concat("Score: ", gameInfo.scorePlayerOneProperty()));
+            playerScore
+                    .textProperty()
+                    .bind(Bindings.concat("Score: ", gameInfo.scorePlayerOneProperty()));
         } else {
-            playerScore.textProperty().bind(Bindings.concat("Score: ", gameInfo.scorePlayerTwoProperty()));
+            playerScore
+                    .textProperty()
+                    .bind(Bindings.concat("Score: ", gameInfo.scorePlayerTwoProperty()));
         }
         setPlayerStyle.accept(playerScore);
 
@@ -295,33 +306,43 @@ public class Game {
 
         // Initialize separate timers for Player 1 and Player 2
         if (isPlayerOne && gameTimerPlayerOne == null) {
-            gameTimerPlayerOne = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-                remainingTimePlayerOne--;
-                int minutes = remainingTimePlayerOne / 60;
-                int seconds = remainingTimePlayerOne % 60;
-                playerTime.setText(String.format("Time: %02d:%02d", minutes, seconds));
+            gameTimerPlayerOne =
+                    new Timeline(
+                            new KeyFrame(
+                                    Duration.seconds(1),
+                                    e -> {
+                                        remainingTimePlayerOne--;
+                                        int minutes = remainingTimePlayerOne / 60;
+                                        int seconds = remainingTimePlayerOne % 60;
+                                        playerTime.setText(
+                                                String.format("Time: %02d:%02d", minutes, seconds));
 
-                if (remainingTimePlayerOne <= 0) {
-                    gameTimerPlayerOne.stop();
-                    handleTimeUp(isPlayerOne);
-                }
-            }));
+                                        if (remainingTimePlayerOne <= 0) {
+                                            gameTimerPlayerOne.stop();
+                                            handleTimeUp(isPlayerOne);
+                                        }
+                                    }));
             gameTimerPlayerOne.setCycleCount(Timeline.INDEFINITE);
             gameTimerPlayerOne.play();
         }
 
         if (!isPlayerOne && gameTimerPlayerTwo == null) {
-            gameTimerPlayerTwo = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-                remainingTimePlayerTwo--;
-                int minutes = remainingTimePlayerTwo / 60;
-                int seconds = remainingTimePlayerTwo % 60;
-                playerTime.setText(String.format("Time: %02d:%02d", minutes, seconds));
+            gameTimerPlayerTwo =
+                    new Timeline(
+                            new KeyFrame(
+                                    Duration.seconds(1),
+                                    e -> {
+                                        remainingTimePlayerTwo--;
+                                        int minutes = remainingTimePlayerTwo / 60;
+                                        int seconds = remainingTimePlayerTwo % 60;
+                                        playerTime.setText(
+                                                String.format("Time: %02d:%02d", minutes, seconds));
 
-                if (remainingTimePlayerTwo <= 0) {
-                    gameTimerPlayerTwo.stop();
-                    handleTimeUp(isPlayerOne);
-                }
-            }));
+                                        if (remainingTimePlayerTwo <= 0) {
+                                            gameTimerPlayerTwo.stop();
+                                            handleTimeUp(isPlayerOne);
+                                        }
+                                    }));
             gameTimerPlayerTwo.setCycleCount(Timeline.INDEFINITE);
             gameTimerPlayerTwo.play();
         }
@@ -348,7 +369,8 @@ public class Game {
         Alert timeUpAlert = new Alert(Alert.AlertType.INFORMATION);
         timeUpAlert.setTitle("Time's Up!");
         timeUpAlert.setHeaderText("Game Over!");
-        timeUpAlert.setContentText(isPlayerOne ? "Player 1 ran out of time!" : "Player 2 ran out of time!");
+        timeUpAlert.setContentText(
+                isPlayerOne ? "Player 1 ran out of time!" : "Player 2 ran out of time!");
         timeUpAlert.showAndWait();
         gameStage.close(); // Automatically close the game window
     }
@@ -516,42 +538,54 @@ public class Game {
     }
 
     /**
-     * Initializes and starts the countdown timers for both Player One and Player Two.
-     * Each player's timer counts down from the preset game time limit.
-     * If a player's timer reaches zero, the game will end for that player.
-     * This method is called when the game starts or restarts.
+     * Initializes and starts the countdown timers for both Player One and Player Two. Each player's
+     * timer counts down from the preset game time limit. If a player's timer reaches zero, the game
+     * will end for that player. This method is called when the game starts or restarts.
      */
-
     private void startTimers() {
         // Timer for Player One
-        gameTimerPlayerOne = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-            remainingTimePlayerOne--;
-            int minutes = remainingTimePlayerOne / 60;
-            int seconds = remainingTimePlayerOne % 60;
-            // Update the Player One UI time
-            ((Text) gameRoot.lookup("#playerOneTime")).setText(String.format("Time: %02d:%02d", minutes, seconds));
+        gameTimerPlayerOne =
+                new Timeline(
+                        new KeyFrame(
+                                Duration.seconds(1),
+                                e -> {
+                                    remainingTimePlayerOne--;
+                                    int minutes = remainingTimePlayerOne / 60;
+                                    int seconds = remainingTimePlayerOne % 60;
+                                    // Update the Player One UI time
+                                    ((Text) gameRoot.lookup("#playerOneTime"))
+                                            .setText(
+                                                    String.format(
+                                                            "Time: %02d:%02d", minutes, seconds));
 
-            if (remainingTimePlayerOne <= 0) {
-                gameTimerPlayerOne.stop();
-                handleTimeUp(true);
-            }
-        }));
+                                    if (remainingTimePlayerOne <= 0) {
+                                        gameTimerPlayerOne.stop();
+                                        handleTimeUp(true);
+                                    }
+                                }));
         gameTimerPlayerOne.setCycleCount(Timeline.INDEFINITE);
         gameTimerPlayerOne.play();
 
         // Timer for Player Two
-        gameTimerPlayerTwo = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-            remainingTimePlayerTwo--;
-            int minutes = remainingTimePlayerTwo / 60;
-            int seconds = remainingTimePlayerTwo % 60;
-            // Update the Player Two UI time
-            ((Text) gameRoot.lookup("#playerTwoTime")).setText(String.format("Time: %02d:%02d", minutes, seconds));
+        gameTimerPlayerTwo =
+                new Timeline(
+                        new KeyFrame(
+                                Duration.seconds(1),
+                                e -> {
+                                    remainingTimePlayerTwo--;
+                                    int minutes = remainingTimePlayerTwo / 60;
+                                    int seconds = remainingTimePlayerTwo % 60;
+                                    // Update the Player Two UI time
+                                    ((Text) gameRoot.lookup("#playerTwoTime"))
+                                            .setText(
+                                                    String.format(
+                                                            "Time: %02d:%02d", minutes, seconds));
 
-            if (remainingTimePlayerTwo <= 0) {
-                gameTimerPlayerTwo.stop();
-                handleTimeUp(false);
-            }
-        }));
+                                    if (remainingTimePlayerTwo <= 0) {
+                                        gameTimerPlayerTwo.stop();
+                                        handleTimeUp(false);
+                                    }
+                                }));
         gameTimerPlayerTwo.setCycleCount(Timeline.INDEFINITE);
         gameTimerPlayerTwo.play();
     }

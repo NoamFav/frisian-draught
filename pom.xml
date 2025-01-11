@@ -94,7 +94,12 @@
    <groupId>com.github.almasb</groupId>
    <artifactId>fxgl</artifactId>
    <version>17.3</version>
-  </dependency>
+   </dependency>
+   <dependency>
+    <groupId>com.moandjiezana.toml</groupId>
+    <artifactId>toml4j</artifactId>
+    <version>0.7.2</version>
+</dependency>
  </dependencies>
  <build>
   <plugins>
