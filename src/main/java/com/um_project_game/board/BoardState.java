@@ -3,6 +3,7 @@ package com.um_project_game.board;
 import com.um_project_game.AI.DQNModel;
 import com.um_project_game.AI.ReplayBuffer;
 import com.um_project_game.Launcher;
+import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.util.SoundPlayer;
 
 import javafx.scene.Node;
@@ -59,6 +60,16 @@ public class BoardState {
     private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
     private static final int BATCH_SIZE = 32;
     private static final double GAMMA = 0.99;
+
+    private NetworkClient networkClient;
+
+    public NetworkClient getNetworkClient() {
+        return networkClient;
+    }
+
+    public void setNetworkClient(NetworkClient networkClient) {
+        this.networkClient = networkClient;
+    }
 
     public static int getMainBoardSize() {
         return BOARD_SIZE;

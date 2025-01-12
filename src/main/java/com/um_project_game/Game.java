@@ -1,5 +1,6 @@
 package com.um_project_game;
 
+import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
@@ -89,6 +90,9 @@ public class Game {
     // Game export
     private GameExporter exporter = new GameExporter();
 
+    // Game client communication
+    private NetworkClient networkClient;
+
     /* --------------------------------------------------------------------------------
      *                               CONSTRUCTORS
      * -------------------------------------------------------------------------------- */
@@ -118,7 +122,6 @@ public class Game {
 
         // Initialize game UI
         if (isMultiplayer) {
-
             mainGameBoardMultiplayer(gameRoot, scene);
         } else {
             mainGameBoard(gameRoot, scene, isAgainstBot);
@@ -229,6 +232,12 @@ public class Game {
     }
 
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {
+        try {
+            networkClient = new NetworkClient("localhost", 9000, this);
+            System.out.println("Connected to server at localhost:9000");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         board =
                 mainBoard.getMainBoardMultiplayer(
                         root,
@@ -236,7 +245,8 @@ public class Game {
                         new Vector2i(mainBoardX, mainBoardY),
                         gameInfo,
                         movesListGridPane,
-                        true);
+                        true,
+                        networkClient);
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);

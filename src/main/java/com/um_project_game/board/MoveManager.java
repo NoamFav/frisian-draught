@@ -362,6 +362,7 @@ public class MoveManager {
     public void executeMove(Pawn pawn, Vector2i landingPos) {
         pawn.setPosition(landingPos);
         ImageView pawnView = boardState.getPawnViews().get(pawn);
+        System.out.println("Moving pawn to " + landingPos);
         GridPane.setColumnIndex(pawnView, landingPos.x);
         GridPane.setRowIndex(pawnView, landingPos.y);
 
@@ -394,7 +395,7 @@ public class MoveManager {
      * @param currentPath The current capture path.
      * @param allPaths List to collect all capture paths.
      */
-    public void captureCheck(
+    public List<Vector2i> captureCheck(
             Pawn pawn,
             BiPredicate<Integer, Integer> inBounds,
             int x,
@@ -403,6 +404,7 @@ public class MoveManager {
             List<CapturePath> allPaths) {
         boolean foundCapture = false;
         currentPath.initialPawn = pawn;
+        List<Vector2i> capturedPositions = new ArrayList<>();
 
         int[][] directions = {
             {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
@@ -447,6 +449,8 @@ public class MoveManager {
                         if (getPawnAtPosition(landingPos) == null
                                 || landingPos.equals(pawn.getPosition())) {
                             foundCapture = true;
+
+                            capturedPositions.add(capturePos);
                             CapturePath newPath = new CapturePath(currentPath);
                             newPath.addMove(landingPos, capturedPawn);
 
@@ -478,6 +482,8 @@ public class MoveManager {
         if (!foundCapture && currentPath.getCaptureCount() > 0) {
             allPaths.add(currentPath);
         }
+
+        return capturedPositions;
     }
 
     /** Records the current state of the board. */
@@ -556,7 +562,7 @@ public class MoveManager {
      * @param pawns List of all pawns.
      * @param capturedPawn The pawn to remove.
      */
-    private void removePawn(Pawn capturedPawn) {
+    public void removePawn(Pawn capturedPawn) {
         boardState.getPawns().remove(capturedPawn);
         boardState.getRequiredPawns().remove(capturedPawn);
 
