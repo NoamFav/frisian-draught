@@ -81,11 +81,11 @@ public class ExitGameConfirmation {
         stage.initStyle(StageStyle.UNDECORATED);
 
         // Create header
-        Label headerLabel = new Label("Save Confirmation");
+        Label headerLabel = new Label("Exit Game");
         headerLabel.getStyleClass().add("header-label");
 
         // Create message
-        Label messageLabel = new Label("Do you want to save the game before exiting?");
+        Label messageLabel = new Label("Are you sure you want to exit this game?");
         messageLabel.getStyleClass().add("message-label");
 
         // Create checkbox
