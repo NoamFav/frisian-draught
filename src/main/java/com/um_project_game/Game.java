@@ -3,6 +3,7 @@ package com.um_project_game;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
+import com.um_project_game.util.ExitChoice;
 import com.um_project_game.util.GameExporter;
 
 import javafx.animation.*;
@@ -398,24 +399,31 @@ public class Game {
      * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
 
-        if (ExitGameConfirmation.showSaveConfirmation(true)) {
-            exporter.exportGameToPDN(
-                    mainBoard.getTakenMoves(),
-                    null,
-                    isAgainstBot ? "1" : "0",
-                    isMultiplayer ? "1" : "0",
-                    gameInfo.getPlayerTurn() == 1 ? "W" : "B");
-            Launcher.viewManager
-                    .getMenu()
-                    .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
-        }
-        if (Launcher.menuStage == null) {
-            launcher.showMenu();
-        }
+        ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(true);
 
-        fadeOutAndClose(gameStage, 300);
+        switch (choice) {
+            case EXIT_WITH_SAVE:
 
-        gameStage.close();
+                exporter.exportGameToPDN(
+                        mainBoard.getTakenMoves(),
+                        null,
+                        isAgainstBot ? "1" : "0",
+                        isMultiplayer ? "1" : "0",
+                        gameInfo.getPlayerTurn() == 1 ? "W" : "B");
+
+            case EXIT_WITHOUT_SAVE:
+
+                if (Launcher.menuStage == null) {
+                    launcher.showMenu();
+                }
+
+                fadeOutAndClose(gameStage, 300);
+                gameStage.close();
+                break;
+
+            case NOT_EXIT:
+                break;
+        }
     }
 
     /* --------------------------------------------------------------------------------
