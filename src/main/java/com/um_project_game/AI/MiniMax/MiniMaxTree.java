@@ -17,8 +17,11 @@ public class MiniMaxTree {
         this.rootState = rootState;
     }
 
-    public Move getBestMove(GameState state, int depth) {
-        MMResult result = minimax(state.clone(), depth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false, 0, new ArrayList<>());
+    public Move getBestMove(GameState state, int depth, boolean maximizingPlayer) {
+        MMResult result = minimax(state.clone(), depth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, maximizingPlayer, 0, new ArrayList<>());
+        if (result.getMoves().isEmpty()) {
+            return null;
+        }
         return result.getMoves().get(0);
     }
 

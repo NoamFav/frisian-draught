@@ -339,10 +339,26 @@ public class BotManager {
                             return;
                         }
 
-                        // Randomly select a normal move
                         MiniMaxTree miniMaxTree = new MiniMaxTree(currentState);
-                        Move selectedMove = miniMaxTree.getBestMove(currentState, 3);
-                        GameState resetState = miniMaxTree.rootState;
+                        Move selMove = null;
+                        GameState newState = null;
+                        if (boardState.isWhiteTurn()) {
+                            selMove = miniMaxTree.getBestMove(currentState,3, true);
+                            if (selMove == null) {
+                                Random random = new Random();
+                                selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
+                            }
+                            newState = miniMaxTree.rootState;
+                        } else {
+                            selMove = miniMaxTree.getBestMove(currentState,4, false);
+                            if (selMove == null) {
+                                Random random = new Random();
+                                selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
+                            }
+                            newState = miniMaxTree.rootState;
+                        }
+                        GameState resetState = newState;
+                        Move selectedMove = selMove;
                         System.out.println("Move start: " + selectedMove.getStartPosition());
                         System.out.println("Move end: " + selectedMove.getEndPosition());
 
