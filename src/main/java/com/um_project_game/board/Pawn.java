@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 
 import org.joml.Vector2i;
 
-public class Pawn {
+public class Pawn implements Cloneable {
 
     private Vector2i position;
     private Vector2i initialPosition;
@@ -78,5 +78,14 @@ public class Pawn {
 
     public void resetNumberOfNonCapturingMoves() {
         numberOfNonCapturingMoves = 0;
+    }
+
+    @Override
+    public Pawn clone() {
+        try {
+            return (Pawn) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(); // Should never happen
+        }
     }
 }

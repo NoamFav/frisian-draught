@@ -1,6 +1,7 @@
 package com.um_project_game.board;
 
 import com.um_project_game.AI.Experience;
+import com.um_project_game.AI.MiniMax.MiniMaxTree;
 import com.um_project_game.AI.ReplayBuffer;
 
 import javafx.animation.PauseTransition;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
+import com.um_project_game.AI.MiniMax.MiniMaxTree;
 
 public class BotManager {
     private final BoardState boardState;
@@ -171,7 +173,7 @@ public class BotManager {
                         if (boardState.isWhiteTurn()) {
                             triggerBotMoveR(); // Random bot for White
                         } else {
-                            triggerBotMove(); // Trained bot for Black
+                            triggerBotMoveMM(); // Trained bot for Black
                         }
 
                         // Train the model with a batch from the replay buffer
@@ -263,6 +265,105 @@ public class BotManager {
 
     private String generateUniqueFilename(String baseName) {
         return baseName + "_" + System.currentTimeMillis() + ".bin";
+    }
+
+    public void triggerBotMoveMM() {
+        Platform.runLater(
+                () -> {
+                    try {
+                        // Compute capture paths for the bot
+                        List<CapturePath> capturePaths = computeCapturePathsForBot();
+                        if (capturePaths != null && !capturePaths.isEmpty()) {
+                            System.out.println("Bot has capture opportunities. Available paths:");
+                            for (CapturePath path : capturePaths) {
+                                System.out.println(
+                                        " - Path: "
+                                                + path.positions
+                                                + ", Captures: "
+                                                + path.capturedPawns);
+                            }
+
+                            // Find the maximum capture value
+                            double maxCaptureValue =
+                                    capturePaths.stream()
+                                            .mapToDouble(CapturePath::getCaptureValue)
+                                            .max()
+                                            .orElse(Double.NEGATIVE_INFINITY);
+
+                            // Filter paths with the maximum value
+                            List<CapturePath> bestPaths =
+                                    capturePaths.stream()
+                                            .filter(
+                                                    path ->
+                                                            path.getCaptureValue()
+                                                                    == maxCaptureValue)
+                                            .collect(Collectors.toList());
+
+                            // Randomly select one of the best paths
+                            CapturePath bestPath =
+                                    bestPaths.get(new Random().nextInt(bestPaths.size()));
+
+                            System.out.println("Selected capture path: " + bestPath);
+
+                            if (bestPath != null) {
+                                Pawn pawn = bestPath.initialPawn;
+                                if (pawn != null) {
+                                    System.out.println("Bot executing capture path: " + bestPath);
+
+                                    boardState
+                                            .getTakenMoves()
+                                            .add(
+                                                    new Move(
+                                                            pawn.getPosition(),
+                                                            bestPath.getLastPosition(),
+                                                            bestPath.capturedPawns.stream()
+                                                                    .map(Pawn::getPosition)
+                                                                    .collect(Collectors.toList())));
+                                    mainboard.animatePawnCaptureMovement(
+                                            pawn,
+                                            bestPath,
+                                            () ->
+                                                    moveManager.processAfterCaptureMove(
+                                                            pawn, bestPath));
+                                    return; // Ensure no fallback to normal moves
+                                }
+                            }
+                        }
+
+                        // If no captures, proceed with normal moves
+                        GameState currentState = mainboard.getBoardState();
+                        List<Move> possibleMoves = currentState.generateMoves();
+
+                        if (possibleMoves.isEmpty()) {
+                            System.out.println("No possible moves for the agent.");
+                            return;
+                        }
+
+                        // Randomly select a normal move
+                        MiniMaxTree miniMaxTree = new MiniMaxTree(currentState);
+                        Move selectedMove = miniMaxTree.getBestMove(currentState, 3);
+                        GameState resetState = miniMaxTree.rootState;
+                        System.out.println("Move start: " + selectedMove.getStartPosition());
+                        System.out.println("Move end: " + selectedMove.getEndPosition());
+
+                        if (selectedMove != null) {
+                            Pawn pawn =
+                                    moveManager.getPawnAtPosition(selectedMove.getStartPosition());
+                            if (pawn != null) {
+                                boardState.getTakenMoves().add(selectedMove);
+                                mainboard.animatePawnMovement(
+                                        pawn,
+                                        selectedMove.getEndPosition(),
+                                        () -> applyMove(resetState.applyMove(selectedMove)));
+                            } else {
+                                boardState.getTakenMoves().add(selectedMove);
+                                applyMove(resetState.applyMove(selectedMove));
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     public void triggerBotMoveR() {

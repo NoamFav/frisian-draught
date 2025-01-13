@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class GameState {
+public class GameState implements Cloneable {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
     MainBoard mainBoard;
     boolean isWhiteTurn;
@@ -53,6 +53,20 @@ public class GameState {
     @Override
     public int hashCode() {
         return Objects.hash(boardState, isWhiteTurn);
+    }
+
+    @Override
+    public GameState clone() {
+        try {
+            GameState cloned = (GameState) super.clone();
+            cloned.boardState = new HashMap<>();
+            for (Map.Entry<Vector2i, Pawn> entry : this.boardState.entrySet()) {
+                cloned.boardState.put(new Vector2i(entry.getKey()), entry.getValue().clone());
+            }
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(); // Should never happen
+        }
     }
 
     public Map<Vector2i, Pawn> getBoardState() {
@@ -204,5 +218,16 @@ public class GameState {
         boolean blackPawnsExist = boardState.values().stream().anyMatch(pawn -> !pawn.isWhite());
 
         return !whitePawnsExist || !blackPawnsExist;
+    }
+
+    public MainBoard getMainBoard() {
+        return mainBoard;
+    }
+    public MoveResult simulateMove(Move move) {
+        // Clone the current game state
+        GameState simulatedState = this.clone();
+
+        // Apply the move to the cloned state
+        return simulatedState.applyMove(move);
     }
 }

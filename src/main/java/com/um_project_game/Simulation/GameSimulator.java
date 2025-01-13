@@ -88,7 +88,6 @@ public class GameSimulator {
         int moveCount = 0;
         while (!isGameOver && moveCount < maxMoves) {
             GameState currentState = mainBoard.getBoardState();
-            currentState.printBoardState();
             // Choose action
             Move action = chooseActionEpsilonGreedy(currentState, model, epsilon);
 
@@ -139,6 +138,7 @@ public class GameSimulator {
      * Chooses an action using the epsilon-greedy strategy.
      */
     private Move chooseActionEpsilonGreedy(GameState state, DQNModel model, double epsilon) {
+        state.printBoardState();
         List<Move> validMoves = state.generateMoves();
         if (validMoves.isEmpty()) {
             return null; // No valid moves available
