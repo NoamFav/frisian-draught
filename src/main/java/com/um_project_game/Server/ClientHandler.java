@@ -57,17 +57,17 @@ public class ClientHandler extends Thread {
     private void handleMove(String moveCommand) {
         // Example format: MOVE 3,5 TO 4,6
         String[] parts = moveCommand.split(" ");
-        if (parts.length != 3 || !parts[0].equals("MOVE")) {
+        if (!parts[0].equals("MOVE") || !parts[2].equals("TO")) {
             sendMessage("Invalid move command");
             return;
         }
 
         String from = parts[1];
-        String to = parts[2];
+        String to = parts[3];
         System.out.println(playerRole + " moved from " + from + " to " + to);
 
         // Broadcast the move to the other player
-        MainServer.broadcast("UPDATE " + playerRole + " moved from " + from + " to " + to, this);
+        MainServer.broadcast("MOVE " + from + " TO " + to, this);
     }
 
     private void startTurnTimer() {

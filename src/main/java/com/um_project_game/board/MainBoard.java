@@ -2,6 +2,7 @@ package com.um_project_game.board;
 
 import com.um_project_game.AI.DQNModel;
 import com.um_project_game.ViewManager;
+import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.util.PDNParser;
 
 import javafx.animation.Animation;
@@ -129,8 +130,10 @@ public class MainBoard {
             Vector2i boardPosition,
             GameInfo gameInfo,
             GridPane movesListGridPane,
-            boolean isMultiplayer) {
+            boolean isMultiplayer,
+            NetworkClient networkClient) {
         boardState.setMultiplayer(isMultiplayer);
+        boardState.setNetworkClient(networkClient);
         return getMainBoard(
                 root,
                 boardPixelSize,
