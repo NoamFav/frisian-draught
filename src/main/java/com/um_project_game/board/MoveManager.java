@@ -136,7 +136,7 @@ public class MoveManager {
      * @param pawn The selected pawn.
      * @param tileSize Size of each tile.
      */
-    public void seePossibleMove(Pawn pawn) {
+    public void seePossibleMove(Pawn pawn, boolean highlighting) {
         boardState.getPossibleMoves().clear();
         boardRendered.clearHighlights();
         Vector2i position = pawn.getPosition();
@@ -159,10 +159,10 @@ public class MoveManager {
         if (!allPaths.isEmpty()) {
             //check if pawn is in requiredPawns:
             if (boardState.getRequiredPawns().contains(pawn)) {
-                handleCaptureMoves(pawn, allPaths, true);
+                handleCaptureMoves(pawn, allPaths, true, highlighting);
             }
         } else if (boardState.getRequiredPawns().isEmpty()) {
-            handleNormalMoves(pawn, inBounds, x, y, true);
+            handleNormalMoves(pawn, inBounds, x, y, true, highlighting);
         }
     }
 
@@ -175,7 +175,7 @@ public class MoveManager {
      * @param tileSize Size of each tile.
      * @param allPaths List of all possible capture paths.
      */
-    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths, boolean isAnimated) {
+    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths, boolean isAnimated, boolean highlight) {
         double maxCaptureValue =
                 allPaths.stream().mapToDouble(CapturePath::getCaptureValue).max().orElse(0);
 
@@ -189,7 +189,9 @@ public class MoveManager {
             Vector2i landingPos = path.getLastPosition();
 
             Rectangle square = boardRendered.createHighlightSquare(Color.RED);
-            boardState.getBoard().add(square, landingPos.x, landingPos.y);
+            if (highlight) {
+                boardState.getBoard().add(square, landingPos.x, landingPos.y);
+            }
             boardState.getPossibleMoves().add(landingPos);
 
             // Set up manual click event
@@ -295,11 +297,13 @@ public class MoveManager {
      * @param y Current y-coordinate of the pawn.
      */
     private void handleNormalMoves(
-            Pawn pawn, BiPredicate<Integer, Integer> inBounds, int x, int y, boolean isAnimated) {
+            Pawn pawn, BiPredicate<Integer, Integer> inBounds, int x, int y, boolean isAnimated, boolean highlighting) {
         BiConsumer<Integer, Integer> highlightMove =
                 (newX, newY) -> {
                     Rectangle square = boardRendered.createHighlightSquare(Color.GREEN);
-                    boardState.getBoard().add(square, newX, newY);
+                    if (highlighting) {
+                        boardState.getBoard().add(square, newX, newY);
+                    }
                     boardState.getPossibleMoves().add(new Vector2i(newX, newY));
 
                     square.setOnMouseClicked(
@@ -594,10 +598,6 @@ public class MoveManager {
         boardState.getGameInfo().playerTurn.set(boardState.isWhiteTurn() ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
-
-        // Highlight pawns that can be moved
-
-
         //Here I need to get the pawns List instead of the maxCaptures one.
         GameState currentState = new GameState(boardState.getPawnPositionMap(), boardState.isWhiteTurn, mainBoard);
         Map<Pawn, List<Move>> validMovesMap = getValidMovesForState(currentState);
@@ -760,7 +760,6 @@ public class MoveManager {
         } else {
             validPawns = boardState.getPawns();
         }
-
         // Iterate through all pawns in the game state
         for (Pawn pawn : validPawns) {
             Vector2i position = pawn.getPosition();
@@ -771,7 +770,7 @@ public class MoveManager {
             }
 
             // Generate moves for this pawn
-            seePossibleMove(pawn);
+            seePossibleMove(pawn, false);
 
             List<Move> pawnMoves = boardState.getPossibleMoves().stream()
                     .map(move -> new Move(

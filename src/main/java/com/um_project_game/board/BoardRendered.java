@@ -12,6 +12,7 @@ import javafx.util.Duration;
 
 import org.joml.Vector2i;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,22 +38,24 @@ public class BoardRendered {
      * @param pawns List to populate with the initial pawns.
      */
     public void setupBoard() {
-        BiConsumer<Integer, Boolean> addPawns =
-                (startRow, isWhite) -> {
-                    for (int y = startRow; y < startRow + 4; y++) {
-                        for (int x = 0; x < boardState.getBoardSize().x; x++) {
-                            if ((x + y) % 2 == 1) {
-                                boardState.getPawns().add(new Pawn(new Vector2i(x, y), isWhite));
+        //pawns List already provided
+        if (boardState.getPawns().size() == 0) {
+            BiConsumer<Integer, Boolean> addPawns =
+                    (startRow, isWhite) -> {
+                        for (int y = startRow; y < startRow + 4; y++) {
+                            for (int x = 0; x < boardState.getBoardSize().x; x++) {
+                                if ((x + y) % 2 == 1) {
+                                    boardState.getPawns().add(new Pawn(new Vector2i(x, y), isWhite));
+                                }
                             }
                         }
-                    }
-                };
+                    };
 
-        // Add white pawns
-        addPawns.accept(0, false);
-        // Add black pawns
-        addPawns.accept(6, true);
-
+            // Add white pawns
+            addPawns.accept(0, false);
+            // Add black pawns
+            addPawns.accept(6, true);
+        }
         boardState.getAllPawns().clear();
         boardState.getAllPawns().addAll(boardState.getPawns());
     }
@@ -153,7 +156,7 @@ public class BoardRendered {
                 _ -> {
                     clearHighlights();
                     boardState.setFocusedPawn(pawn);
-                    moveManager.seePossibleMove(pawn);
+                    moveManager.seePossibleMove(pawn, true);
                     renderPawns();
                 });
     }
@@ -194,7 +197,6 @@ public class BoardRendered {
     }
 
     public void highlightMovablePawns(List<Pawn> pawns) {
-
         for (ScaleTransition transition : activeTransitions.values()) {
             transition.stop();
         }
@@ -229,28 +231,6 @@ public class BoardRendered {
                 pawnView.setScaleX(1.0);
                 pawnView.setScaleY(1.0);
             }
-        }
-    }
-
-    private void applyHoverTransitionEffect(Pawn pawn) {
-        ImageView pawnView = boardState.getPawnViews().get(pawn);
-
-        if (pawnView != null) {
-            pawnView.hoverProperty().addListener((observable, oldValue, isHovered) -> {
-                if (isHovered) {
-                    // Apply a scale effect on hover
-                    ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(200), pawnView);
-                    scaleTransition.setToX(1.1); // Scale up
-                    scaleTransition.setToY(1.1);
-                    scaleTransition.play();
-                } else {
-                    // Revert the scale effect when hover is removed
-                    ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(200), pawnView);
-                    scaleTransition.setToX(1.0); // Scale back to original size
-                    scaleTransition.setToY(1.0);
-                    scaleTransition.play();
-                }
-            });
         }
     }
 }

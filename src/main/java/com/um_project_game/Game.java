@@ -405,6 +405,7 @@ public class Game {
             case EXIT_WITH_SAVE:
 
                 exporter.exportGameToPDN(
+                        mainBoard.boardState.getPawns(),
                         mainBoard.getTakenMoves(),
                         null,
                         isAgainstBot ? "1" : "0",
