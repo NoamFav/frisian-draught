@@ -20,11 +20,16 @@ public class Pawn {
     private PawnImages pawnImages = PawnImages.getPawnImage();
 
     public Pawn(Vector2i position, boolean isWhite) {
+        this(position, isWhite, false);
+    }
+
+    public Pawn(Vector2i position, boolean isWhite, boolean isKing) {
         this.position = position;
         this.initialPosition = new Vector2i(position);
         this.isKing = false;
         this.isWhite = isWhite;
         this.image = isWhite ? pawnImages.whitePawn() : pawnImages.blackPawn();
+        this.isKing = isKing;
     }
 
     public Image onHover() {

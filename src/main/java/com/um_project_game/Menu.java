@@ -238,19 +238,10 @@ public class Menu {
                             mainBoard.getRandomBoard(root, recentBoardsSize, pdnFile.getPath());
                     recentGames.getChildren().add(boardNode);
 
+                    mainBoard
+                            .getBoard()
+                            .setOnMouseClicked(e -> launcher.startNewGame(mainBoard));
                     // Click to load game if toggle is ready
-                    if (Launcher.isRecentGameToggleReady) {
-                        mainBoard
-                                .getBoard()
-                                .setOnMouseClicked(e -> launcher.startNewGame(mainBoard));
-                    } else {
-                        mainBoard
-                                .getBoard()
-                                .setOnMouseClicked(
-                                        _ ->
-                                                System.out.println(
-                                                        "Currently unavailable, will be soon"));
-                    }
 
                     animateHoverScale(boardNode, 1.03);
                 }

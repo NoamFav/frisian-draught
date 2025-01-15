@@ -1,7 +1,7 @@
 package com.um_project_game.util;
 
 import com.um_project_game.board.Move;
-
+import com.um_project_game.board.Pawn;
 import org.joml.Vector2i;
 
 import java.io.BufferedReader;
@@ -25,15 +25,14 @@ public class PDNParser {
     private String isBot;
     private String isMultiplayer;
     private List<Move> moves;
+    private List<Pawn> pawns;
 
     private String filePath;
 
-    /**
-     * @param filePath
-     */
     public PDNParser(String filePath) {
         // Initialize fields
         moves = new ArrayList<>();
+        pawns = new ArrayList<>();
         this.filePath = filePath;
     }
 
@@ -64,6 +63,12 @@ public class PDNParser {
         this.result = pdnData.getOrDefault("Result", "");
         this.isBot = pdnData.getOrDefault("isBot", "");
         this.isMultiplayer = pdnData.getOrDefault("isMultiplayer", "");
+
+        // Load pawns from BoardPosition if it exists
+        if (pdnData.containsKey("BoardPosition")) {
+            parseBoardPosition(pdnData.get("BoardPosition"));
+            moves.clear(); // Ensure moves are empty if BoardPosition is used
+        }
     }
 
     private void parseMetadata(String line, Map<String, String> pdnData) {
@@ -80,27 +85,21 @@ public class PDNParser {
     private void parseMoves(String line) {
         String[] turnMoves = line.split("\\s+");
         for (String turn : turnMoves) {
-            // For now: Skip known game result lines explicitly
-            // TODO: Add handling for when you load in a game that is already finished
             if ("1-0".equals(turn) || "0-1".equals(turn) || "1/2-1/2".equals(turn)) {
                 continue;
             }
 
             if (turn.contains(".")) {
-                // Skip move number
                 continue;
             }
 
-            // Determine if the move is a capture
             boolean isCapture = turn.contains("x");
-
-            // Extract positions based on capture or non-capture
             String[] positions = isCapture ? turn.split("x") : turn.split("-");
 
-            Vector2i startPosition = null;
-            Vector2i endPosition = null;
-
             try {
+                Vector2i startPosition = null;
+                Vector2i endPosition = null;
+
                 if (positions.length > 0) {
                     startPosition = TileConversion.getTileVector(Integer.parseInt(positions[0]));
                 }
@@ -110,8 +109,7 @@ public class PDNParser {
 
                 List<Vector2i> capturedPositions = new ArrayList<>();
                 if (isCapture && endPosition != null) {
-                    capturedPositions.add(
-                            endPosition); // Replace with actual capture logic as needed
+                    capturedPositions.add(endPosition); // Replace with actual capture logic as needed
                 }
 
                 Move move = new Move(startPosition, endPosition, capturedPositions);
@@ -121,6 +119,33 @@ public class PDNParser {
                 System.err.println("Skipping invalid move format: " + turn);
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void parseBoardPosition(String boardPosition) {
+        // Ensure the BoardPosition string contains both "W:" and "B:"
+        if (!boardPosition.contains("W:") || !boardPosition.contains("B:")) {
+            throw new IllegalArgumentException("Invalid BoardPosition format: Missing W: or B:");
+        }
+
+        // Extract the white and black positions
+        String whitePositions = boardPosition.substring(boardPosition.indexOf("W:") + 2, boardPosition.indexOf(":B:"));
+        String blackPositions = boardPosition.substring(boardPosition.indexOf("B:") + 2);
+
+        // Parse white pawns
+        for (String position : whitePositions.split(",")) {
+            boolean isKing = position.endsWith("k"); // Check if the position ends with 'k'
+            int numericPosition = Integer.parseInt(isKing ? position.substring(0, position.length() - 1) : position);
+            Vector2i pos = TileConversion.getTileVector(numericPosition);
+            pawns.add(new Pawn(pos, true, isKing)); // Pass the king status
+        }
+
+        // Parse black pawns
+        for (String position : blackPositions.split(",")) {
+            boolean isKing = position.endsWith("k"); // Check if the position ends with 'k'
+            int numericPosition = Integer.parseInt(isKing ? position.substring(0, position.length() - 1) : position);
+            Vector2i pos = TileConversion.getTileVector(numericPosition);
+            pawns.add(new Pawn(pos, false, isKing)); // Pass the king status
         }
     }
 
@@ -154,6 +179,10 @@ public class PDNParser {
 
     public List<Move> getMoves() {
         return moves;
+    }
+
+    public List<Pawn> getPawns() {
+        return pawns;
     }
 
     public String getIsBot() {

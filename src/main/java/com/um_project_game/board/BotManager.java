@@ -208,7 +208,7 @@ public class BotManager {
 
         for (Pawn pawn :
                 boardState.isWhiteTurn() && boardState.isBotvsBot() ? whitepawns : botPawnsblack) {
-            moveManager.seePossibleMove(pawn);
+            moveManager.seePossibleMove(pawn, true);
             if (boardState.getCurrentCapturePaths() != null
                     && !boardState.getCurrentCapturePaths().isEmpty()) {
                 allCapturePaths.addAll(boardState.getCurrentCapturePaths()); // Add computed paths

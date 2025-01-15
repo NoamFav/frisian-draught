@@ -2,20 +2,20 @@ package com.um_project_game.board;
 
 import org.joml.Vector2i;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GameState {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
     MainBoard mainBoard;
     boolean isWhiteTurn;
+    MoveManager moveManager;
 
     public GameState(Map<Vector2i, Pawn> currentState, boolean isWhiteTurn, MainBoard mainBoard) {
         this.boardState = new HashMap<>(currentState);
         this.isWhiteTurn = isWhiteTurn;
         this.mainBoard = mainBoard;
+        this.moveManager = mainBoard.moveManager;
     }
 
     public double[] toInputArray() {
@@ -64,7 +64,22 @@ public class GameState {
     }
 
     public List<Move> generateMoves() {
-        return mainBoard.getValidMovesForState(this);
+        // Call getValidMovesForState to retrieve the map of pawns and their valid moves
+
+        Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(this);
+
+        // Flatten the map values (list of moves) into a single list
+        return validMovesMap.values().stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+
+    public List<Pawn> generateMovablePawnList() {
+        // Call getValidMovesForState to retrieve the map of pawns and their valid moves
+        Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(this);
+
+        // Convert the keySet (pawns) into a List and return it
+        return new ArrayList<>(validMovesMap.keySet());
     }
 
     private boolean isValidMove(Vector2i startPosition, Vector2i endPosition) {

@@ -97,6 +97,8 @@ public class MainBoard {
         boardRendered.renderBoard();
         boardRendered.renderPawns();
 
+        highlightMovablePawns();
+
         Path home = Path.of(System.getProperty("user.home"));
         Path savePath = home.resolve("FrisianDraughtAIBin");
 
@@ -229,6 +231,15 @@ public class MainBoard {
         }
     }
 
+    public void highlightMovablePawns() {
+        GameState currentState =
+                new GameState(boardState.getPawnPositionMap(), boardState.isWhiteTurn, this);
+        Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(currentState);
+        List<Pawn> maxCaptures = new ArrayList<>(validMovesMap.keySet());
+
+        boardRendered.highlightMovablePawns(maxCaptures);
+    }
+
     /**
      * Creates and returns a random board, suitable for non-unique layouts.
      *
@@ -241,15 +252,19 @@ public class MainBoard {
         boardState.setPawns(new ArrayList<>());
         boardState.setBoard(new GridPane());
 
+        boardState.setRoot(root);
         boardState.setActive(true);
 
         boardRendered.setupBoard();
         boardRendered.renderBoard();
-        boardRendered.renderPawns();
         if (filePath != null) {
             loadGameFromPDN(filePath);
         }
+
+        boardRendered.renderPawns();
         boardState.getBoard().getStyleClass().add("board");
+
+        highlightMovablePawns();
 
         return boardState.getBoard();
     }
@@ -422,33 +437,38 @@ public class MainBoard {
             System.out.println("Loading game from: " + pdnFilePath);
             PDNParser pdnParser = new PDNParser(pdnFilePath);
             pdnParser.parseFile();
-            for (Move move : pdnParser.getMoves()) {
-                Pawn pawn = moveManager.getPawnAtPosition(move.getStartPosition());
-                if (pawn == null) {
-                    System.out.println(
-                            "No pawn at pos: "
-                                    + move.getStartPosition().x
-                                    + ", "
-                                    + move.getStartPosition().y);
-                    throw new RuntimeException("Couldn't find pawn to process the move: " + move);
-                }
-                List<CapturePath> possibleCapturePaths = findCapturePathsForPawn(pawn);
-                boolean captureExecuted = false;
-                for (CapturePath ct : possibleCapturePaths) {
-                    if (ct.getLastPosition().equals(move.getEndPosition())) {
-                        moveManager.executeCaptureMove(pawn, ct, false);
-                        captureExecuted = true;
-                        break; // Capture executed, no need to check further paths for this move
+            List<Pawn> pawns = pdnParser.getPawns();
+            if (pawns.isEmpty()) {
+                for (Move move : pdnParser.getMoves()) {
+                    Pawn pawn = moveManager.getPawnAtPosition(move.getStartPosition());
+                    if (pawn == null) {
+                        System.out.println(
+                                "No pawn at pos: "
+                                        + move.getStartPosition().x
+                                        + ", "
+                                        + move.getStartPosition().y);
+                        throw new RuntimeException(
+                                "Couldn't find pawn to process the move: " + move);
+                    }
+                    List<CapturePath> possibleCapturePaths = findCapturePathsForPawn(pawn);
+                    boolean captureExecuted = false;
+                    for (CapturePath ct : possibleCapturePaths) {
+                        if (ct.getLastPosition().equals(move.getEndPosition())) {
+                            moveManager.executeCaptureMove(pawn, ct, false);
+                            captureExecuted = true;
+                            break; // Capture executed, no need to check further paths for this move
+                        }
+                    }
+
+                    if (!captureExecuted) {
+                        // If no capture was executed, proceed with a normal move
+                        moveManager.executeMove(pawn, move.getEndPosition());
                     }
                 }
-
-                if (!captureExecuted) {
-                    // If no capture was executed, proceed with a normal move
-                    moveManager.executeMove(pawn, move.getEndPosition());
-                }
+            } else {
+                boardState.setPawns(pawns);
             }
 
-            boardRendered.renderPawns();
             boardState.setBotActive(pdnParser.getIsBot().equals("1"));
             boardState.setMultiplayer(pdnParser.getIsMultiplayer().equals("1"));
             boardState.setWhiteTurn(pdnParser.getTurn().equals("W"));
@@ -480,48 +500,6 @@ public class MainBoard {
                 capturePaths);
 
         return capturePaths;
-    }
-
-    public List<Move> getValidMovesForState(GameState state) {
-        List<Move> validMoves = new ArrayList<>();
-
-        // Iterate through all pawns in the game state
-        for (Map.Entry<Vector2i, Pawn> entry : state.getBoardState().entrySet()) {
-            Vector2i position = entry.getKey();
-            Pawn pawn = entry.getValue();
-
-            // Ensure this pawn belongs to the current player
-            if (pawn.isWhite() != state.isWhiteTurn()) {
-                continue;
-            }
-
-            // Generate moves for this pawn
-            moveManager.seePossibleMove(pawn);
-            validMoves.addAll(
-                    boardState.getPossibleMoves().stream()
-                            .map(
-                                    move ->
-                                            new Move(
-                                                    position,
-                                                    move,
-                                                    new ArrayList<>(
-                                                            boardState.getRequiredPawns().stream()
-                                                                    .map(Pawn::getPosition)
-                                                                    .collect(Collectors.toList()))))
-                            .collect(Collectors.toList()));
-        }
-
-        List<Move> captureMoves =
-                validMoves.stream()
-                        .filter(move -> !move.getCapturedPositions().isEmpty())
-                        .collect(Collectors.toList());
-        if (!captureMoves.isEmpty()) {
-            System.out.println("Capture moves found: " + captureMoves);
-            return captureMoves;
-        }
-
-        System.out.println("Normal moves found: " + validMoves);
-        return validMoves;
     }
 
     private void resetTakenMoves() {

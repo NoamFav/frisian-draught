@@ -64,6 +64,12 @@ public class MoveManager {
      * @param pawns List of all pawns.
      * @return List of pawns with the maximum number of captures.
      */
+    /**
+     * Finds pawns with the maximum number of captures.
+     *
+     * @param pawns List of all pawns.
+     * @return List of pawns with the maximum number of captures.
+     */
     private List<Pawn> findPawnsWithMaxCaptures() {
         Map<Pawn, List<CapturePath>> pawnCapturePaths = new HashMap<>();
 
@@ -130,7 +136,7 @@ public class MoveManager {
      * @param pawn The selected pawn.
      * @param tileSize Size of each tile.
      */
-    public void seePossibleMove(Pawn pawn) {
+    public void seePossibleMove(Pawn pawn, boolean highlighting) {
         boardState.getPossibleMoves().clear();
         boardRendered.clearHighlights();
         Vector2i position = pawn.getPosition();
@@ -151,9 +157,12 @@ public class MoveManager {
         boardState.setCurrentCapturePaths(new ArrayList<>(allPaths));
 
         if (!allPaths.isEmpty()) {
-            handleCaptureMoves(pawn, allPaths, true);
+            //check if pawn is in requiredPawns:
+            if (boardState.getRequiredPawns().contains(pawn)) {
+                handleCaptureMoves(pawn, allPaths, true, highlighting);
+            }
         } else if (boardState.getRequiredPawns().isEmpty()) {
-            handleNormalMoves(pawn, inBounds, x, y, true);
+            handleNormalMoves(pawn, inBounds, x, y, true, highlighting);
         }
     }
 
@@ -166,7 +175,7 @@ public class MoveManager {
      * @param tileSize Size of each tile.
      * @param allPaths List of all possible capture paths.
      */
-    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths, boolean isAnimated) {
+    private void handleCaptureMoves(Pawn pawn, List<CapturePath> allPaths, boolean isAnimated, boolean highlight) {
         double maxCaptureValue =
                 allPaths.stream().mapToDouble(CapturePath::getCaptureValue).max().orElse(0);
 
@@ -180,7 +189,9 @@ public class MoveManager {
             Vector2i landingPos = path.getLastPosition();
 
             Rectangle square = boardRendered.createHighlightSquare(Color.RED);
-            boardState.getBoard().add(square, landingPos.x, landingPos.y);
+            if (highlight) {
+                boardState.getBoard().add(square, landingPos.x, landingPos.y);
+            }
             boardState.getPossibleMoves().add(landingPos);
 
             // Set up manual click event
@@ -286,11 +297,13 @@ public class MoveManager {
      * @param y Current y-coordinate of the pawn.
      */
     private void handleNormalMoves(
-            Pawn pawn, BiPredicate<Integer, Integer> inBounds, int x, int y, boolean isAnimated) {
+            Pawn pawn, BiPredicate<Integer, Integer> inBounds, int x, int y, boolean isAnimated, boolean highlighting) {
         BiConsumer<Integer, Integer> highlightMove =
                 (newX, newY) -> {
                     Rectangle square = boardRendered.createHighlightSquare(Color.GREEN);
-                    boardState.getBoard().add(square, newX, newY);
+                    if (highlighting) {
+                        boardState.getBoard().add(square, newX, newY);
+                    }
                     boardState.getPossibleMoves().add(new Vector2i(newX, newY));
 
                     square.setOnMouseClicked(
@@ -591,6 +604,12 @@ public class MoveManager {
         boardState.getGameInfo().playerTurn.set(boardState.isWhiteTurn() ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
+        //Here I need to get the pawns List instead of the maxCaptures one.
+        GameState currentState = new GameState(boardState.getPawnPositionMap(), boardState.isWhiteTurn, mainBoard);
+        Map<Pawn, List<Move>> validMovesMap = getValidMovesForState(currentState);
+        List<Pawn> maxCaptures = new ArrayList<>(validMovesMap.keySet());
+
+        boardRendered.highlightMovablePawns(maxCaptures);
 
         if (!boardState.isWhiteTurn() && boardState.isBotActive()) {
             if (Launcher.dqnbot) {
@@ -727,4 +746,69 @@ public class MoveManager {
         setPlayerStyle.accept(playerOneTime, true);
         setPlayerStyle.accept(playerTwoTime, false);
     }
+
+
+    /**
+     * Finds pawns with the maximum number of captures.
+     *
+     * @param pawns List of all pawns.
+     * @return List of pawns with the maximum number of captures.
+     */
+
+    public Map<Pawn, List<Move>> getValidMovesForState(GameState state) {
+        Map<Pawn, List<Move>> pawnMovesMap = new HashMap<>();
+        double maxCaptureValue = 0;
+        List<Pawn> maxCapturesPawns = findPawnsWithMaxCaptures();
+        List<Pawn> validPawns;
+
+        if (maxCapturesPawns.size() > 0) {
+            validPawns = maxCapturesPawns;
+        } else {
+            validPawns = boardState.getPawns();
+        }
+        // Iterate through all pawns in the game state
+        for (Pawn pawn : validPawns) {
+            Vector2i position = pawn.getPosition();
+
+            // Ensure this pawn belongs to the current player
+            if (pawn.isWhite() != state.isWhiteTurn()) {
+                continue;
+            }
+
+            // Generate moves for this pawn
+            seePossibleMove(pawn, false);
+
+            List<Move> pawnMoves = boardState.getPossibleMoves().stream()
+                    .map(move -> new Move(
+                            position,
+                            move,
+                            new ArrayList<>(boardState.getRequiredPawns().stream()
+                                    .map(Pawn::getPosition)
+                                    .collect(Collectors.toList()))))
+                    .collect(Collectors.toList());
+
+            // Check for maximum capture value for the pawn
+            double captureValue = pawnMoves.stream()
+                    .filter(move -> !move.getCapturedPositions().isEmpty())
+                    .mapToDouble(move -> move.getCapturedPositions().size()) // Use size of captures
+                    .max()
+                    .orElse(0);
+
+            // Update the maxCaptureValue for the state
+            maxCaptureValue = Math.max(maxCaptureValue, captureValue);
+
+            // Add the pawn and its moves to the map
+            pawnMovesMap.put(pawn, pawnMoves);
+        }
+
+        // Filter the map to include only pawns with the longest moves
+        double finalMaxCaptureValue = maxCaptureValue;
+        Map<Pawn, List<Move>> filteredMap = pawnMovesMap.entrySet().stream()
+                .filter(entry -> entry.getValue().stream()
+                        .anyMatch(move -> move.getCapturedPositions().size() == finalMaxCaptureValue))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return filteredMap;
+    }
+
 }

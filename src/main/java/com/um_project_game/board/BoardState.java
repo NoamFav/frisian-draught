@@ -298,4 +298,13 @@ public class BoardState {
     public static double getGamma() {
         return GAMMA;
     }
+
+
+    public Map<Vector2i, Pawn> getPawnPositionMap() {
+        Map<Vector2i, Pawn> positionMap = new HashMap<>();
+        for (Pawn pawn : pawns) { // 'pawns' is the list of active pawns
+            positionMap.put(pawn.getPosition(), pawn);
+        }
+        return positionMap;
+    }
 }
