@@ -508,48 +508,6 @@ public class MainBoard {
         return capturePaths;
     }
 
-    public List<Move> getValidMovesForState(GameState state) {
-        List<Move> validMoves = new ArrayList<>();
-
-        // Iterate through all pawns in the game state
-        for (Map.Entry<Vector2i, Pawn> entry : state.getBoardState().entrySet()) {
-            Vector2i position = entry.getKey();
-            Pawn pawn = entry.getValue();
-
-            // Ensure this pawn belongs to the current player
-            if (pawn.isWhite() != state.isWhiteTurn()) {
-                continue;
-            }
-
-            // Generate moves for this pawn
-            moveManager.seePossibleMove(pawn);
-            validMoves.addAll(
-                    boardState.getPossibleMoves().stream()
-                            .map(
-                                    move ->
-                                            new Move(
-                                                    position,
-                                                    move,
-                                                    new ArrayList<>(
-                                                            boardState.getRequiredPawns().stream()
-                                                                    .map(Pawn::getPosition)
-                                                                    .collect(Collectors.toList()))))
-                            .collect(Collectors.toList()));
-        }
-
-        List<Move> captureMoves =
-                validMoves.stream()
-                        .filter(move -> !move.getCapturedPositions().isEmpty())
-                        .collect(Collectors.toList());
-        if (!captureMoves.isEmpty()) {
-            System.out.println("Capture moves found: " + captureMoves);
-            return captureMoves;
-        }
-
-        System.out.println("Normal moves found: " + validMoves);
-        return validMoves;
-    }
-
     private void resetTakenMoves() {
         boardState.getTakenMoves().clear();
         boardState.getPastStates().clear();

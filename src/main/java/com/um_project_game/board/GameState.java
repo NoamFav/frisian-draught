@@ -2,10 +2,12 @@ package com.um_project_game.board;
 
 import org.joml.Vector2i;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class GameState implements Cloneable {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
