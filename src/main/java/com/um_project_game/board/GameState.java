@@ -84,12 +84,14 @@ public class GameState implements Cloneable {
 
     public List<Move> generateMoves() {
 
-        // Call getValidMovesForState to retrieve the map of pawns and their valid moves
+//        // Call getValidMovesForState to retrieve the map of pawns and their valid moves
+//
+//        Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(this);
+//
+//        // Flatten the map values (list of moves) into a single list
+//        return validMovesMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
+        return mainBoard.getValidMovesForState(this);
 
-        Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(this);
-
-        // Flatten the map values (list of moves) into a single list
-        return validMovesMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
     public List<Pawn> generateMovablePawnList() {

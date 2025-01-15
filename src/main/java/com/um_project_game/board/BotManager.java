@@ -346,7 +346,7 @@ public class BotManager {
                         Move selMove = null;
                         GameState newState = null;
                         if (boardState.isWhiteTurn()) {
-                            selMove = miniMaxTree.getBestMove(currentState, 3, true);
+                            selMove = miniMaxTree.getBestMove(currentState, 4, true);
                             if (selMove == null) {
                                 Random random = new Random();
                                 selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
