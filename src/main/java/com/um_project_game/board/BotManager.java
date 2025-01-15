@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
-import com.um_project_game.AI.MiniMax.MiniMaxTree;
 
 public class BotManager {
     private final BoardState boardState;
@@ -204,12 +203,13 @@ public class BotManager {
                             }
                         }
                         // Add experience to replay buffer
-                        Experience experience = new Experience(
-                                currentState,
-                                chosenAction,
-                                computeReward(currentState.applyMove(selectedMove)),
-                                mainboard.getBoardState(),
-                                currentState.isTerminal());
+                        Experience experience =
+                                new Experience(
+                                        currentState,
+                                        chosenAction,
+                                        computeReward(currentState.applyMove(selectedMove)),
+                                        mainboard.getBoardState(),
+                                        currentState.isTerminal());
                         replayBuffer.addExperience(experience);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -251,6 +251,7 @@ public class BotManager {
 
                     if (boardState.isBotvsBot()) {
                         if (boardState.isWhiteTurn()) {
+
                             triggerBotMoveR(); // Random bot for White
                         } else {
                             triggerBotMoveMM(); // Trained bot for Black
@@ -290,7 +291,9 @@ public class BotManager {
 
         for (Pawn pawn :
                 boardState.isWhiteTurn() && boardState.isBotvsBot() ? whitepawns : botPawnsblack) {
-            moveManager.seePossibleMove(pawn);
+
+            moveManager.seePossibleMove(pawn, true);
+
             if (boardState.getCurrentCapturePaths() != null
                     && !boardState.getCurrentCapturePaths().isEmpty()) {
                 allCapturePaths.addAll(boardState.getCurrentCapturePaths()); // Add computed paths
@@ -326,7 +329,7 @@ public class BotManager {
     private double computeReward(MoveResult result) {
         return result.getReward();
     }
-    
+
     private void applyMove(MoveResult result) {
         if (result != null) {
             // Update the board state
@@ -423,14 +426,14 @@ public class BotManager {
                         Move selMove = null;
                         GameState newState = null;
                         if (boardState.isWhiteTurn()) {
-                            selMove = miniMaxTree.getBestMove(currentState,3, true);
+                            selMove = miniMaxTree.getBestMove(currentState, 4, true);
                             if (selMove == null) {
                                 Random random = new Random();
                                 selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
                             }
                             newState = miniMaxTree.rootState;
                         } else {
-                            selMove = miniMaxTree.getBestMove(currentState,4, false);
+                            selMove = miniMaxTree.getBestMove(currentState, 4, false);
                             if (selMove == null) {
                                 Random random = new Random();
                                 selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));

@@ -2,6 +2,9 @@ package com.um_project_game;
 
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.SoundPlayer;
+import com.um_project_game.util.TomlLoader;
+import com.um_project_game.util.Trophy;
+import com.um_project_game.util.TrophyLoader;
 
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -22,6 +25,7 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Launcher extends Application {
     private PauseTransition resizePause;
@@ -35,9 +39,10 @@ public class Launcher extends Application {
             new ViewManager(
                     new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
     public static Scene menuScene;
-    public static final boolean isRecentGameToggleReady = false;
-
     private static final List<Scene> scenes = new ArrayList<>();
+
+    public static UserInfo user = TomlLoader.loadPlayerInfo();
+    public static Map<String, Trophy> trophies = TrophyLoader.loadTrophies();
 
     public static void registerScene(Scene scene) {
         scenes.add(scene);
@@ -200,7 +205,17 @@ public class Launcher extends Application {
      */
     public void startNewGame(boolean isOnline, boolean againstBot, boolean isBotVsBot) {
 
-        if (isOnline) {
+        startNewGame(isOnline, againstBot, isBotVsBot, null);
+    }
+
+    public void startNewGame(
+            boolean isOnline, boolean againstBot, boolean isBotVsBot, MainBoard mainBoard) {
+
+        // for loaded games
+        if (mainBoard != null) {
+            viewManager.gameStateSwitch(2, mainBoard);
+        } else if (isOnline) {
+
             viewManager.gameStateSwitch(1);
         } else if (againstBot) {
             viewManager.gameStateSwitch(isBotVsBot ? 4 : 2);

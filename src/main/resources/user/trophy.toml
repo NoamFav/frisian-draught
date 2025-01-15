@@ -1,0 +1,203 @@
+[trophy]
+
+trophies = 0 # Number of trophies unlocked
+
+trophy_1_name = "First Move"
+trophy_1_description = "Play your first game"
+trophy_1_unlocked = false
+
+trophy_2_name = "Taste of Victory"
+trophy_2_description = "Win your first game"
+trophy_2_unlocked = false
+
+trophy_3_name = "Better Luck Next Time"
+trophy_3_description = "Lose your first game"
+trophy_3_unlocked = false
+
+trophy_4_name = "Game Enthusiast"
+trophy_4_description = "Play 10 games"
+trophy_4_unlocked = false
+
+trophy_5_name = "Winning Streak"
+trophy_5_description = "Win 10 games"
+trophy_5_unlocked = false
+
+trophy_6_name = "Persistent Player"
+trophy_6_description = "Lose 10 games"
+trophy_6_unlocked = false
+
+trophy_7_name = "Apprentice"
+trophy_7_description = "Complete the tutorial"
+trophy_7_unlocked = false
+
+trophy_8_name = "Triple Threat"
+trophy_8_description = "Capture 3 pieces in a single move"
+trophy_8_unlocked = false
+
+trophy_9_name = "On a Roll"
+trophy_9_description = "Capture 5 pieces in a single move"
+trophy_9_unlocked = false
+
+trophy_10_name = "Crown Me"
+trophy_10_description = "Promote your first piece to King"
+trophy_10_unlocked = false
+
+trophy_11_name = "King Slayer"
+trophy_11_description = "Capture an opponent’s King"
+trophy_11_unlocked = false
+
+trophy_12_name = "Perfect Win"
+trophy_12_description = "Win a game without losing a single piece"
+trophy_12_unlocked = false
+
+trophy_13_name = "Comeback King"
+trophy_13_description = "Win a game after losing more than half your pieces"
+trophy_13_unlocked = false
+
+trophy_14_name = "Quick Draw"
+trophy_14_description = "Achieve a draw in less than 20 moves"
+trophy_14_unlocked = false
+
+trophy_15_name = "Master Defender"
+trophy_15_description = "Survive for 10 moves with only one piece left"
+trophy_15_unlocked = false
+
+trophy_16_name = "Blitz Victory"
+trophy_16_description = "Win a game in less than 50 moves"
+trophy_16_unlocked = false
+
+trophy_17_name = "Royal Court"
+trophy_17_description = "Have 3 King pieces on the board at the same time"
+trophy_17_unlocked = false
+
+trophy_18_name = "Patience Pays Off"
+trophy_18_description = "Finish a game after more than 100 moves"
+trophy_18_unlocked = false
+
+trophy_19_name = "Chain Reaction"
+trophy_19_description = "Make a move that results in a chain capture of 6 or more pieces"
+trophy_19_unlocked = false
+
+trophy_20_name = "Lucky Break"
+trophy_20_description = "Win a game after being one move away from defeat"
+trophy_20_unlocked = false
+
+trophy_21_name = "Veteran Player"
+trophy_21_description = "Play 50 games"
+trophy_21_unlocked = false
+
+trophy_22_name = "Collector"
+trophy_22_description = "Capture 100 pieces in total"
+trophy_22_unlocked = false
+
+trophy_23_name = "Blunder Master"
+trophy_23_description = "Lose a game after being up by 5 pieces"
+trophy_23_unlocked = false
+
+trophy_24_name = "Iron Wall"
+trophy_24_description = "Block your opponent from making any valid moves"
+trophy_24_unlocked = false
+
+trophy_25_name = "Turtle Pace"
+trophy_25_description = "Finish a game after 200 moves"
+trophy_25_unlocked = false
+
+trophy_26_name = "Back-to-Back Wins"
+trophy_26_description = "Win 2 consecutive games in less than 5 minutes each"
+trophy_26_unlocked = false
+
+trophy_27_name = "Draw Specialist"
+trophy_27_description = "Achieve 5 draws"
+trophy_27_unlocked = false
+
+trophy_28_name = "Piece Hoarder"
+trophy_28_description = "Finish a game with 12 or more pieces remaining"
+trophy_28_unlocked = false
+
+trophy_29_name = "Risk Taker"
+trophy_29_description = "Capture a piece by baiting your King"
+trophy_29_unlocked = false
+
+trophy_30_name = "Marathon Player"
+trophy_30_description = "Play 100 games"
+trophy_30_unlocked = false
+
+trophy_31_name = "Half-Time Hero"
+trophy_31_description = "Win a game in under 50 moves"
+trophy_31_unlocked = false
+
+trophy_32_name = "Comeback Kid"
+trophy_32_description = "Win a game after being down by 5 or more pieces"
+trophy_32_unlocked = false
+
+trophy_33_name = "Royal Sacrifice"
+trophy_33_description = "Sacrifice a King to win the game"
+trophy_33_unlocked = false
+
+trophy_34_name = "Master Strategist"
+trophy_34_description = "Win a game with only King pieces"
+trophy_34_unlocked = false
+
+trophy_35_name = "Flawless Defense"
+trophy_35_description = "Win a game without losing a King"
+trophy_35_unlocked = false
+
+trophy_36_name = "Survivor"
+trophy_36_description = "Survive for 20 moves with only one piece left"
+trophy_36_unlocked = false
+
+trophy_37_name = "Chain Master"
+trophy_37_description = "Make 3 chain captures in a single game"
+trophy_37_unlocked = false
+
+trophy_38_name = "Dominant Win"
+trophy_38_description = "Win a game by more than 10 pieces"
+trophy_38_unlocked = false
+
+trophy_39_name = "Piece Collector"
+trophy_39_description = "Capture 20 pieces in one game"
+trophy_39_unlocked = false
+
+trophy_40_name = "Against the Odds"
+trophy_40_description = "Win a game with only one King left"
+trophy_40_unlocked = false
+
+trophy_41_name = "Explorer"
+trophy_41_description = "Try all game modes"
+trophy_41_unlocked = false
+
+trophy_42_name = "Time Traveler"
+trophy_42_description = "Win a game in under 3 minutes"
+trophy_42_unlocked = false
+
+trophy_43_name = "Trap Setter"
+trophy_43_description = "Successfully set a double trap"
+trophy_43_unlocked = false
+
+trophy_44_name = "Underdog Champion"
+trophy_44_description = "Win a game after starting with fewer pieces"
+trophy_44_unlocked = false
+
+trophy_45_name = "Sacrificial Play"
+trophy_45_description = "Sacrifice 3 of your pieces to set up a win"
+trophy_45_unlocked = false
+
+trophy_46_name = "Perfect Streak"
+trophy_46_description = "Win 10 games without losing a single one"
+trophy_46_unlocked = false
+
+trophy_47_name = "Consistent Winner"
+trophy_47_description = "Win 5 games in a row"
+trophy_47_unlocked = false
+
+trophy_48_name = "Evasive Maneuver"
+trophy_48_description = "Win a game after surviving a double trap"
+trophy_48_unlocked = false
+
+trophy_49_name = "Endgame Specialist"
+trophy_49_description = "Win 10 games with only King pieces remaining"
+trophy_49_unlocked = false
+
+trophy_50_name = "Grandmaster"
+trophy_50_description = "Win 100 games in total"
+trophy_50_unlocked = false

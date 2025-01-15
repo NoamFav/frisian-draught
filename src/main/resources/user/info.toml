@@ -1,0 +1,66 @@
+# Player Profile
+name = "Noam"  # Asked at runtime
+level = 4  # Level of the player
+experience = 58  # Experience of the player
+rank = "Beginner"  # Player rank (can be upgraded based on level or performance)
+
+# Player Stats
+[stats]
+games_played = 0  # Total number of games played
+games_won = 0  # Total number of games won
+games_lost = 0  # Total number of games lost
+draws = 0  # Total number of draws
+win_streak = 0  # Current win streak
+highest_win_streak = 0  # Highest win streak achieved
+
+# Special Stats
+[special_stats]
+kings_promoted = 0  # Total number of pieces promoted to King
+pieces_captured = 0  # Total number of pieces captured
+longest_game = 0  # Longest game duration in moves
+fastest_win = 0  # Fastest win in moves
+most_pieces_captured_in_game = 0  # Most pieces captured in a single game
+
+# Trophies & Achievements
+[trophies]
+trophies_unlocked = []  # List of unlocked trophies (by trophy ID or name)
+achievements = []  # List of special achievements unlocked
+
+# Player Inventory
+[inventory]
+profile_picture = "default"  # Profile picture or avatar
+themes_unlocked = ["Classic"]  # Board themes unlocked by the player
+current_theme = "Classic"  # Currently selected theme
+king_styles_unlocked = ["Default King"]  # Custom King piece styles unlocked
+current_king_style = "Default King"  # Currently selected King style
+
+# Multiplayer Stats
+[multiplayer_stats]
+multiplayer_games_played = 0  # Total multiplayer games played
+multiplayer_games_won = 0  # Multiplayer games won
+multiplayer_games_lost = 0  # Multiplayer games lost
+multiplayer_rank = "Bronze"  # Multiplayer rank based on performance
+
+# Settings
+[settings]
+sound_effects = true  # Toggle sound effects on/off
+music = true  # Toggle in-game music on/off
+notifications = true  # Toggle notifications on/off
+difficulty_level = "Normal"  # Selected AI difficulty level (Easy, Normal, Hard)
+dark_mode = false  # Toggle dark mode on/off
+
+# Performance Tracking
+[performance]
+accuracy = 0  # Player accuracy (percentage of moves that were optimal)
+critical_moves_made = 0  # Total number of critical moves made
+mistakes_made = 0  # Total number of mistakes made
+average_game_duration = 0  # Average game duration in moves
+
+# Friends/Connections
+[connections]
+friends = []  # List of friends' player IDs
+blocked_players = []  # List of blocked players
+
+# Player Custom Notes
+[notes]
+personal_notes = ""  # Player can write personal notes about strategies or opponents

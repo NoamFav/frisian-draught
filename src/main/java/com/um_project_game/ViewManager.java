@@ -1,6 +1,5 @@
 package com.um_project_game;
 
-import com.um_project_game.Server.MainServer;
 import com.um_project_game.board.MainBoard;
 
 import javafx.scene.Scene;
@@ -20,19 +19,15 @@ public class ViewManager {
     private Launcher launcher;
     private Menu menu;
     private Scene scene;
-    private MainServer server;
+
     private List<Game> activeGames = new ArrayList<>();
     private int GAME_STATE = 0;
 
     public ViewManager(Pane root, Launcher launcher, Scene scene) {
-        this.server = new MainServer();
+
         this.root = root;
         this.launcher = launcher;
         this.scene = scene;
-    }
-
-    public MainServer getServer() {
-        return server;
     }
 
     /**
@@ -43,11 +38,6 @@ public class ViewManager {
         GAME_STATE = state;
         switch (GAME_STATE) {
             case 0:
-                if (server.isRunning()) {
-                    server.close();
-                    System.out.println("Server closed");
-                }
-
                 root.getChildren().clear();
                 root.getChildren().add(menu.getMenuRoot());
                 break;
@@ -62,25 +52,6 @@ public class ViewManager {
                 System.out.println("Starting game");
                 System.out.println("Multiplayer: " + isMultiplayer);
                 System.out.println("Against Bot: " + isAgainstBot);
-
-                if (isMultiplayer) {
-                    System.out.println("Starting multiplayer game");
-                    if (server.isRunning()) {
-                        server.close();
-                        System.out.println("Server closed");
-                    }
-                    server = new MainServer(); // Create a new server instance
-                    System.out.println("Starting server");
-                    Thread serverThread = new Thread(server);
-                    serverThread.setDaemon(true);
-                    serverThread.start();
-                    System.out.println("Server started");
-                } else {
-                    if (server != null && server.isRunning()) {
-                        server.close();
-                        System.out.println("Server closed");
-                    }
-                }
 
                 Game game = new Game(isMultiplayer, isAgainstBot, isBotvsBot, launcher);
 
@@ -103,11 +74,6 @@ public class ViewManager {
         GAME_STATE = state;
         switch (GAME_STATE) {
             case 0:
-                if (server.isRunning()) {
-                    server.close();
-                    System.out.println("Server closed");
-                }
-
                 root.getChildren().clear();
                 root.getChildren().add(menu.getMenuRoot());
                 break;
@@ -122,25 +88,6 @@ public class ViewManager {
                 System.out.println("Multiplayer: " + isMultiplayer);
                 System.out.println("Against Bot: " + isAgainstBot);
 
-                if (isMultiplayer) {
-                    System.out.println("Starting multiplayer game");
-                    if (server.isRunning()) {
-                        server.close();
-                        System.out.println("Server closed");
-                    }
-                    server = new MainServer(); // Create a new server instance
-                    System.out.println("Starting server");
-                    Thread serverThread = new Thread(server);
-                    serverThread.setDaemon(true);
-                    serverThread.start();
-                    System.out.println("Server started");
-                } else {
-                    if (server != null && server.isRunning()) {
-                        server.close();
-                        System.out.println("Server closed");
-                    }
-                }
-
                 Game game = new Game(launcher, board);
 
                 activeGames.add(game);
@@ -154,9 +101,7 @@ public class ViewManager {
     public void closeGame(Game gameToClose) {
         activeGames.remove(gameToClose);
         root.getChildren().remove(gameToClose.getGameRoot());
-        if (activeGames.isEmpty()) {
-            gameStateSwitch(0); // Go back to menu
-        }
+        if (activeGames.isEmpty()) {}
     }
 
     public void setRoot(Pane root) {
@@ -185,10 +130,6 @@ public class ViewManager {
 
     public void setScene(Scene scene) {
         this.scene = scene;
-    }
-
-    public void setServer(MainServer server) {
-        this.server = server;
     }
 
     public List<Game> getActiveGames() {

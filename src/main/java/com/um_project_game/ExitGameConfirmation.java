@@ -1,5 +1,7 @@
 package com.um_project_game;
 
+import com.um_project_game.util.ExitChoice;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -74,24 +76,30 @@ public class ExitGameConfirmation {
     }
 
     // Method 2: Show Save Confirmation with Checkbox
-    public static boolean showSaveConfirmation(boolean canSave) {
+
+    public static ExitChoice showSaveConfirmation(boolean canSave) {
+
         // Create a custom stage
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.UNDECORATED);
 
         // Create header
-        Label headerLabel = new Label("Save Confirmation");
+
+        Label headerLabel = new Label("Exit Game");
         headerLabel.getStyleClass().add("header-label");
 
         // Create message
-        Label messageLabel = new Label("Do you want to save the game before exiting?");
+        Label messageLabel = new Label("Are you sure you want to exit this game?");
         messageLabel.getStyleClass().add("message-label");
 
-        // Create checkbox
-        CheckBox saveCheckbox = new CheckBox("Save the game before exiting");
-        saveCheckbox.setSelected(canSave);
-        saveCheckbox.getStyleClass().add("checkbox");
+        // Create checkbox (conditionally)
+        CheckBox saveCheckbox = null;
+        if (canSave) {
+            saveCheckbox = new CheckBox("Save the game before exiting");
+            saveCheckbox.setSelected(true);
+            saveCheckbox.getStyleClass().add("checkbox");
+        }
 
         // Create buttons
         Button yesButton = new Button("Yes");
@@ -100,20 +108,35 @@ public class ExitGameConfirmation {
         noButton.getStyleClass().add("button");
 
         // Button actions
-        final boolean[] result = {false};
+
+        final ExitChoice[] result = {ExitChoice.NOT_EXIT};
+        CheckBox finalSaveCheckbox = saveCheckbox;
         yesButton.setOnAction(
                 _ -> {
-                    result[0] = saveCheckbox.isSelected();
+                    result[0] =
+                            (finalSaveCheckbox != null && finalSaveCheckbox.isSelected())
+                                    ? ExitChoice.EXIT_WITH_SAVE
+                                    : ExitChoice.EXIT_WITHOUT_SAVE;
                     stage.close();
                 });
-        noButton.setOnAction(_ -> stage.close());
+        noButton.setOnAction(
+                _ -> {
+                    stage.close();
+                });
 
         // Layout buttons
         HBox buttonBox = new HBox(10, noButton, yesButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         // Layout root
-        VBox root = new VBox(15, headerLabel, messageLabel, saveCheckbox, buttonBox);
+
+        VBox root;
+        if (canSave) {
+            root = new VBox(15, headerLabel, messageLabel, saveCheckbox, buttonBox);
+        } else {
+            root = new VBox(15, headerLabel, messageLabel, buttonBox);
+        }
+
         root.getStyleClass().add("alert-root");
         root.setAlignment(Pos.CENTER);
 

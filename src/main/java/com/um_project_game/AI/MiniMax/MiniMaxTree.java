@@ -42,7 +42,7 @@ public class MiniMaxTree {
             List<Move> bestMoveSequence = new ArrayList<>();
             for (Move move : state.generateMoves()) {
                 if (state.getMainBoard().moveManager.getPawnAtPosition(move.getStartPosition()) == null) {
-                    continue; // Skip invalid moves
+                    System.out.println("Null pawn at position: " + move.getStartPosition());
                 }
                 System.out.println("SMove: " + move.getStartPosition());
                 System.out.println("EMove: " + move.getEndPosition());
@@ -67,7 +67,7 @@ public class MiniMaxTree {
             List<Move> bestMoveSequence = new ArrayList<>();
             for (Move move : state.generateMoves()) {
                 if (state.getMainBoard().moveManager.getPawnAtPosition(move.getStartPosition()) == null) {
-                    continue; // Skip invalid moves
+                    System.out.println("Null pawn at position: " + move.getStartPosition());
                 }
                 System.out.println("SMove: " + move.getStartPosition());
                 System.out.println("EMove: " + move.getEndPosition());
@@ -98,6 +98,7 @@ public class MiniMaxTree {
         long newBlackCount = newBoardState.values().stream().filter(pawn -> !pawn.isWhite()).count();
         long blackPiecesCaptured = oldBlackCount - newBlackCount;
         eval += blackPiecesCaptured;
+        System.out.println("Black pieces captured: " + blackPiecesCaptured);
 
         return eval;
     }

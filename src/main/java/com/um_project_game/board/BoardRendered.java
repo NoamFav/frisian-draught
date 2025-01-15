@@ -12,12 +12,17 @@ import javafx.util.Duration;
 
 import org.joml.Vector2i;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class BoardRendered {
 
     private final BoardState boardState;
     private MoveManager moveManager;
+
+    private final Map<Pawn, ScaleTransition> activeTransitions = new HashMap<>();
 
     public BoardRendered(BoardState boardState) {
         this.boardState = boardState;
@@ -33,21 +38,26 @@ public class BoardRendered {
      * @param pawns List to populate with the initial pawns.
      */
     public void setupBoard() {
-        BiConsumer<Integer, Boolean> addPawns =
-                (startRow, isWhite) -> {
-                    for (int y = startRow; y < startRow + 4; y++) {
-                        for (int x = 0; x < boardState.getBoardSize().x; x++) {
-                            if ((x + y) % 2 == 1) {
-                                boardState.getPawns().add(new Pawn(new Vector2i(x, y), isWhite));
+        // pawns List already provided
+        if (boardState.getPawns().size() == 0) {
+            BiConsumer<Integer, Boolean> addPawns =
+                    (startRow, isWhite) -> {
+                        for (int y = startRow; y < startRow + 4; y++) {
+                            for (int x = 0; x < boardState.getBoardSize().x; x++) {
+                                if ((x + y) % 2 == 1) {
+                                    boardState
+                                            .getPawns()
+                                            .add(new Pawn(new Vector2i(x, y), isWhite));
+                                }
                             }
                         }
-                    }
-                };
+                    };
 
-        // Add white pawns
-        addPawns.accept(0, false);
-        // Add black pawns
-        addPawns.accept(6, true);
+            // Add white pawns
+            addPawns.accept(0, false);
+            // Add black pawns
+            addPawns.accept(6, true);
+        }
 
         boardState.getAllPawns().clear();
         boardState.getAllPawns().addAll(boardState.getPawns());
@@ -149,7 +159,8 @@ public class BoardRendered {
                 _ -> {
                     clearHighlights();
                     boardState.setFocusedPawn(pawn);
-                    moveManager.seePossibleMove(pawn);
+                    moveManager.seePossibleMove(pawn, true);
+
                     renderPawns();
                 });
     }
@@ -175,10 +186,12 @@ public class BoardRendered {
      * @param tileSize Size of each tile.
      */
     public void clearHighlights() {
+
         if (boardState.getBoard() == null) {
             boardState.setBoard(new GridPane());
             renderBoard();
         }
+
         boardState.getBoard().getChildren().removeAll(boardState.getHighlightNodes());
         boardState.getHighlightNodes().clear();
     }
@@ -191,5 +204,44 @@ public class BoardRendered {
                     .add(boardState.getBoard()); // Re-add the board if not already in the root
         }
         boardState.getBoard().toFront(); // Bring the board to the front
+    }
+
+    public void highlightMovablePawns(List<Pawn> pawns) {
+        for (ScaleTransition transition : activeTransitions.values()) {
+            transition.stop();
+        }
+        activeTransitions.clear();
+
+        // Clear existing highlights for all pawns
+        for (Pawn pawn : boardState.getPawns()) {
+            ImageView pawnView = boardState.getPawnViews().get(pawn);
+            if (pawnView != null) {
+                // Reset the pawn's scale
+                pawnView.setScaleX(1.0);
+                pawnView.setScaleY(1.0);
+            }
+        }
+
+        for (Pawn pawn : pawns) {
+            ImageView pawnView = boardState.getPawnViews().get(pawn);
+
+            if (pawnView != null) {
+                // Apply ScaleTransition for movable pawns
+                ScaleTransition scaleTransition =
+                        new ScaleTransition(Duration.millis(1000), pawnView);
+                scaleTransition.setToX(1.2); // Slightly enlarge the pawn
+                scaleTransition.setToY(1.2);
+                scaleTransition.setInterpolator(Interpolator.EASE_BOTH);
+                scaleTransition.setCycleCount(ScaleTransition.INDEFINITE);
+                scaleTransition.setAutoReverse(true); // Make it pulse
+                scaleTransition.play();
+
+                activeTransitions.put(pawn, scaleTransition);
+            } else if (pawnView != null) {
+                // Reset the pawn's scale for non-movable pawns
+                pawnView.setScaleX(1.0);
+                pawnView.setScaleY(1.0);
+            }
+        }
     }
 }

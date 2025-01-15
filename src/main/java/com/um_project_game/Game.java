@@ -1,13 +1,13 @@
 package com.um_project_game;
 
+import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
+import com.um_project_game.util.ExitChoice;
 import com.um_project_game.util.GameExporter;
 
-import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.ScaleTransition;
+import javafx.animation.*;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.geometry.Insets;
@@ -25,6 +25,8 @@ import javafx.util.Duration;
 import org.joml.Vector2i;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -37,6 +39,12 @@ public class Game {
         return mainBoard;
     }
 
+    private Timeline gameTimerPlayerOne;
+    private Timeline gameTimerPlayerTwo;
+    private int gameTimeLimit = 10 * 60; // 10 minutes in seconds
+    private int remainingTimePlayerOne = gameTimeLimit;
+    private int remainingTimePlayerTwo = gameTimeLimit;
+
     private GridPane board;
     private GameInfo gameInfo = new GameInfo();
     private BooleanBinding isWhiteTurn;
@@ -45,6 +53,9 @@ public class Game {
     private boolean isAgainstBot;
     private boolean isBotvBot;
 
+    private Player playerWhite;
+    private Player playerBlack;
+    private List<Player> spectators = new ArrayList<>();
     private PauseTransition resizePause;
 
     private Pane gameRoot;
@@ -79,6 +90,9 @@ public class Game {
 
     // Game export
     private GameExporter exporter = new GameExporter();
+
+    // Game client communication
+    private NetworkClient networkClient;
 
     /* --------------------------------------------------------------------------------
      *                               CONSTRUCTORS
@@ -219,6 +233,14 @@ public class Game {
     }
 
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {
+
+        try {
+            networkClient = new NetworkClient("localhost", 9000, this);
+            System.out.println("Connected to server at localhost:9000");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         board =
                 mainBoard.getMainBoardMultiplayer(
                         root,
@@ -226,7 +248,9 @@ public class Game {
                         new Vector2i(mainBoardX, mainBoardY),
                         gameInfo,
                         movesListGridPane,
-                        true);
+                        true,
+                        networkClient);
+
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
@@ -246,8 +270,8 @@ public class Game {
         StackPane playerUI = new StackPane();
         playerUI.setPrefSize(scene.getWidth(), playerUIHeight);
 
-        // If isPlayerOne == false => we position it at the top, else at the bottom
-        // In your code, it's reversed, so let's keep your original logic:
+        // Positioning based on player
+
         playerUI.setLayoutX(0);
         playerUI.setLayoutY(!isPlayerOne ? 0 : scene.getHeight() - playerUIHeight);
 
@@ -270,6 +294,8 @@ public class Game {
                     }
                 };
 
+        // Player text and score setup
+
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
         playerText.getStyleClass().add("label");
         setPlayerStyle.accept(playerText);
@@ -289,10 +315,56 @@ public class Game {
         }
         setPlayerStyle.accept(playerScore);
 
+        // Timer setup for the entire game
         Text playerTime = new Text("Time: 10:00");
         playerTime.getStyleClass().add("label");
         setPlayerStyle.accept(playerTime);
         playerTime.setId(isPlayerOne ? "playerOneTime" : "playerTwoTime");
+
+        // Initialize separate timers for Player 1 and Player 2
+        if (isPlayerOne && gameTimerPlayerOne == null) {
+            gameTimerPlayerOne =
+                    new Timeline(
+                            new KeyFrame(
+                                    Duration.seconds(1),
+                                    e -> {
+                                        remainingTimePlayerOne--;
+                                        int minutes = remainingTimePlayerOne / 60;
+                                        int seconds = remainingTimePlayerOne % 60;
+                                        playerTime.setText(
+                                                String.format("Time: %02d:%02d", minutes, seconds));
+
+                                        if (remainingTimePlayerOne <= 0) {
+                                            gameTimerPlayerOne.stop();
+                                            handleTimeUp(isPlayerOne);
+                                        }
+                                    }));
+            gameTimerPlayerOne.setCycleCount(Timeline.INDEFINITE);
+            gameTimerPlayerOne.play();
+        }
+
+        if (!isPlayerOne && gameTimerPlayerTwo == null) {
+            gameTimerPlayerTwo =
+                    new Timeline(
+                            new KeyFrame(
+                                    Duration.seconds(1),
+                                    e -> {
+                                        remainingTimePlayerTwo--;
+                                        int minutes = remainingTimePlayerTwo / 60;
+                                        int seconds = remainingTimePlayerTwo % 60;
+                                        playerTime.setText(
+                                                String.format("Time: %02d:%02d", minutes, seconds));
+
+                                        if (remainingTimePlayerTwo <= 0) {
+                                            gameTimerPlayerTwo.stop();
+                                            handleTimeUp(isPlayerOne);
+                                        }
+                                    }));
+            gameTimerPlayerTwo.setCycleCount(Timeline.INDEFINITE);
+            gameTimerPlayerTwo.play();
+        }
+
+        // UI setup with spacing
 
         HBox playerInfo = new HBox(playerText, playerScore, playerTime);
         playerInfo.getStyleClass().add("playerInfo");
@@ -303,22 +375,38 @@ public class Game {
 
         root.getChildren().add(playerUI);
 
-        // OPTIONAL: if this player's turn, add a "pulse" animation
-        // (You could also call this after each move if you want more frequent pulses)
+        // OPTIONAL: Add a pulse animation for the active player
         if ((isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne)) {
-            animatePulse(playerUI, 1.05, 500); // Pulse up to 105% size over 500ms
+            animatePulse(playerUI, 1.05, 500); // Pulse to emphasize active player's turn
         }
     }
 
     /* --------------------------------------------------------------------------------
-     *                                CHAT UI
-     * -------------------------------------------------------------------------------- */
+
+    *                            HANDLE TIME UP EVENT
+    * -------------------------------------------------------------------------------- */
+    private void handleTimeUp(boolean isPlayerOne) {
+        Alert timeUpAlert = new Alert(Alert.AlertType.INFORMATION);
+        timeUpAlert.setTitle("Time's Up!");
+        timeUpAlert.setHeaderText("Game Over!");
+        timeUpAlert.setContentText(
+                isPlayerOne ? "Player 1 ran out of time!" : "Player 2 ran out of time!");
+        timeUpAlert.showAndWait();
+        gameStage.close(); // Automatically close the game window
+    }
+
+    /* --------------------------------------------------------------------------------
+
+    *                                CHAT UI
+    * -------------------------------------------------------------------------------- */
     private void chatUI(Pane root, Scene scene) {
         StackPane chatUI = new StackPane();
         chatUI.setPrefSize(chatUIWidth, chatUIHeight);
         chatUI.setLayoutX(chatUIX);
         chatUI.setLayoutY(chatUIY);
         chatUI.getStyleClass().add("chatUI");
+
+        chatUI.setId("chatUI");
 
         Text chatText = new Text("Chat");
         chatText.getStyleClass().add("label");
@@ -332,24 +420,30 @@ public class Game {
      * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
 
-        if (ExitGameConfirmation.showSaveConfirmation(true)) {
-            exporter.exportGameToPDN(
-                    mainBoard.getTakenMoves(),
-                    null,
-                    isAgainstBot ? "1" : "0",
-                    isMultiplayer ? "1" : "0",
-                    gameInfo.getPlayerTurn() == 1 ? "W" : "B");
-            Launcher.viewManager
-                    .getMenu()
-                    .onResize(Launcher.viewManager.getMenu().getMenuRoot(), Launcher.menuScene);
-        }
-        if (Launcher.menuStage == null) {
-            launcher.showMenu();
-        }
+        ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(true);
 
-        fadeOutAndClose(gameStage, 300);
+        switch (choice) {
+            case EXIT_WITH_SAVE:
+                exporter.exportGameToPDN(
+                        mainBoard.boardState.getPawns(),
+                        mainBoard.getTakenMoves(),
+                        null,
+                        isAgainstBot ? "1" : "0",
+                        isMultiplayer ? "1" : "0",
+                        gameInfo.getPlayerTurn() == 1 ? "W" : "B");
 
-        gameStage.close();
+            case EXIT_WITHOUT_SAVE:
+                if (Launcher.menuStage == null) {
+                    launcher.showMenu();
+                }
+
+                fadeOutAndClose(gameStage, 300);
+                gameStage.close();
+                break;
+
+            case NOT_EXIT:
+                break;
+        }
     }
 
     /* --------------------------------------------------------------------------------
@@ -449,10 +543,79 @@ public class Game {
         alert.setHeaderText("Are you sure you want to restart the game?");
         alert.setContentText("All progress will be lost.");
 
+        // when restart the game also reset the timer
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+
+            // Stop the timers if they are running
+            if (gameTimerPlayerOne != null) {
+                gameTimerPlayerOne.stop();
+                remainingTimePlayerOne = gameTimeLimit; // Reset Player 1 time
+            }
+            if (gameTimerPlayerTwo != null) {
+                gameTimerPlayerTwo.stop();
+                remainingTimePlayerTwo = gameTimeLimit; // Reset Player 2 time
+            }
+
+            // Reset the board and game state
             mainBoard.resetGame(mainBoardSize);
+
+            // Restart the timers for both players with full time
+            startTimers();
         }
+    }
+
+    /**
+     * Initializes and starts the countdown timers for both Player One and Player Two. Each player's
+     * timer counts down from the preset game time limit. If a player's timer reaches zero, the game
+     * will end for that player. This method is called when the game starts or restarts.
+     */
+    private void startTimers() {
+        // Timer for Player One
+        gameTimerPlayerOne =
+                new Timeline(
+                        new KeyFrame(
+                                Duration.seconds(1),
+                                e -> {
+                                    remainingTimePlayerOne--;
+                                    int minutes = remainingTimePlayerOne / 60;
+                                    int seconds = remainingTimePlayerOne % 60;
+                                    // Update the Player One UI time
+                                    ((Text) gameRoot.lookup("#playerOneTime"))
+                                            .setText(
+                                                    String.format(
+                                                            "Time: %02d:%02d", minutes, seconds));
+
+                                    if (remainingTimePlayerOne <= 0) {
+                                        gameTimerPlayerOne.stop();
+                                        handleTimeUp(true);
+                                    }
+                                }));
+        gameTimerPlayerOne.setCycleCount(Timeline.INDEFINITE);
+        gameTimerPlayerOne.play();
+
+        // Timer for Player Two
+        gameTimerPlayerTwo =
+                new Timeline(
+                        new KeyFrame(
+                                Duration.seconds(1),
+                                e -> {
+                                    remainingTimePlayerTwo--;
+                                    int minutes = remainingTimePlayerTwo / 60;
+                                    int seconds = remainingTimePlayerTwo % 60;
+                                    // Update the Player Two UI time
+                                    ((Text) gameRoot.lookup("#playerTwoTime"))
+                                            .setText(
+                                                    String.format(
+                                                            "Time: %02d:%02d", minutes, seconds));
+
+                                    if (remainingTimePlayerTwo <= 0) {
+                                        gameTimerPlayerTwo.stop();
+                                        handleTimeUp(false);
+                                    }
+                                }));
+        gameTimerPlayerTwo.setCycleCount(Timeline.INDEFINITE);
+        gameTimerPlayerTwo.play();
     }
 
     private void drawWarning() {
@@ -586,5 +749,30 @@ public class Game {
         ft.setToValue(0);
         ft.setOnFinished(_ -> stage.close());
         ft.play();
+    }
+
+    /* --------------------------------------------------------------------------------
+     *                           SERVER COMMUNICATION
+     * -------------------------------------------------------------------------------- */
+
+    public void appendChatMessage(String message, String name) {
+        StackPane chatUI = (StackPane) gameRoot.lookup("#chatUI");
+        chatUI.getChildren().add(new Text(name + ": " + message));
+    }
+
+    public void setPlayerRole(String role, String name) {
+        switch (role) {
+            case "WHITE":
+                playerWhite = new Player(name, true);
+                break;
+            case "BLACK":
+                playerBlack = new Player(name, false);
+                break;
+            case "SPEC":
+                spectators.add(new Player(name, false, true));
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid role: " + role);
+        }
     }
 }

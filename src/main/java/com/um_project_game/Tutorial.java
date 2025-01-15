@@ -3,6 +3,7 @@ package com.um_project_game;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
+import com.um_project_game.util.ExitChoice;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -208,15 +209,21 @@ public class Tutorial {
      * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
 
-        if (ExitGameConfirmation.showSaveConfirmation(false)) { // If user confirmed exit
+        ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(false);
 
-            if (Launcher.menuStage == null) {
-                launcher.showMenu();
-            }
+        switch (choice) {
+            case EXIT_WITH_SAVE:
+            case EXIT_WITHOUT_SAVE:
+                if (Launcher.menuStage == null) {
+                    launcher.showMenu();
+                }
 
-            fadeOutAndClose(gameStage, 300);
+                fadeOutAndClose(gameStage, 300);
+                gameStage.close();
+                break;
 
-            gameStage.close();
+            case NOT_EXIT:
+                break;
         }
     }
 

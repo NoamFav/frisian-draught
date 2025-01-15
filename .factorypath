@@ -5,17 +5,19 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/org/joml/joml/1.10.5/joml-1.10.5.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/joml/joml-primitives/1.10.0/joml-primitives-1.10.0.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-controls/22.0.1/javafx-controls-22.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-controls/22.0.1/javafx-controls-22.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-controls/22.0.1/javafx-controls-22.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-graphics/22.0.1/javafx-graphics-22.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-graphics/22.0.1/javafx-graphics-22.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-graphics/22.0.1/javafx-graphics-22.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-fxml/22.0.1/javafx-fxml-22.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-fxml/22.0.1/javafx-fxml-22.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-fxml/22.0.1/javafx-fxml-22.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-web/22.0.1/javafx-web-22.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-web/22.0.1/javafx-web-22.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-web/22.0.1/javafx-web-22.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-swing/22.0.1/javafx-swing-22.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-swing/22.0.1/javafx-swing-22.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-swing/22.0.1/javafx-swing-22.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-media/22.0.1/javafx-media-22.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-media/22.0.1/javafx-media-22.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-media/22.0.1/javafx-media-22.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
+
     <factorypathentry kind="VARJAR" id="M2_REPO/org/controlsfx/controlsfx/11.2.1/controlsfx-11.2.1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/kordamp/ikonli/ikonli-javafx/12.3.1/ikonli-javafx-12.3.1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/kordamp/ikonli/ikonli-core/12.3.1/ikonli-core-12.3.1.jar" enabled="true" runInBatchMode="false"/>
@@ -25,7 +27,8 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/eu/hansolo/toolboxfx/21.0.3/toolboxfx-21.0.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/eu/hansolo/toolbox/21.0.5/toolbox-21.0.5.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-win.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-mac-aarch64.jar" enabled="true" runInBatchMode="false"/>
+
     <factorypathentry kind="VARJAR" id="M2_REPO/com/github/almasb/fxgl/17.3/fxgl-17.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/github/almasb/fxgl-core/17.3/fxgl-core-17.3.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/gluonhq/attach/audio/4.0.17/audio-4.0.17.jar" enabled="true" runInBatchMode="false"/>
@@ -41,4 +44,8 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/com/gluonhq/attach/lifecycle/4.0.17/lifecycle-4.0.17.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/jetbrains/kotlin/kotlin-stdlib/1.8.10/kotlin-stdlib-1.8.10.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/jetbrains/kotlin/kotlin-stdlib-common/1.8.10/kotlin-stdlib-common-1.8.10.jar" enabled="true" runInBatchMode="false"/>
+
+    <factorypathentry kind="VARJAR" id="M2_REPO/io/hotmoka/toml4j/0.7.3/toml4j-0.7.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar" enabled="true" runInBatchMode="false"/>
+
 </factorypath>
