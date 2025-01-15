@@ -28,6 +28,7 @@ public class BotManager {
     private MoveManager moveManager;
     private BoardRendered boardRendered;
 
+    private static final double CONFIDENCE_THRESHOLD = 0.2;
     private static final int BATCH_SIZE = 32;
     private static final int REPLAY_BUFFER_SIZE = 10000;
     private ReplayBuffer replayBuffer;
@@ -45,6 +46,61 @@ public class BotManager {
 
     public void setBoardRendered(BoardRendered boardRendered) {
         this.boardRendered = boardRendered;
+    }
+
+    /**
+     * Decides the best move using a combination of DQL and MiniMax.
+     *
+     * @param state           The current game state.
+     * @param depth           The search depth for MiniMax.
+     * @param epsilon         The exploration rate for DQL.
+     * @param maximizingPlayer True if the bot is the maximizing player.
+     * @return The best move.
+     */
+    public Move getBestMove(GameState state, int depth, double epsilon, boolean maximizingPlayer) {
+        // Use epsilon-greedy for exploration
+        if (Math.random() < epsilon) {
+            List<Move> possibleMoves = state.generateMoves();
+            return possibleMoves.get(new Random().nextInt(possibleMoves.size()));
+        }
+
+        // Use DQL to predict the best move
+        Map<Vector2i, Double> qValues = boardState.getBotModel().predict(state);
+        Move bestDQLMove = chooseBestMoveFromQValues(state, qValues);
+
+        // Evaluate confidence in DQL's decision
+        double confidence = evaluateConfidence(qValues, bestDQLMove);
+        if (confidence >= CONFIDENCE_THRESHOLD) {
+            return bestDQLMove; // High confidence: Use DQL's decision
+        }
+
+        // Low confidence: Fall back to MiniMax
+        MiniMaxTree miniMaxTree = new MiniMaxTree(state);
+        return miniMaxTree.getBestMove(state, depth, maximizingPlayer);
+    }
+
+    private double evaluateConfidence(Map<Vector2i, Double> qValues, Move bestMove) {
+        double bestQ = qValues.getOrDefault(bestMove.getEndPosition(), 0.0);
+        double secondBestQ = qValues.values().stream()
+                .sorted(Comparator.reverseOrder())
+                .skip(1)
+                .findFirst()
+                .orElse(0.0);
+        return bestQ - secondBestQ; // Confidence is the gap between the best and second-best Q-values
+    }
+
+    /**
+     * Selects the best move based on Q-values predicted by the DQL model.
+     *
+     * @param state   The current game state.
+     * @param qValues The predicted Q-values.
+     * @return The best move.
+     */
+    private Move chooseBestMoveFromQValues(GameState state, Map<Vector2i, Double> qValues) {
+        return state.generateMoves().stream()
+                .max(Comparator.comparingDouble(
+                        move -> qValues.getOrDefault(move.getEndPosition(), Double.NEGATIVE_INFINITY)))
+                .orElse(null);
     }
 
     public void triggerBotMove() {
@@ -161,6 +217,30 @@ public class BotManager {
                 });
     }
 
+    public void triggerBotMove2(int depth, double epsilon, boolean maximizingPlayer) {
+        Platform.runLater(() -> {
+            try {
+                GameState currentState = mainboard.getBoardState();
+                Move bestMove = getBestMove(currentState, depth, epsilon, maximizingPlayer);
+                if (bestMove != null) {
+                    Pawn pawn = moveManager.getPawnAtPosition(bestMove.getStartPosition());
+                    if (pawn != null) {
+                        boardState.getTakenMoves().add(bestMove);
+                        mainboard.animatePawnMovement(
+                                pawn, bestMove.getEndPosition(), () -> applyMove(currentState.applyMove(bestMove)));
+                    } else {
+                        boardState.getTakenMoves().add(bestMove);
+                        applyMove(currentState.applyMove(bestMove));
+                    }
+                } else {
+                    System.out.println("No valid moves found.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
     public void playBotVsBot(String savePath) {
         Platform.runLater(
                 () -> {

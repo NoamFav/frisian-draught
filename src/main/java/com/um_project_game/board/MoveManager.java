@@ -588,7 +588,7 @@ public class MoveManager {
 
         if (!boardState.isWhiteTurn() && boardState.isBotActive()) {
             if (Launcher.dqnbot) {
-                botManager.triggerBotMove();
+                botManager.triggerBotMove2(4, 0.5, true);
             } else {
                 botManager.triggerBotMoveR();
             }
