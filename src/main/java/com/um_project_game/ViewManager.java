@@ -1,6 +1,5 @@
 package com.um_project_game;
 
-import com.um_project_game.Server.MainServer;
 import com.um_project_game.board.MainBoard;
 
 import javafx.scene.Scene;
@@ -20,19 +19,14 @@ public class ViewManager {
     private Launcher launcher;
     private Menu menu;
     private Scene scene;
-    private MainServer server;
+
     private List<Game> activeGames = new ArrayList<>();
     private int GAME_STATE = 0;
 
     public ViewManager(Pane root, Launcher launcher, Scene scene) {
-        this.server = new MainServer();
         this.root = root;
         this.launcher = launcher;
         this.scene = scene;
-    }
-
-    public MainServer getServer() {
-        return server;
     }
 
     /**
@@ -137,10 +131,6 @@ public class ViewManager {
 
     public void setScene(Scene scene) {
         this.scene = scene;
-    }
-
-    public void setServer(MainServer server) {
-        this.server = server;
     }
 
     public List<Game> getActiveGames() {
