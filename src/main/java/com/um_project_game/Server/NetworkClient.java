@@ -2,6 +2,7 @@ package com.um_project_game.Server;
 
 import com.um_project_game.Game;
 import com.um_project_game.Launcher;
+import com.um_project_game.board.CapturePath;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.board.Pawn;
 
@@ -16,6 +17,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NetworkClient {
     private Socket socket;
@@ -24,6 +26,8 @@ public class NetworkClient {
     private Thread listenerThread;
     private Game gameReference;
     private MainBoard mainBoard;
+
+    private String lastProcessedMove = "";
 
     public NetworkClient(String host, int port, Game game) {
         this.gameReference = game;
@@ -89,8 +93,20 @@ public class NetworkClient {
 
     private void processUpdateMove(String details) {
         System.out.println("[DEBUG] Received move command: " + details);
+        if (details.equals(lastProcessedMove)) {
+            System.out.println("[DEBUG] Skipping duplicate move: " + details);
+            return;
+        }
+        lastProcessedMove = details;
 
-        // Example message: "MOVE 3,5 TO 9,7 CAPTURED 4,6 5,7 6,8"
+        if (details.startsWith("MOVE")) {
+            Platform.runLater(() -> processUpdateMove(details));
+        }
+
+        // Example message formats:
+        // - "MOVE 3,5 TO 4,6" (normal move)
+        // - "MOVE 3,5 TO 9,7 CAPTURED 4,6 5,7" (capture move)
+
         String[] parts = details.split(" ");
         if (parts.length < 4) {
             System.out.println(
@@ -98,49 +114,72 @@ public class NetworkClient {
             return;
         }
 
-        // Extract the start and end positions
-        String fromCoords = parts[1];
-        String toCoords = parts[3];
-        System.out.println("[DEBUG] From: " + fromCoords + ", To: " + toCoords);
-
-        // Convert coordinates to Vector2i objects
-        Vector2i from = convertToVector2i(fromCoords);
-        Vector2i to = convertToVector2i(toCoords);
-        System.out.println("[DEBUG] Converted From: " + from + ", To: " + to);
-
-        // Extract captured positions if present
+        Vector2i start = convertToVector2i(parts[1]);
+        Vector2i end = convertToVector2i(parts[3]);
         List<Vector2i> capturedPositions = new ArrayList<>();
-        if (details.contains("CAPTURED")) {
-            System.out.println("[DEBUG] Captures detected. Extracting captured positions...");
+
+        boolean isCaptureMove = details.contains("CAPTURED");
+        if (isCaptureMove) {
             for (int i = 5; i < parts.length; i++) {
-                Vector2i capturedPos = convertToVector2i(parts[i]);
-                capturedPositions.add(capturedPos);
-                System.out.println("[DEBUG] Captured position: " + capturedPos);
+                capturedPositions.add(convertToVector2i(parts[i]));
             }
         }
 
-        // Get the pawn to move
-        Pawn pawnToMove = mainBoard.moveManager.getPawnAtPosition(from);
+        Pawn pawnToMove = mainBoard.moveManager.getPawnAtPosition(start);
         if (pawnToMove == null) {
-            System.out.println("[ERROR] No pawn found at position: " + from);
+            System.out.println("[ERROR] No pawn found at position: " + start);
             return;
         }
 
-        System.out.println("[DEBUG] Moving pawn: " + pawnToMove + " to " + to);
+        if (!isCaptureMove) {
+            System.out.println("[DEBUG] Processing normal move...");
+            mainBoard.animatePawnMovement(
+                    pawnToMove, end, () -> mainBoard.moveManager.executeMove(pawnToMove, end));
+        } else {
+            System.out.println("[DEBUG] Processing capture move...");
 
-        // Animate the pawn movement and execute the move
-        mainBoard.animatePawnMovement(
-                pawnToMove,
-                to,
-                () -> {
-                    System.out.println("[DEBUG] Executing move...");
-                    mainBoard.moveManager.executeMove(pawnToMove, to);
-                });
+            List<CapturePath> allPaths = new ArrayList<>();
+            mainBoard.moveManager.captureCheck(
+                    pawnToMove,
+                    (x, y) ->
+                            x >= 0
+                                    && x < mainBoard.boardState.getBoardSize().x
+                                    && y >= 0
+                                    && y < mainBoard.boardState.getBoardSize().y,
+                    start.x,
+                    start.y,
+                    new CapturePath(),
+                    allPaths);
 
-        // Remove captured pawns
-        for (Vector2i capturedPos : capturedPositions) {
-            System.out.println("[DEBUG] Removing captured pawn at: " + capturedPos);
-            mainBoard.moveManager.removePawn(mainBoard.moveManager.getPawnAtPosition(capturedPos));
+            System.out.println("[DEBUG] All generated capture paths:");
+            for (CapturePath path : allPaths) {
+                System.out.println(
+                        "[DEBUG] Path: " + path.positions + " | Captured: " + path.capturedPawns);
+            }
+            System.out.println("[DEBUG] Captured positions from server: " + capturedPositions);
+
+            CapturePath matchingPath =
+                    allPaths.stream()
+                            .filter(
+                                    path ->
+                                            path.capturedPawns.size() == capturedPositions.size()
+                                                    && path.capturedPawns.stream()
+                                                            .map(Pawn::getPosition)
+                                                            .collect(Collectors.toList())
+                                                            .containsAll(capturedPositions))
+                            .findFirst()
+                            .orElse(null);
+
+            if (matchingPath == null) {
+                System.out.println("[ERROR] No matching capture path found!");
+                return;
+            }
+
+            System.out.println("[DEBUG] Recreated CapturePath: " + matchingPath.positions);
+            mainBoard.animatePawnCaptureMovement(
+                    pawnToMove,
+                    matchingPath,
+                    () -> mainBoard.moveManager.processAfterCaptureMove(pawnToMove, matchingPath));
         }
 
         System.out.println("[DEBUG] Move processing complete.");
@@ -167,6 +206,10 @@ public class NetworkClient {
             }
         }
         writer.println(message.toString());
+    }
+
+    public void sendMove(Vector2i from, Vector2i to) {
+        sendMove(from, to, new ArrayList<>());
     }
 
     // Public method to send messages to server

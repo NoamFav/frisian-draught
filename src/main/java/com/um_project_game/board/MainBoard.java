@@ -310,6 +310,9 @@ public class MainBoard {
         // When the animation finishes, reset the translate values and update the GridPane position
         transition.setOnFinished(
                 _ -> {
+                    if (boardState.isMultiplayer()) {
+                        boardState.getNetworkClient().sendMove(pawn.getPosition(), landingPos);
+                    }
                     // Reset translation
                     pawnView.setTranslateX(0);
                     pawnView.setTranslateY(0);
@@ -367,6 +370,15 @@ public class MainBoard {
 
             transition.setOnFinished(
                     _ -> {
+                        if (boardState.isMultiplayer()) {
+                            List<Vector2i> capturedPositions = new ArrayList<>();
+                            for (Pawn capturedPawn : capturedPawns) {
+                                capturedPositions.add(capturedPawn.getPosition());
+                            }
+                            boardState
+                                    .getNetworkClient()
+                                    .sendMove(pawn.getPosition(), nextPos, capturedPositions);
+                        }
                         // Reset translation
                         pawnView.setTranslateX(0);
                         pawnView.setTranslateY(0);
@@ -397,7 +409,6 @@ public class MainBoard {
                 capturedPawn -> {
                     capturedPositions.add(capturedPawn.getPosition());
                 });
-        System.out.println(boardState.getTakenMoves().getLast());
 
         // Bring pawnView to front
         boardState.getBoard().getChildren().remove(pawnView);

@@ -64,10 +64,10 @@ public class ClientHandler extends Thread {
 
         String from = parts[1];
         String to = parts[3];
-        System.out.println(playerRole + " moved from " + from + " to " + to);
+        System.out.println(playerRole + moveCommand);
 
         // Broadcast the move to the other player
-        MainServer.broadcast("MOVE " + from + " TO " + to, this);
+        MainServer.broadcast(moveCommand, this);
     }
 
     private void startTurnTimer() {
