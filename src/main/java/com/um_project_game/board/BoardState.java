@@ -299,7 +299,6 @@ public class BoardState {
         return GAMMA;
     }
 
-
     public Map<Vector2i, Pawn> getPawnPositionMap() {
         Map<Vector2i, Pawn> positionMap = new HashMap<>();
         for (Pawn pawn : pawns) { // 'pawns' is the list of active pawns

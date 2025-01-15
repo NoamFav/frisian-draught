@@ -12,7 +12,6 @@ import javafx.util.Duration;
 
 import org.joml.Vector2i;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +21,7 @@ public class BoardRendered {
 
     private final BoardState boardState;
     private MoveManager moveManager;
+
     private final Map<Pawn, ScaleTransition> activeTransitions = new HashMap<>();
 
     public BoardRendered(BoardState boardState) {
@@ -38,14 +38,16 @@ public class BoardRendered {
      * @param pawns List to populate with the initial pawns.
      */
     public void setupBoard() {
-        //pawns List already provided
+        // pawns List already provided
         if (boardState.getPawns().size() == 0) {
             BiConsumer<Integer, Boolean> addPawns =
                     (startRow, isWhite) -> {
                         for (int y = startRow; y < startRow + 4; y++) {
                             for (int x = 0; x < boardState.getBoardSize().x; x++) {
                                 if ((x + y) % 2 == 1) {
-                                    boardState.getPawns().add(new Pawn(new Vector2i(x, y), isWhite));
+                                    boardState
+                                            .getPawns()
+                                            .add(new Pawn(new Vector2i(x, y), isWhite));
                                 }
                             }
                         }
@@ -56,6 +58,7 @@ public class BoardRendered {
             // Add black pawns
             addPawns.accept(6, true);
         }
+
         boardState.getAllPawns().clear();
         boardState.getAllPawns().addAll(boardState.getPawns());
     }
@@ -157,6 +160,7 @@ public class BoardRendered {
                     clearHighlights();
                     boardState.setFocusedPawn(pawn);
                     moveManager.seePossibleMove(pawn, true);
+
                     renderPawns();
                 });
     }
@@ -182,6 +186,12 @@ public class BoardRendered {
      * @param tileSize Size of each tile.
      */
     public void clearHighlights() {
+
+        if (boardState.getBoard() == null) {
+            boardState.setBoard(new GridPane());
+            renderBoard();
+        }
+
         boardState.getBoard().getChildren().removeAll(boardState.getHighlightNodes());
         boardState.getHighlightNodes().clear();
     }
@@ -217,7 +227,8 @@ public class BoardRendered {
 
             if (pawnView != null) {
                 // Apply ScaleTransition for movable pawns
-                ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(1000), pawnView);
+                ScaleTransition scaleTransition =
+                        new ScaleTransition(Duration.millis(1000), pawnView);
                 scaleTransition.setToX(1.2); // Slightly enlarge the pawn
                 scaleTransition.setToY(1.2);
                 scaleTransition.setInterpolator(Interpolator.EASE_BOTH);

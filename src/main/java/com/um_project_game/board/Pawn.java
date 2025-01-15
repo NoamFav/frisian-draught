@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 
 import org.joml.Vector2i;
 
-public class Pawn {
+public class Pawn implements Cloneable {
 
     private Vector2i position;
     private Vector2i initialPosition;
@@ -20,15 +20,18 @@ public class Pawn {
     private PawnImages pawnImages = PawnImages.getPawnImage();
 
     public Pawn(Vector2i position, boolean isWhite) {
+
         this(position, isWhite, false);
     }
 
     public Pawn(Vector2i position, boolean isWhite, boolean isKing) {
+
         this.position = position;
         this.initialPosition = new Vector2i(position);
         this.isKing = false;
         this.isWhite = isWhite;
         this.image = isWhite ? pawnImages.whitePawn() : pawnImages.blackPawn();
+
         this.isKing = isKing;
     }
 
@@ -83,5 +86,14 @@ public class Pawn {
 
     public void resetNumberOfNonCapturingMoves() {
         numberOfNonCapturingMoves = 0;
+    }
+
+    @Override
+    public Pawn clone() {
+        try {
+            return (Pawn) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(); // Should never happen
+        }
     }
 }

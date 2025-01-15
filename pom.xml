@@ -94,12 +94,14 @@
    <groupId>com.github.almasb</groupId>
    <artifactId>fxgl</artifactId>
    <version>17.3</version>
+
    </dependency>
    <dependency>
     <groupId>io.hotmoka</groupId>
     <artifactId>toml4j</artifactId>
     <version>0.7.3</version>
 </dependency>
+
  </dependencies>
  <build>
   <plugins>

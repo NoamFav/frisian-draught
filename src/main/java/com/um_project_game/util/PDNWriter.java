@@ -22,6 +22,7 @@ public class PDNWriter {
     private String isBot; // 0 / 1
     private String isMultiplayer; // 0 / 1
     private String moves; // Played moves in draughts notation
+
     private String boardPosition; // Pawns board position for easy loading.
 
     // Additional Tags
@@ -55,6 +56,7 @@ public class PDNWriter {
         this.isBot = isBot;
         this.isMultiplayer = isMultiplayer;
         this.moves = moves;
+
         this.boardPosition = boardPosition;
     }
 
@@ -72,9 +74,11 @@ public class PDNWriter {
             if (result != null) {
                 writer.write("[Result \"" + result + "\"]\n");
             }
+
             if (boardPosition != null) {
                 writer.write("[BoardPosition \"" + boardPosition + "\"]\n");
             }
+
             writer.write("[GameType \"" + GAMETYPE + "\"]\n\n");
             writer.write(moves.trim() + "\n");
             if (result != null) {

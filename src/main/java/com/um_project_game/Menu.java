@@ -93,6 +93,7 @@ public class Menu {
         initMenuButtons(scene, root);
         initRecentGames(scene, root);
         initLiveGame(scene, root);
+
         initPlayerStatus(scene, root, Launcher.user);
     }
 
@@ -238,9 +239,7 @@ public class Menu {
                             mainBoard.getRandomBoard(root, recentBoardsSize, pdnFile.getPath());
                     recentGames.getChildren().add(boardNode);
 
-                    mainBoard
-                            .getBoard()
-                            .setOnMouseClicked(e -> launcher.startNewGame(mainBoard));
+                    mainBoard.getBoard().setOnMouseClicked(e -> launcher.startNewGame(mainBoard));
                     // Click to load game if toggle is ready
 
                     animateHoverScale(boardNode, 1.03);

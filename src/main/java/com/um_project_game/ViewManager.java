@@ -24,6 +24,7 @@ public class ViewManager {
     private int GAME_STATE = 0;
 
     public ViewManager(Pane root, Launcher launcher, Scene scene) {
+
         this.root = root;
         this.launcher = launcher;
         this.scene = scene;
@@ -100,9 +101,7 @@ public class ViewManager {
     public void closeGame(Game gameToClose) {
         activeGames.remove(gameToClose);
         root.getChildren().remove(gameToClose.getGameRoot());
-        if (activeGames.isEmpty()) {
-            gameStateSwitch(0);
-        }
+        if (activeGames.isEmpty()) {}
     }
 
     public void setRoot(Pane root) {

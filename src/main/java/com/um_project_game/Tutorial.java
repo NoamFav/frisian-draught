@@ -3,8 +3,8 @@ package com.um_project_game;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
-
 import com.um_project_game.util.ExitChoice;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
@@ -214,7 +214,6 @@ public class Tutorial {
         switch (choice) {
             case EXIT_WITH_SAVE:
             case EXIT_WITHOUT_SAVE:
-
                 if (Launcher.menuStage == null) {
                     launcher.showMenu();
                 }

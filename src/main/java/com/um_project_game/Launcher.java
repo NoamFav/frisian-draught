@@ -39,7 +39,6 @@ public class Launcher extends Application {
             new ViewManager(
                     new Pane(), new Launcher(), new Scene(new Pane(), REF_WIDTH, REF_HEIGHT));
     public static Scene menuScene;
-
     private static final List<Scene> scenes = new ArrayList<>();
 
     public static UserInfo user = TomlLoader.loadPlayerInfo();
@@ -205,15 +204,18 @@ public class Launcher extends Application {
      * @param againstBot Is Against Bot?
      */
     public void startNewGame(boolean isOnline, boolean againstBot, boolean isBotVsBot) {
+
         startNewGame(isOnline, againstBot, isBotVsBot, null);
     }
-    public void startNewGame(boolean isOnline, boolean againstBot, boolean isBotVsBot, MainBoard mainBoard) {
 
-        //for loaded games
+    public void startNewGame(
+            boolean isOnline, boolean againstBot, boolean isBotVsBot, MainBoard mainBoard) {
+
+        // for loaded games
         if (mainBoard != null) {
             viewManager.gameStateSwitch(2, mainBoard);
-        }
-        else if (isOnline) {
+        } else if (isOnline) {
+
             viewManager.gameStateSwitch(1);
         } else if (againstBot) {
             viewManager.gameStateSwitch(isBotVsBot ? 4 : 2);

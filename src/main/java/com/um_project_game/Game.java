@@ -44,6 +44,7 @@ public class Game {
     private int gameTimeLimit = 10 * 60; // 10 minutes in seconds
     private int remainingTimePlayerOne = gameTimeLimit;
     private int remainingTimePlayerTwo = gameTimeLimit;
+
     private GridPane board;
     private GameInfo gameInfo = new GameInfo();
     private BooleanBinding isWhiteTurn;
@@ -55,7 +56,6 @@ public class Game {
     private Player playerWhite;
     private Player playerBlack;
     private List<Player> spectators = new ArrayList<>();
-
     private PauseTransition resizePause;
 
     private Pane gameRoot;
@@ -233,12 +233,14 @@ public class Game {
     }
 
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {
+
         try {
             networkClient = new NetworkClient("localhost", 9000, this);
             System.out.println("Connected to server at localhost:9000");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         board =
                 mainBoard.getMainBoardMultiplayer(
                         root,
@@ -248,6 +250,7 @@ public class Game {
                         movesListGridPane,
                         true,
                         networkClient);
+
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
@@ -268,6 +271,7 @@ public class Game {
         playerUI.setPrefSize(scene.getWidth(), playerUIHeight);
 
         // Positioning based on player
+
         playerUI.setLayoutX(0);
         playerUI.setLayoutY(!isPlayerOne ? 0 : scene.getHeight() - playerUIHeight);
 
@@ -280,6 +284,7 @@ public class Game {
                         boolean shouldBeBold =
                                 (isWhiteTurn.get() && isPlayerOne)
                                         || (!isWhiteTurn.get() && !isPlayerOne);
+
                         player.setStyle(
                                 "-fx-font-size: "
                                         + (shouldBeBold ? 20 : 15)
@@ -290,6 +295,7 @@ public class Game {
                 };
 
         // Player text and score setup
+
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
         playerText.getStyleClass().add("label");
         setPlayerStyle.accept(playerText);
@@ -359,12 +365,14 @@ public class Game {
         }
 
         // UI setup with spacing
+
         HBox playerInfo = new HBox(playerText, playerScore, playerTime);
         playerInfo.getStyleClass().add("playerInfo");
         playerInfo.setSpacing(playerInfoSpacing);
         playerInfo.setAlignment(javafx.geometry.Pos.CENTER);
 
         playerUI.getChildren().add(playerInfo);
+
         root.getChildren().add(playerUI);
 
         // OPTIONAL: Add a pulse animation for the active player
@@ -374,8 +382,9 @@ public class Game {
     }
 
     /* --------------------------------------------------------------------------------
-     *                            HANDLE TIME UP EVENT
-     * -------------------------------------------------------------------------------- */
+
+    *                            HANDLE TIME UP EVENT
+    * -------------------------------------------------------------------------------- */
     private void handleTimeUp(boolean isPlayerOne) {
         Alert timeUpAlert = new Alert(Alert.AlertType.INFORMATION);
         timeUpAlert.setTitle("Time's Up!");
@@ -387,14 +396,16 @@ public class Game {
     }
 
     /* --------------------------------------------------------------------------------
-     *                                CHAT UI
-     * -------------------------------------------------------------------------------- */
+
+    *                                CHAT UI
+    * -------------------------------------------------------------------------------- */
     private void chatUI(Pane root, Scene scene) {
         StackPane chatUI = new StackPane();
         chatUI.setPrefSize(chatUIWidth, chatUIHeight);
         chatUI.setLayoutX(chatUIX);
         chatUI.setLayoutY(chatUIY);
         chatUI.getStyleClass().add("chatUI");
+
         chatUI.setId("chatUI");
 
         Text chatText = new Text("Chat");
@@ -413,7 +424,6 @@ public class Game {
 
         switch (choice) {
             case EXIT_WITH_SAVE:
-
                 exporter.exportGameToPDN(
                         mainBoard.boardState.getPawns(),
                         mainBoard.getTakenMoves(),
@@ -423,7 +433,6 @@ public class Game {
                         gameInfo.getPlayerTurn() == 1 ? "W" : "B");
 
             case EXIT_WITHOUT_SAVE:
-
                 if (Launcher.menuStage == null) {
                     launcher.showMenu();
                 }

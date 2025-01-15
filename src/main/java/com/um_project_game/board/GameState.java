@@ -2,10 +2,12 @@ package com.um_project_game.board;
 
 import org.joml.Vector2i;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-public class GameState {
+public class GameState implements Cloneable {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
     MainBoard mainBoard;
     boolean isWhiteTurn;
@@ -15,6 +17,7 @@ public class GameState {
         this.boardState = new HashMap<>(currentState);
         this.isWhiteTurn = isWhiteTurn;
         this.mainBoard = mainBoard;
+
         this.moveManager = mainBoard.moveManager;
     }
 
@@ -55,6 +58,20 @@ public class GameState {
         return Objects.hash(boardState, isWhiteTurn);
     }
 
+    @Override
+    public GameState clone() {
+        try {
+            GameState cloned = (GameState) super.clone();
+            cloned.boardState = new HashMap<>();
+            for (Map.Entry<Vector2i, Pawn> entry : this.boardState.entrySet()) {
+                cloned.boardState.put(new Vector2i(entry.getKey()), entry.getValue().clone());
+            }
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(); // Should never happen
+        }
+    }
+
     public Map<Vector2i, Pawn> getBoardState() {
         return boardState;
     }
@@ -64,14 +81,13 @@ public class GameState {
     }
 
     public List<Move> generateMoves() {
+
         // Call getValidMovesForState to retrieve the map of pawns and their valid moves
 
         Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(this);
 
         // Flatten the map values (list of moves) into a single list
-        return validMovesMap.values().stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        return validMovesMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
     public List<Pawn> generateMovablePawnList() {
@@ -179,6 +195,37 @@ public class GameState {
         return new MoveResult(newState, reward, newState.isTerminal());
     }
 
+    public void printBoardState() {
+        int boardSize = 10; // Assuming a 10x10 board
+        char[][] board = new char[boardSize][boardSize];
+
+        // Initialize the board with empty spaces
+        for (int y = 0; y < boardSize; y++) {
+            for (int x = 0; x < boardSize; x++) {
+                board[y][x] = '.';
+            }
+        }
+
+        // Place the pawns on the board
+        for (Map.Entry<Vector2i, Pawn> entry : boardState.entrySet()) {
+            Vector2i position = entry.getKey();
+            Pawn pawn = entry.getValue();
+            char pawnChar = pawn.isWhite() ? 'W' : 'B';
+            if (pawn.isKing()) {
+                pawnChar = Character.toLowerCase(pawnChar); // Use lowercase for kings
+            }
+            board[position.y][position.x] = pawnChar;
+        }
+
+        // Print the board
+        for (int y = 0; y < boardSize; y++) {
+            for (int x = 0; x < boardSize; x++) {
+                System.out.print(board[y][x] + " ");
+            }
+            System.out.println();
+        }
+    }
+
     public boolean isTerminal() {
         if (generateMoves().isEmpty()) {
             return true;
@@ -188,5 +235,17 @@ public class GameState {
         boolean blackPawnsExist = boardState.values().stream().anyMatch(pawn -> !pawn.isWhite());
 
         return !whitePawnsExist || !blackPawnsExist;
+    }
+
+    public MainBoard getMainBoard() {
+        return mainBoard;
+    }
+
+    public MoveResult simulateMove(Move move) {
+        // Clone the current game state
+        GameState simulatedState = this.clone();
+
+        // Apply the move to the cloned state
+        return simulatedState.applyMove(move);
     }
 }

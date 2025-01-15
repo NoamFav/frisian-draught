@@ -25,7 +25,13 @@ public class GameExporter {
     }
 
     public void exportGameToPDN(
-            List<Pawn> pawns, List<Move> moves, String result, String isBot, String isMultiplayer, String turn) {
+            List<Pawn> pawns,
+            List<Move> moves,
+            String result,
+            String isBot,
+            String isMultiplayer,
+            String turn) {
+
         // Build moves string in PDN format with turn numbers
         StringBuilder movesStringBuilder = new StringBuilder();
         for (int i = 0; i < moves.size(); i += 2) {
@@ -80,15 +86,25 @@ public class GameExporter {
 
     private String generateBoardPositionTag(List<Pawn> pawns) {
         // Separate pawns into white and black groups
-        List<String> whitePawns = pawns.stream()
-                .filter(Pawn::isWhite)
-                .map(pawn -> Integer.toString(TileConversion.getTileNotation(pawn.getPosition()))) // Convert to String
-                .collect(Collectors.toList());
+        List<String> whitePawns =
+                pawns.stream()
+                        .filter(Pawn::isWhite)
+                        .map(
+                                pawn ->
+                                        Integer.toString(
+                                                TileConversion.getTileNotation(
+                                                        pawn.getPosition()))) // Convert to String
+                        .collect(Collectors.toList());
 
-        List<String> blackPawns = pawns.stream()
-                .filter(pawn -> !pawn.isWhite())
-                .map(pawn -> Integer.toString(TileConversion.getTileNotation(pawn.getPosition()))) // Convert to String
-                .collect(Collectors.toList());
+        List<String> blackPawns =
+                pawns.stream()
+                        .filter(pawn -> !pawn.isWhite())
+                        .map(
+                                pawn ->
+                                        Integer.toString(
+                                                TileConversion.getTileNotation(
+                                                        pawn.getPosition()))) // Convert to String
+                        .collect(Collectors.toList());
 
         // Construct the BoardPosition tag explicitly
         String whitePart = "W:" + String.join(",", whitePawns);

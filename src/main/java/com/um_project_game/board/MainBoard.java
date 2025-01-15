@@ -133,6 +133,7 @@ public class MainBoard {
             NetworkClient networkClient) {
         boardState.setMultiplayer(isMultiplayer);
         boardState.setNetworkClient(networkClient);
+
         return getMainBoard(
                 root,
                 boardPixelSize,
@@ -253,10 +254,12 @@ public class MainBoard {
         boardState.setBoard(new GridPane());
 
         boardState.setRoot(root);
+
         boardState.setActive(true);
 
         boardRendered.setupBoard();
         boardRendered.renderBoard();
+
         if (filePath != null) {
             loadGameFromPDN(filePath);
         }
@@ -328,6 +331,7 @@ public class MainBoard {
                     if (boardState.isMultiplayer()) {
                         boardState.getNetworkClient().sendMove(pawn.getPosition(), landingPos);
                     }
+
                     // Reset translation
                     pawnView.setTranslateX(0);
                     pawnView.setTranslateY(0);
@@ -394,6 +398,7 @@ public class MainBoard {
                                     .getNetworkClient()
                                     .sendMove(pawn.getPosition(), nextPos, capturedPositions);
                         }
+
                         // Reset translation
                         pawnView.setTranslateX(0);
                         pawnView.setTranslateY(0);
@@ -437,6 +442,7 @@ public class MainBoard {
             System.out.println("Loading game from: " + pdnFilePath);
             PDNParser pdnParser = new PDNParser(pdnFilePath);
             pdnParser.parseFile();
+
             List<Pawn> pawns = pdnParser.getPawns();
             if (pawns.isEmpty()) {
                 for (Move move : pdnParser.getMoves()) {
@@ -500,6 +506,48 @@ public class MainBoard {
                 capturePaths);
 
         return capturePaths;
+    }
+
+    public List<Move> getValidMovesForState(GameState state) {
+        List<Move> validMoves = new ArrayList<>();
+
+        // Iterate through all pawns in the game state
+        for (Map.Entry<Vector2i, Pawn> entry : state.getBoardState().entrySet()) {
+            Vector2i position = entry.getKey();
+            Pawn pawn = entry.getValue();
+
+            // Ensure this pawn belongs to the current player
+            if (pawn.isWhite() != state.isWhiteTurn()) {
+                continue;
+            }
+
+            // Generate moves for this pawn
+            moveManager.seePossibleMove(pawn);
+            validMoves.addAll(
+                    boardState.getPossibleMoves().stream()
+                            .map(
+                                    move ->
+                                            new Move(
+                                                    position,
+                                                    move,
+                                                    new ArrayList<>(
+                                                            boardState.getRequiredPawns().stream()
+                                                                    .map(Pawn::getPosition)
+                                                                    .collect(Collectors.toList()))))
+                            .collect(Collectors.toList()));
+        }
+
+        List<Move> captureMoves =
+                validMoves.stream()
+                        .filter(move -> !move.getCapturedPositions().isEmpty())
+                        .collect(Collectors.toList());
+        if (!captureMoves.isEmpty()) {
+            System.out.println("Capture moves found: " + captureMoves);
+            return captureMoves;
+        }
+
+        System.out.println("Normal moves found: " + validMoves);
+        return validMoves;
     }
 
     private void resetTakenMoves() {

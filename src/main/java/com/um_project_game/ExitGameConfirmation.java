@@ -1,6 +1,7 @@
 package com.um_project_game;
 
 import com.um_project_game.util.ExitChoice;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -75,13 +76,16 @@ public class ExitGameConfirmation {
     }
 
     // Method 2: Show Save Confirmation with Checkbox
+
     public static ExitChoice showSaveConfirmation(boolean canSave) {
+
         // Create a custom stage
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.UNDECORATED);
 
         // Create header
+
         Label headerLabel = new Label("Exit Game");
         headerLabel.getStyleClass().add("header-label");
 
@@ -104,13 +108,15 @@ public class ExitGameConfirmation {
         noButton.getStyleClass().add("button");
 
         // Button actions
+
         final ExitChoice[] result = {ExitChoice.NOT_EXIT};
         CheckBox finalSaveCheckbox = saveCheckbox;
         yesButton.setOnAction(
                 _ -> {
-                    result[0] = (finalSaveCheckbox != null && finalSaveCheckbox.isSelected())
-                            ? ExitChoice.EXIT_WITH_SAVE
-                            : ExitChoice.EXIT_WITHOUT_SAVE;
+                    result[0] =
+                            (finalSaveCheckbox != null && finalSaveCheckbox.isSelected())
+                                    ? ExitChoice.EXIT_WITH_SAVE
+                                    : ExitChoice.EXIT_WITHOUT_SAVE;
                     stage.close();
                 });
         noButton.setOnAction(
@@ -123,12 +129,14 @@ public class ExitGameConfirmation {
         buttonBox.setAlignment(Pos.CENTER);
 
         // Layout root
+
         VBox root;
         if (canSave) {
             root = new VBox(15, headerLabel, messageLabel, saveCheckbox, buttonBox);
         } else {
             root = new VBox(15, headerLabel, messageLabel, buttonBox);
         }
+
         root.getStyleClass().add("alert-root");
         root.setAlignment(Pos.CENTER);
 
@@ -149,5 +157,4 @@ public class ExitGameConfirmation {
 
         return result[0];
     }
-
 }
