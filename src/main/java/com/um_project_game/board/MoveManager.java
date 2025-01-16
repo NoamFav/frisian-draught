@@ -536,29 +536,42 @@ public class MoveManager {
         }
     }
 
-    /** Checks if the game is over. */
-    public void checkGameOver() {
-        // Check if the current player has any pawns
-        boolean oppositePlayerHasPawns =
-                boardState.getPawns().stream()
-                        .anyMatch(p -> p.isWhite() == !boardState.isWhiteTurn());
+/** Checks if the game is over. */
+public void checkGameOver() {
+    // Check if the opposing player has any pawns
+    boolean oppositePlayerHasPawns =
+            boardState.getPawns().stream()
+                    .anyMatch(p -> p.isWhite() == !boardState.isWhiteTurn());
 
-        Platform.runLater(
-                () -> {
-                    if (!oppositePlayerHasPawns) {
-                        Alert gameOverAlert = new Alert(Alert.AlertType.INFORMATION);
-                        gameOverAlert.setTitle("Game Over");
-                        gameOverAlert.setHeaderText("Game Over!");
-                        gameOverAlert.setContentText(
-                                "Player " + (boardState.isWhiteTurn() ? 2 : 1) + " wins!");
-                        gameOverAlert.showAndWait();
-                        mainBoard.resetGame(
-                                boardState.getTileSize() * BoardState.getMainBoardSize());
+    Platform.runLater(() -> {
+        if (!oppositePlayerHasPawns) {
+            // Determine the winner
+            String winner = boardState.isWhiteTurn() ? "Player 2 (Black)" : "Player 1 (White)";
 
+            // Optionally update scores
+            if (boardState.getGameInfo() != null) {
+                if (boardState.isWhiteTurn()) {
+                    boardState.getGameInfo().scorePlayerTwo.set(boardState.getGameInfo().getScorePlayerTwo() + 1);
+                } else {
+                    boardState.getGameInfo().scorePlayerOne.set(boardState.getGameInfo().getScorePlayerOne() + 1);
+                }
+            }
+
+            // Display the Game Over Summary Screen
+            GameOverSummaryScreen summaryScreen = new GameOverSummaryScreen(
+                    boardState.getGameInfo(),
+                    mainBoard.getPrimaryStage(),
+                    () -> {
+                        mainBoard.resetGame(boardState.getTileSize() * BoardState.getMainBoardSize());
                         boardState.setActive(false);
                     }
-                });
-    }
+            );
+
+            summaryScreen.display(winner);
+        }
+    });
+}
+
 
     /**
      * Promotes a pawn to a king if it reaches the opposite end.
