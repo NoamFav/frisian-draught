@@ -880,17 +880,18 @@ public class Game {
 
     public void setPlayerRole(String role, String name) {
         switch (role) {
-            case "WHITE":
+            case "White":
                 playerWhite = new Player(name, true);
                 break;
-            case "BLACK":
+            case "Black":
                 playerBlack = new Player(name, false);
                 break;
-            case "SPEC":
+            case "Spectator":
                 spectators.add(new Player(name, false, true));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid role: " + role);
         }
+        System.out.println("[DEBUG] Player role set to: " + role + " From Game");
     }
 }
