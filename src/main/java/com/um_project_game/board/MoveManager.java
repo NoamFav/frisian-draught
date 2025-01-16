@@ -625,7 +625,7 @@ public class MoveManager {
             if (Launcher.dqnbot) {
                 botManager.triggerBotMoveHybrid();
             } else {
-                botManager.triggerBotMoveR();
+                botManager.triggerBotMoveMM();
             }
         }
         System.out.println("Player " + (boardState.isWhiteTurn() ? 1 : 2) + "'s turn");

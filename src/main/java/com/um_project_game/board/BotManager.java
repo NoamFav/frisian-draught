@@ -1,10 +1,10 @@
 package com.um_project_game.board;
 
+import com.um_project_game.AI.DQNModel;
 import com.um_project_game.AI.Experience;
+import com.um_project_game.AI.MiniMax.HybridAgent;
 import com.um_project_game.AI.MiniMax.MiniMaxTree;
 import com.um_project_game.AI.ReplayBuffer;
-import com.um_project_game.AI.DQNModel;
-import com.um_project_game.AI.MiniMax.HybridAgent;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
-import com.um_project_game.AI.MiniMax.MiniMaxTree;
 
 public class BotManager {
     private final BoardState boardState;
@@ -30,6 +29,7 @@ public class BotManager {
     private MoveManager moveManager;
     private BoardRendered boardRendered;
 
+    private static final double CONFIDENCE_THRESHOLD = 0.2;
     private static final int BATCH_SIZE = 32;
     private static final int REPLAY_BUFFER_SIZE = 10000;
     private ReplayBuffer replayBuffer;
@@ -47,6 +47,61 @@ public class BotManager {
 
     public void setBoardRendered(BoardRendered boardRendered) {
         this.boardRendered = boardRendered;
+    }
+
+    /**
+     * Decides the best move using a combination of DQL and MiniMax.
+     *
+     * @param state           The current game state.
+     * @param depth           The search depth for MiniMax.
+     * @param epsilon         The exploration rate for DQL.
+     * @param maximizingPlayer True if the bot is the maximizing player.
+     * @return The best move.
+     */
+    public Move getBestMove(GameState state, int depth, double epsilon, boolean maximizingPlayer) {
+        // Use epsilon-greedy for exploration
+        if (Math.random() < epsilon) {
+            List<Move> possibleMoves = state.generateMoves();
+            return possibleMoves.get(new Random().nextInt(possibleMoves.size()));
+        }
+
+        // Use DQL to predict the best move
+        Map<Vector2i, Double> qValues = boardState.getBotModel().predict(state);
+        Move bestDQLMove = chooseBestMoveFromQValues(state, qValues);
+
+        // Evaluate confidence in DQL's decision
+        double confidence = evaluateConfidence(qValues, bestDQLMove);
+        if (confidence >= CONFIDENCE_THRESHOLD) {
+            return bestDQLMove; // High confidence: Use DQL's decision
+        }
+
+        // Low confidence: Fall back to MiniMax
+        MiniMaxTree miniMaxTree = new MiniMaxTree(state);
+        return miniMaxTree.getBestMove(state, depth, maximizingPlayer);
+    }
+
+    private double evaluateConfidence(Map<Vector2i, Double> qValues, Move bestMove) {
+        double bestQ = qValues.getOrDefault(bestMove.getEndPosition(), 0.0);
+        double secondBestQ = qValues.values().stream()
+                .sorted(Comparator.reverseOrder())
+                .skip(1)
+                .findFirst()
+                .orElse(0.0);
+        return bestQ - secondBestQ; // Confidence is the gap between the best and second-best Q-values
+    }
+
+    /**
+     * Selects the best move based on Q-values predicted by the DQL model.
+     *
+     * @param state   The current game state.
+     * @param qValues The predicted Q-values.
+     * @return The best move.
+     */
+    private Move chooseBestMoveFromQValues(GameState state, Map<Vector2i, Double> qValues) {
+        return state.generateMoves().stream()
+                .max(Comparator.comparingDouble(
+                        move -> qValues.getOrDefault(move.getEndPosition(), Double.NEGATIVE_INFINITY)))
+                .orElse(null);
     }
 
     public void triggerBotMove() {
@@ -150,12 +205,13 @@ public class BotManager {
                             }
                         }
                         // Add experience to replay buffer
-                        Experience experience = new Experience(
-                                currentState,
-                                chosenAction,
-                                computeReward(currentState.applyMove(selectedMove)),
-                                mainboard.getBoardState(),
-                                currentState.isTerminal());
+                        Experience experience =
+                                new Experience(
+                                        currentState,
+                                        chosenAction,
+                                        computeReward(currentState.applyMove(selectedMove)),
+                                        mainboard.getBoardState(),
+                                        currentState.isTerminal());
                         replayBuffer.addExperience(experience);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -163,6 +219,106 @@ public class BotManager {
                 });
     }
 
+    public void triggerBotMoveHybrid() {
+        Platform.runLater(
+                () -> {
+                    try {
+                        // Access the DQNModel
+                        DQNModel dqnModel = boardState.getBotModel();
+                        if (dqnModel == null) {
+                            System.out.println("DQNModel is not initialized.");
+                            return;
+                        }
+
+                        // Compute capture paths for the bot
+                        List<CapturePath> capturePaths = computeCapturePathsForBot();
+                        if (capturePaths != null && !capturePaths.isEmpty()) {
+                            System.out.println("Bot has capture opportunities. Available paths:");
+                            for (CapturePath path : capturePaths) {
+                                System.out.println(
+                                        " - Path: "
+                                                + path.positions
+                                                + ", Captures: "
+                                                + path.capturedPawns);
+                            }
+
+                            // Use DQN to prioritize capture paths
+                            CapturePath bestPath = capturePaths.stream()
+                                    .max((path1, path2) -> Double.compare(
+                                            dqnModel.predict(mainboard.getBoardState())
+                                                    .getOrDefault(path1.getLastPosition(), 0.0),
+                                            dqnModel.predict(mainboard.getBoardState())
+                                                    .getOrDefault(path2.getLastPosition(), 0.0)))
+                                    .orElse(null);
+
+                            if (bestPath != null) {
+                                System.out.println("Selected capture path: " + bestPath);
+                                Pawn pawn = bestPath.initialPawn;
+                                if (pawn != null) {
+                                    System.out.println("Bot executing capture path: " + bestPath);
+
+                                    boardState.getTakenMoves().add(
+                                            new Move(
+                                                    pawn.getPosition(),
+                                                    bestPath.getLastPosition(),
+                                                    bestPath.capturedPawns.stream()
+                                                            .map(Pawn::getPosition)
+                                                            .collect(Collectors.toList())));
+
+                                    mainboard.animatePawnCaptureMovement(
+                                            pawn,
+                                            bestPath,
+                                            () -> moveManager.processAfterCaptureMove(pawn, bestPath));
+                                    return; // Ensure no fallback to normal moves
+                                }
+                            }
+                        }
+
+                        // If no captures, proceed with normal moves
+                        GameState currentState = mainboard.getBoardState();
+                        List<Move> possibleMoves = currentState.generateMoves();
+
+                        if (possibleMoves.isEmpty()) {
+                            System.out.println("No possible moves for the agent.");
+                            return;
+                        }
+
+                        // Initialize Minimax with DQN model for evaluation
+                        HybridAgent miniMaxTree = new HybridAgent(currentState, dqnModel);
+                        Move[] selectedMove = {miniMaxTree.getBestMove(currentState, 3, boardState.isWhiteTurn())};
+
+                        // Fallback to DQN-guided random move if Minimax fails
+                        if (selectedMove[0] == null) {
+                            System.out.println("Minimax did not find a valid move, falling back to DQN.");
+                            selectedMove[0] = possibleMoves.stream()
+                                    .max((move1, move2) -> Double.compare(
+                                            dqnModel.predict(currentState).getOrDefault(move1.getEndPosition(), 0.0),
+                                            dqnModel.predict(currentState).getOrDefault(move2.getEndPosition(), 0.0)))
+                                    .orElse(null);
+                        }
+
+                        if (selectedMove != null) {
+                            Pawn pawn = moveManager.getPawnAtPosition(selectedMove[0].getStartPosition());
+                            System.out.println("Selected move: Start = " + selectedMove[0].getStartPosition()
+                                    + ", End = " + selectedMove[0].getEndPosition());
+
+                            if (pawn != null) {
+                                boardState.getTakenMoves().add(selectedMove[0]);
+                                mainboard.animatePawnMovement(
+                                        pawn,
+                                        selectedMove[0].getEndPosition(),
+                                        () -> applyMove(currentState.applyMove(selectedMove[0])));
+                            } else {
+                                boardState.getTakenMoves().add(selectedMove[0]);
+                                applyMove(currentState.applyMove(selectedMove[0]));
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+    
     public void playBotVsBot(String savePath) {
         Platform.runLater(
                 () -> {
@@ -173,7 +329,8 @@ public class BotManager {
 
                     if (boardState.isBotvsBot()) {
                         if (boardState.isWhiteTurn()) {
-                            triggerBotMoveR(); // Random bot for White
+
+                            triggerBotMoveMM(); // Random bot for White
                         } else {
                             triggerBotMoveHybrid(); // Trained bot for Black
                         }
@@ -212,7 +369,9 @@ public class BotManager {
 
         for (Pawn pawn :
                 boardState.isWhiteTurn() && boardState.isBotvsBot() ? whitepawns : botPawnsblack) {
+
             moveManager.seePossibleMove(pawn, true);
+
             if (boardState.getCurrentCapturePaths() != null
                     && !boardState.getCurrentCapturePaths().isEmpty()) {
                 allCapturePaths.addAll(boardState.getCurrentCapturePaths()); // Add computed paths
@@ -248,7 +407,7 @@ public class BotManager {
     private double computeReward(MoveResult result) {
         return result.getReward();
     }
-    
+
     private void applyMove(MoveResult result) {
         if (result != null) {
             // Update the board state
@@ -345,14 +504,14 @@ public class BotManager {
                         Move selMove = null;
                         GameState newState = null;
                         if (boardState.isWhiteTurn()) {
-                            selMove = miniMaxTree.getBestMove(currentState,3, true);
+                            selMove = miniMaxTree.getBestMove(currentState, 4, true);
                             if (selMove == null) {
                                 Random random = new Random();
                                 selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
                             }
                             newState = miniMaxTree.rootState;
                         } else {
-                            selMove = miniMaxTree.getBestMove(currentState,4, false);
+                            selMove = miniMaxTree.getBestMove(currentState, 4, false);
                             if (selMove == null) {
                                 Random random = new Random();
                                 selMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
@@ -376,106 +535,6 @@ public class BotManager {
                             } else {
                                 boardState.getTakenMoves().add(selectedMove);
                                 applyMove(resetState.applyMove(selectedMove));
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-    }
-
-    public void triggerBotMoveHybrid() {
-        Platform.runLater(
-                () -> {
-                    try {
-                        // Access the DQNModel
-                        DQNModel dqnModel = boardState.getBotModel();
-                        if (dqnModel == null) {
-                            System.out.println("DQNModel is not initialized.");
-                            return;
-                        }
-    
-                        // Compute capture paths for the bot
-                        List<CapturePath> capturePaths = computeCapturePathsForBot();
-                        if (capturePaths != null && !capturePaths.isEmpty()) {
-                            System.out.println("Bot has capture opportunities. Available paths:");
-                            for (CapturePath path : capturePaths) {
-                                System.out.println(
-                                        " - Path: "
-                                                + path.positions
-                                                + ", Captures: "
-                                                + path.capturedPawns);
-                            }
-    
-                            // Use DQN to prioritize capture paths
-                            CapturePath bestPath = capturePaths.stream()
-                                    .max((path1, path2) -> Double.compare(
-                                            dqnModel.predict(mainboard.getBoardState())
-                                                    .getOrDefault(path1.getLastPosition(), 0.0),
-                                            dqnModel.predict(mainboard.getBoardState())
-                                                    .getOrDefault(path2.getLastPosition(), 0.0)))
-                                    .orElse(null);
-    
-                            if (bestPath != null) {
-                                System.out.println("Selected capture path: " + bestPath);
-                                Pawn pawn = bestPath.initialPawn;
-                                if (pawn != null) {
-                                    System.out.println("Bot executing capture path: " + bestPath);
-    
-                                    boardState.getTakenMoves().add(
-                                            new Move(
-                                                    pawn.getPosition(),
-                                                    bestPath.getLastPosition(),
-                                                    bestPath.capturedPawns.stream()
-                                                            .map(Pawn::getPosition)
-                                                            .collect(Collectors.toList())));
-    
-                                    mainboard.animatePawnCaptureMovement(
-                                            pawn,
-                                            bestPath,
-                                            () -> moveManager.processAfterCaptureMove(pawn, bestPath));
-                                    return; // Ensure no fallback to normal moves
-                                }
-                            }
-                        }
-    
-                        // If no captures, proceed with normal moves
-                        GameState currentState = mainboard.getBoardState();
-                        List<Move> possibleMoves = currentState.generateMoves();
-    
-                        if (possibleMoves.isEmpty()) {
-                            System.out.println("No possible moves for the agent.");
-                            return;
-                        }
-    
-                        // Initialize Minimax with DQN model for evaluation
-                        HybridAgent miniMaxTree = new HybridAgent(currentState, dqnModel);
-                        Move[] selectedMove = {miniMaxTree.getBestMove(currentState, 3, boardState.isWhiteTurn())};
-    
-                        // Fallback to DQN-guided random move if Minimax fails
-                        if (selectedMove[0] == null) {
-                            System.out.println("Minimax did not find a valid move, falling back to DQN.");
-                            selectedMove[0] = possibleMoves.stream()
-                                    .max((move1, move2) -> Double.compare(
-                                            dqnModel.predict(currentState).getOrDefault(move1.getEndPosition(), 0.0),
-                                            dqnModel.predict(currentState).getOrDefault(move2.getEndPosition(), 0.0)))
-                                    .orElse(null);
-                        }
-    
-                        if (selectedMove != null) {
-                            Pawn pawn = moveManager.getPawnAtPosition(selectedMove[0].getStartPosition());
-                            System.out.println("Selected move: Start = " + selectedMove[0].getStartPosition()
-                                    + ", End = " + selectedMove[0].getEndPosition());
-    
-                            if (pawn != null) {
-                                boardState.getTakenMoves().add(selectedMove[0]);
-                                mainboard.animatePawnMovement(
-                                        pawn,
-                                        selectedMove[0].getEndPosition(),
-                                        () -> applyMove(currentState.applyMove(selectedMove[0])));
-                            } else {
-                                boardState.getTakenMoves().add(selectedMove[0]);
-                                applyMove(currentState.applyMove(selectedMove[0]));
                             }
                         }
                     } catch (Exception e) {
