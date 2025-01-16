@@ -1,5 +1,7 @@
 package com.um_project_game.board;
 
+import com.um_project_game.Launcher;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -29,38 +31,43 @@ public class GameOverSummaryScreen {
 
         // Game Over Label
         Label gameOverLabel = new Label("Game Over!");
-        gameOverLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+        gameOverLabel.getStyleClass().add("game-over-label");
 
         // Winner Label
         Label winnerLabel = new Label("Winner: " + winner);
-        winnerLabel.setStyle("-fx-font-size: 18px;");
+        winnerLabel.getStyleClass().add("winner-label");
 
         // Player Scores
         Label scorePlayerOne = new Label("Player 1 Score: " + gameInfo.getScorePlayerOne());
         Label scorePlayerTwo = new Label("Player 2 Score: " + gameInfo.getScorePlayerTwo());
+        scorePlayerOne.getStyleClass().add("label");
+        scorePlayerTwo.getStyleClass().add("label");
 
         // Reset Button
         Button resetButton = new Button("Reset Game");
-        resetButton.setStyle("-fx-font-size: 14px; -fx-padding: 10px;");
-        resetButton.setOnAction(event -> {
-            summaryStage.close();
-            onReset.run();
-        });
+        resetButton.getStyleClass().add("button");
+        resetButton.setOnAction(
+                _ -> {
+                    summaryStage.close();
+                    onReset.run();
+                });
 
         // Layout
         VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
         layout.setAlignment(Pos.CENTER);
-        layout.getChildren().addAll(
-                gameOverLabel,
-                winnerLabel,
-                scorePlayerOne,
-                scorePlayerTwo,
-                resetButton
-        );
+        layout.getChildren()
+                .addAll(gameOverLabel, winnerLabel, scorePlayerOne, scorePlayerTwo, resetButton);
 
         Scene scene = new Scene(layout, 300, 250);
         summaryStage.setScene(scene);
         summaryStage.show();
+        Launcher.registerScene(scene);
+        scene.getStylesheets()
+                .add(
+                        getClass()
+                                .getResource(
+                                        Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css")
+                                .toExternalForm());
     }
 }
