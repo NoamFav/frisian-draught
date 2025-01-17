@@ -8,15 +8,19 @@ import com.um_project_game.util.ExitChoice;
 import com.um_project_game.util.GameExporter;
 
 import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -399,20 +403,139 @@ public class Game {
 
     *                                CHAT UI
     * -------------------------------------------------------------------------------- */
-    private void chatUI(Pane root, Scene scene) {
+    public void chatUI(Pane root, Scene scene) {
+        // Main chat UI container
         StackPane chatUI = new StackPane();
         chatUI.setPrefSize(chatUIWidth, chatUIHeight);
         chatUI.setLayoutX(chatUIX);
         chatUI.setLayoutY(chatUIY);
         chatUI.getStyleClass().add("chatUI");
-
         chatUI.setId("chatUI");
 
-        Text chatText = new Text("Chat");
-        chatText.getStyleClass().add("label");
-        chatUI.getChildren().add(chatText);
+        // Header for the chat
+        HBox chatHeader = new HBox();
+        chatHeader.getStyleClass().add("chatHeader");
+        chatHeader.setSpacing(10);
 
+        Label chatTitle = new Label("Game Chat");
+        chatTitle.getStyleClass().add("chatTitle");
+
+        // (Optional) Add an icon or placeholder graphic at the header
+        // e.g., ImageView chatIcon = new ImageView(new Image("path/to/icon.png"));
+        // chatIcon.setFitWidth(24);
+        // chatIcon.setFitHeight(24);
+        // chatHeader.getChildren().add(chatIcon);
+
+        chatHeader.getChildren().add(chatTitle);
+
+        // A container that will hold the ScrollPane of messages
+        // We'll create the scrollpane in appendChatMessage if it doesn't exist,
+        // but you can initialize it here to have a permanent scroll area.
+        VBox chatMessages = new VBox();
+        chatMessages.setSpacing(8);
+        chatMessages.setId("chatMessages");
+        chatMessages.getStyleClass().add("chatMessages");
+
+        ScrollPane chatScrollPane = new ScrollPane(chatMessages);
+        chatScrollPane.getStyleClass().add("chatScrollPane");
+        chatScrollPane.setFitToWidth(true);
+        // Hide horizontal bar, keep vertical bar as needed
+        chatScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // Chat input field + send button container
+        HBox chatInputBox = new HBox(10);
+        chatInputBox.getStyleClass().add("chatInputBox");
+
+        TextField chatInput = new TextField();
+        chatInput.setPromptText("Type a message...");
+        chatInput.getStyleClass().add("chatInput");
+        chatInput.setId("chatInput");
+
+        // Send button
+        Button sendButton = new Button("Send");
+        sendButton.getStyleClass().add("sendButton");
+
+        // Send message on button click
+        sendButton.setOnAction(
+                _ -> {
+                    String message = chatInput.getText().trim();
+                    if (!message.isEmpty()) {
+                        appendChatMessage(message, Launcher.user.getName());
+                        if (isMultiplayer) networkClient.sendMessage("CHAT " + message);
+                        chatInput.clear();
+                    }
+                });
+
+        // Also send message when pressing Enter in the chat input
+        chatInput.setOnAction(_ -> sendButton.fire());
+
+        // Add input field and send button to the input box
+        chatInputBox.getChildren().addAll(chatInput, sendButton);
+
+        // Main vertical container for all chat elements
+        VBox chatContainer = new VBox(10);
+        chatContainer.getChildren().addAll(chatHeader, chatScrollPane, chatInputBox);
+
+        chatUI.getChildren().add(chatContainer);
+
+        // Add the chat UI to the game root
         root.getChildren().add(chatUI);
+    }
+
+    public void appendChatMessage(String message, String name) {
+        // Find the chat UI by ID
+        StackPane chatUI = (StackPane) gameRoot.lookup("#chatUI");
+        if (chatUI == null) {
+            System.out.println("Error: chatUI not found!");
+            return;
+        }
+
+        // Check if the chatMessages container exists
+        VBox chatMessages = (VBox) chatUI.lookup("#chatMessages");
+        if (chatMessages == null) {
+            // Create chatMessages container if it doesn't exist
+            chatMessages = new VBox();
+            chatMessages.setId("chatMessages");
+            chatMessages.getStyleClass().add("chatMessages");
+
+            // Wrap chatMessages in a ScrollPane if needed
+            ScrollPane chatScrollPane = new ScrollPane(chatMessages);
+            chatScrollPane.getStyleClass().add("chatScrollPane");
+            chatScrollPane.setFitToWidth(true);
+            chatScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+            chatUI.getChildren().add(chatScrollPane);
+        }
+
+        // Create a message container
+        HBox messageBox = new HBox();
+        messageBox.getStyleClass().add("messageBox");
+
+        // Different styles for Player 1 and other players
+        if (name.equals("Player 1")) {
+            messageBox.getStyleClass().add("playerMessage");
+        } else {
+            messageBox.getStyleClass().add("opponentMessage");
+        }
+
+        Label messageLabel = new Label(name + ": " + message);
+        messageLabel.setWrapText(true);
+        messageLabel.getStyleClass().add("label");
+        messageBox.getChildren().add(messageLabel);
+
+        // Add the message to the chatMessages container
+        chatMessages.getChildren().add(messageBox);
+
+        // Auto-scroll to the bottom
+        Platform.runLater(
+                () -> {
+                    ScrollPane scrollPane = (ScrollPane) chatUI.lookup(".chatScrollPane");
+                    if (scrollPane != null) {
+                        scrollPane.setVvalue(1.0);
+                    }
+                });
     }
 
     /* --------------------------------------------------------------------------------
@@ -576,7 +699,7 @@ public class Game {
                 new Timeline(
                         new KeyFrame(
                                 Duration.seconds(1),
-                                e -> {
+                                _ -> {
                                     remainingTimePlayerOne--;
                                     int minutes = remainingTimePlayerOne / 60;
                                     int seconds = remainingTimePlayerOne % 60;
@@ -599,7 +722,7 @@ public class Game {
                 new Timeline(
                         new KeyFrame(
                                 Duration.seconds(1),
-                                e -> {
+                                _ -> {
                                     remainingTimePlayerTwo--;
                                     int minutes = remainingTimePlayerTwo / 60;
                                     int seconds = remainingTimePlayerTwo % 60;
@@ -755,24 +878,20 @@ public class Game {
      *                           SERVER COMMUNICATION
      * -------------------------------------------------------------------------------- */
 
-    public void appendChatMessage(String message, String name) {
-        StackPane chatUI = (StackPane) gameRoot.lookup("#chatUI");
-        chatUI.getChildren().add(new Text(name + ": " + message));
-    }
-
     public void setPlayerRole(String role, String name) {
         switch (role) {
-            case "WHITE":
+            case "White":
                 playerWhite = new Player(name, true);
                 break;
-            case "BLACK":
+            case "Black":
                 playerBlack = new Player(name, false);
                 break;
-            case "SPEC":
+            case "Spectator":
                 spectators.add(new Player(name, false, true));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid role: " + role);
         }
+        System.out.println("[DEBUG] Player role set to: " + role + " From Game");
     }
 }

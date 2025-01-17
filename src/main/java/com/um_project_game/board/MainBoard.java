@@ -13,6 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import org.joml.Vector2i;
@@ -537,6 +538,7 @@ public class MainBoard {
                 boardState.isWhiteTurn(),
                 this);
     }
+
     public List<Move> getValidMovesForState(GameState state) {
         List<Move> validMoves = new ArrayList<>();
         // Iterate through all pawns in the game state
@@ -548,7 +550,7 @@ public class MainBoard {
                 continue;
             }
             // Generate moves for this pawn
-            moveManager.seePossibleMove(pawn,false);
+            moveManager.seePossibleMove(pawn, false);
             validMoves.addAll(
                     boardState.getPossibleMoves().stream()
                             .map(
@@ -574,4 +576,13 @@ public class MainBoard {
         return validMoves;
     }
 
+    private Stage primaryStage;
+
+    public void setPrimaryStage(Stage stage) {
+        this.primaryStage = stage;
+    }
+
+    public Stage getPrimaryStage() {
+        return primaryStage;
+    }
 }

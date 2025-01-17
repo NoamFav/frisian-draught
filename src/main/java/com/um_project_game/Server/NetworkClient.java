@@ -87,6 +87,7 @@ public class NetworkClient {
                     () -> {
                         gameReference.setPlayerRole(
                                 message.substring("You are".length()).trim(), name);
+                        System.out.println("[DEBUG] Player role set to: " + message);
                     });
         }
     }
