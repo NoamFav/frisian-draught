@@ -1,6 +1,8 @@
 package com.um_project_game;
 
 import com.um_project_game.Server.NetworkClient;
+import com.um_project_game.board.Bot.*;
+import com.um_project_game.board.Bot.BotType;
 import com.um_project_game.board.GameInfo;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
@@ -25,6 +27,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.Pair;
 
 import org.joml.Vector2i;
 
@@ -98,6 +101,11 @@ public class Game {
     // Game client communication
     private NetworkClient networkClient;
 
+    public BotType playerBot;
+
+    public BotType BotvsBotWhite;
+    public BotType BotvsBotBlack;
+
     /* --------------------------------------------------------------------------------
      *                               CONSTRUCTORS
      * -------------------------------------------------------------------------------- */
@@ -109,6 +117,19 @@ public class Game {
         this.isMultiplayer = isMultiplayer;
         this.isAgainstBot = isAgainstBot;
         this.isBotvBot = isBotvBot;
+
+        if (isBotvBot || isAgainstBot) {
+            BotPicker botPicker = new BotPicker();
+            if (isBotvBot) {
+                Pair<BotType, BotType> botPair = botPicker.selectBotvsBot();
+                BotvsBotWhite = botPair.getKey();
+                BotvsBotBlack = botPair.getValue();
+                System.out.println("Bot vs Bot: " + BotvsBotWhite + " vs " + BotvsBotBlack);
+            } else {
+                playerBot = botPicker.selectPlayerBot();
+                System.out.println("Player vs Bot: " + playerBot);
+            }
+        }
 
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
@@ -153,6 +174,21 @@ public class Game {
                     e.consume();
                     showExitConfirmation();
                 });
+
+        if (isAgainstBot) {
+            setBotPlayer(playerBot);
+        } else if (isBotvBot) {
+            setBotvsBotPlayers(BotvsBotWhite, BotvsBotBlack);
+        }
+    }
+
+    public void setBotPlayer(BotType botType) {
+        mainBoard.boardState.setBotPlayer(BotFactory.createBot(botType, mainBoard));
+    }
+
+    public void setBotvsBotPlayers(BotType whiteBot, BotType blackBot) {
+        mainBoard.boardState.setBotvsBotWhite(BotFactory.createBot(whiteBot, mainBoard));
+        mainBoard.boardState.setBotvsBotBlack(BotFactory.createBot(blackBot, mainBoard));
     }
 
     public Game(Launcher launcher, MainBoard mainBoard) {

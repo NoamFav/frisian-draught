@@ -4,6 +4,7 @@ import com.um_project_game.AI.DQNModel;
 import com.um_project_game.AI.ReplayBuffer;
 import com.um_project_game.Launcher;
 import com.um_project_game.Server.NetworkClient;
+import com.um_project_game.board.Bot.Bot;
 import com.um_project_game.util.SoundPlayer;
 
 import javafx.scene.Node;
@@ -22,6 +23,7 @@ public class BoardState {
     // Constants
     private static final int BOARD_SIZE = 10;
 
+    private static final int REPLAY_BUFFER_SIZE = 10000;
     // Game state variables
     public boolean isWhiteTurn = true; // White starts first
     private boolean isActive = true;
@@ -35,9 +37,9 @@ public class BoardState {
     private GridPane board;
     private Node[][] boardTiles = new Node[BOARD_SIZE][BOARD_SIZE];
     private Pane root;
-
     // Pawn and move management
     private Pawn focusedPawn;
+
     private List<Pawn> allPawns = new ArrayList<>();
     private List<Pawn> pawns = new ArrayList<>();
     private List<Pawn> requiredPawns = new ArrayList<>();
@@ -45,23 +47,86 @@ public class BoardState {
     private List<CapturePath> currentCapturePaths = new ArrayList<>();
 
     private List<Move> takenMoves = new ArrayList<>();
+
     private MovesListManager movesListManager;
     private List<GameState> pastStates = new ArrayList<>();
     private Map<Pawn, ImageView> pawnViews = new HashMap<>();
     private List<Node> highlightNodes = new ArrayList<>();
-
     // Sound and game info
     private SoundPlayer soundPlayer = Launcher.soundPlayer;
-
     private GameInfo gameInfo;
     private DQNModel botModel;
     public boolean isBotActive = false;
     public boolean isBotvsBot = false;
-    private ReplayBuffer replayBuffer = new ReplayBuffer(1000);
-    private static final int BATCH_SIZE = 32;
-    private static final double GAMMA = 0.99;
+    private ReplayBuffer replayBuffer = new ReplayBuffer(REPLAY_BUFFER_SIZE);
+
+    private final int BATCH_SIZE = 32;
+
+    private final double GAMMA = 0.99;
+
+    private final double CONFIDENCE_THRESHOLD = 0.2;
+
+    private int episodeCounter = 0;
+
+    private Bot botPlayer;
+
+    private Bot BotvsBotWhite;
+
+    private Bot BotvsBotBlack;
 
     private NetworkClient networkClient;
+
+    public static int getReplayBufferSize() {
+        return REPLAY_BUFFER_SIZE;
+    }
+
+    public static int getMainBoardSize() {
+        return BOARD_SIZE;
+    }
+
+    public int getBATCH_SIZE() {
+        return BATCH_SIZE;
+    }
+
+    public double getGAMMA() {
+        return GAMMA;
+    }
+
+    public double getCONFIDENCE_THRESHOLD() {
+        return CONFIDENCE_THRESHOLD;
+    }
+
+    public int getEpisodeCounter() {
+        return episodeCounter;
+    }
+
+    public void setEpisodeCounter(int episodeCounter) {
+        this.episodeCounter = episodeCounter;
+    }
+
+    public Bot getBotPlayer() {
+        return botPlayer;
+    }
+
+    public void setBotPlayer(Bot botPlayer) {
+        this.botPlayer = botPlayer;
+    }
+
+    public Bot getBotvsBotWhite() {
+        return BotvsBotWhite;
+    }
+
+    public void setBotvsBotWhite(Bot botvsBotWhite) {
+        BotvsBotWhite = botvsBotWhite;
+    }
+
+    public Bot getBotvsBotBlack() {
+        return BotvsBotBlack;
+    }
+
+    public void setBotvsBotBlack(Bot botvsBotBlack) {
+        BotvsBotBlack = botvsBotBlack;
+    }
 
     public NetworkClient getNetworkClient() {
         return networkClient;
@@ -69,10 +134,6 @@ public class BoardState {
 
     public void setNetworkClient(NetworkClient networkClient) {
         this.networkClient = networkClient;
-    }
-
-    public static int getMainBoardSize() {
-        return BOARD_SIZE;
     }
 
     public boolean isWhiteTurn() {
@@ -289,14 +350,6 @@ public class BoardState {
 
     public void setReplayBuffer(ReplayBuffer replayBuffer) {
         this.replayBuffer = replayBuffer;
-    }
-
-    public static int getBatchSize() {
-        return BATCH_SIZE;
-    }
-
-    public static double getGamma() {
-        return GAMMA;
     }
 
     public Map<Vector2i, Pawn> getPawnPositionMap() {

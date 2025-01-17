@@ -234,72 +234,47 @@
   -fx-transition: all 0.3s ease-in-out;
 }
 
-/* Background Track Styling */
 .progress-bar .track {
-  -fx-background-color: linear-gradient(
-    to bottom,
-    #1f1f1f,
-    #292929
-  ); /* Dark gradient track */
-  -fx-background-radius: 15px; /* Match border radius for full rounding */
+  -fx-background-color: linear-gradient(to bottom, #1f1f1f, #292929);
+  -fx-background-radius: 15px;
   -fx-padding: 2px;
 }
 
-/* Progress Fill (Thumb) Styling */
 .progress-bar .bar {
-  -fx-background-color: linear-gradient(
-    to right,
-    #5560f2,
-    #6d7af3
-  ); /* Gradient fill */
+  -fx-background-color: linear-gradient(to right, #5560f2, #6d7af3);
   -fx-background-radius: 13px; /* Rounded corners for the fill */
   -fx-effect: dropshadow(gaussian, rgba(85, 96, 242, 0.6), 6, 0.5, 0, 1);
   -fx-transition: all 0.3s ease-in-out;
 }
 
-/* Hover State on Progress Fill */
 .progress-bar:hover .bar {
   -fx-background-color: linear-gradient(to right, #7a82f5, #9ba5ff);
   -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.8), 8, 0.6, 0, 2);
 }
 
-/* Base Badge Styling */
 .badge {
-  -fx-background-color: linear-gradient(
-    to bottom,
-    #3a3a3a,
-    #2e2e2e
-  ); /* Subtle gradient */
+  -fx-background-color: linear-gradient(to bottom, #3a3a3a, #2e2e2e);
   -fx-text-fill: #ffffff;
   -fx-border-color: #5560f2;
   -fx-border-width: 2px;
-  -fx-border-radius: 20px; /* Fully rounded corners for a pill shape */
+  -fx-border-radius: 20px;
   -fx-background-radius: 20px;
-  -fx-padding: 8 16; /* Increase padding for better readability */
+  -fx-padding: 8 16;
   -fx-font-size: 15px;
   -fx-font-weight: bold;
-  -fx-effect: dropshadow(
-    gaussian,
-    rgba(85, 96, 242, 0.6),
-    6,
-    0.4,
-    0,
-    2
-  ); /* Softer shadow */
+  -fx-effect: dropshadow(gaussian, rgba(85, 96, 242, 0.6), 6, 0.4, 0, 2);
   -fx-transition: all 0.3s ease-in-out;
 }
 
-/* Hover State for Badge */
 .badge:hover {
   -fx-background-color: linear-gradient(to bottom, #5560f2, #6d7af3);
   -fx-text-fill: #ffffff;
   -fx-border-color: #7a82f5;
   -fx-effect: dropshadow(gaussian, rgba(120, 140, 255, 0.8), 8, 0.5, 0, 2);
-  -fx-scale-x: 1.05; /* Subtle scaling on hover */
+  -fx-scale-x: 1.05;
   -fx-scale-y: 1.05;
 }
 
-/* Badge for Disabled State */
 .badge:disabled {
   -fx-background-color: linear-gradient(to bottom, #3a3a3a, #2c2c2c);
   -fx-text-fill: #7a7a7a;
@@ -307,19 +282,90 @@
   -fx-effect: none;
 }
 
-/* Animation for Smooth Hover Effect */
 .badge,
 .badge:hover {
   -fx-transition: all 0.3s ease-in-out;
 }
 
 /* -------------------------- */
+/*          TEXT AREA          */
+/* -------------------------- */
+
+.dialog-content {
+  -fx-spacing: 15px;
+  -fx-padding: 20px;
+  -fx-background-color: transparent;
+  -fx-alignment: center;
+}
+.choice-box {
+  -fx-padding: 5px;
+  -fx-border-color: #cccccc;
+  -fx-border-radius: 5px;
+  -fx-background-color: #3a3a3a;
+  -fx-text-fill: #ffffff;
+}
+.choice-box .context-menu {
+  -fx-background-color: #2e2e2e;
+  -fx-border-color: #555555;
+  -fx-border-radius: 5px;
+  -fx-padding: 5px;
+}
+
+.choice-box .menu-item:focused {
+  -fx-background-color: #5560f2;
+  -fx-border-radius: 5px;
+}
+
+.choice-box .menu-item > .label {
+  -fx-text-fill: #ffffff;
+  -fx-font-size: 14px;
+}
+
+.choice-box .menu-item:focused > .label {
+  -fx-text-fill: #000000;
+  -fx-font-weight: bold;
+}
+
+.choice-box .menu-item {
+  -fx-padding: 5px 10px;
+  -fx-border-radius: 5px;
+}
+
+.choice-box .menu-item:focused {
+  -fx-background-color: #5560f2;
+  -fx-transition: background-color 0.3s ease-in-out;
+}
+.header-label {
+  -fx-text-fill: #ffffff;
+  -fx-font-size: 20px;
+  -fx-font-weight: bold;
+  -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.5), 6, 0.3, 0, 2);
+}
+
+.message-label {
+  -fx-text-fill: #dcdcdc;
+  -fx-font-size: 16px;
+}
+
+.error-label {
+  -fx-text-fill: #ff4c4c;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+}
+.alert-root {
+  -fx-background-color: linear-gradient(to bottom, #1f1f1f, #292929);
+  -fx-background-radius: 12;
+  -fx-padding: 20px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 16, 0.4, 0, 4);
+  -fx-border-color: transparent;
+  -fx-border-width: 0;
+}
+
+/* -------------------------- */
 /*        CHAT UI STYLES      */
 /* -------------------------- */
 
-/* Main Chat UI Container */
 .chatUI {
-  /* Dark gradient background with rounded corners and a subtle drop shadow */
   -fx-background-color: linear-gradient(to bottom, #1f1f1f, #292929);
   -fx-background-radius: 15;
   -fx-padding: 10;
@@ -329,7 +375,6 @@
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.4, 0, 4);
 }
 
-/* Chat Header */
 .chatHeader {
   -fx-background-color: linear-gradient(to right, #3a3a3a, #2e2e2e);
   -fx-background-radius: 10;
@@ -338,14 +383,12 @@
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 4, 0.3, 0, 1);
 }
 
-/* Chat Title Label */
 .chatTitle {
   -fx-text-fill: #ffffff;
   -fx-font-size: 18px;
   -fx-font-weight: bold;
 }
 
-/* Scroll Pane for Chat Messages */
 .chatScrollPane {
   -fx-background-color: transparent;
   -fx-border-color: #404040;
@@ -354,36 +397,30 @@
   -fx-padding: 5;
 }
 
-/* Scroll Pane Viewport */
 .chatScrollPane .viewport {
   -fx-background-color: transparent;
 }
 
-/* Scrollbar Thumb */
 .chatScrollPane .thumb {
   -fx-background-color: #5560f2;
   -fx-background-radius: 4;
 }
 
-/* Scrollbar Track */
 .chatScrollPane .track {
   -fx-background-color: #2e2e2e;
   -fx-background-radius: 4;
 }
 
-/* Container that holds messages (VBox) */
 .chatMessages {
   -fx-spacing: 8;
 }
 
-/* Each Message Box (HBox) */
 .messageBox {
   -fx-background-color: #3a3a3a;
   -fx-background-radius: 8;
   -fx-padding: 8 12;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 2, 0.2, 0, 1);
 
-  /* Animate expansions or transitions slightly (optional) */
   -fx-transition: all 0.2s ease-in-out;
 }
 
