@@ -50,16 +50,21 @@ public class DQNModel {
     }
 
     // Update weights using a single experience
-    public void updateWeights(GameState state, Vector2i action, double reward) {
-        double[] input = state.toInputArray(); // Convert state to input array
-        double[] target = network.predict(input); // Get current predictions
-
-        // Update only the Q-value of the chosen action
+    public void updateWeights(GameState state, Vector2i action, double targetQValue) {
+        // 1. Get current network predictions for this state
+        double[] input = state.toInputArray();
+        double[] predictedQ = network.predict(input);
+    
+        // 2. Convert (x, y) action to the 1D index in predictedQ
         int actionIndex = action.y * 10 + action.x;
-        target[actionIndex] = reward; // Assign reward to the specific action
-
-        network.train(input, target); // Train the network
+    
+        // 3. Overwrite the chosen action’s Q-value with the Bellman target
+        predictedQ[actionIndex] = targetQValue;
+    
+        // 4. Train the network to fit this updated Q vector
+        network.train(input, predictedQ);
     }
+    
 
     // Batch training with multiple experiences
     public void updateWeights(Iterable<Experience> experiences, double gamma) {
