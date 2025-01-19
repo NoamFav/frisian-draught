@@ -151,14 +151,16 @@ public class MoveManager {
             return;
         }
 
-        boolean turnMatchesPlayer = (boardState.isWhiteTurn() == boardState.getPlayer().isWhite());
-        boolean playerMatchesPawn = (boardState.getPlayer().isWhite() == pawn.isWhite());
+        if (boardState.isMultiplayer()) {
+            boolean turnMatchesPlayer =
+                    (boardState.isWhiteTurn() == boardState.getPlayer().isWhite());
+            boolean playerMatchesPawn = (boardState.getPlayer().isWhite() == pawn.isWhite());
 
-        if (!turnMatchesPlayer || !playerMatchesPawn) {
-            System.out.println("Not your turn, or you don't control this pawn!");
-            return;
+            if (!turnMatchesPlayer || !playerMatchesPawn) {
+                System.out.println("Not your turn, or you don't control this pawn!");
+                return;
+            }
         }
-
         Vector2i position = pawn.getPosition();
         int x = position.x;
         int y = position.y;
