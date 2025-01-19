@@ -1,0 +1,4 @@
+[submodule "Report"]
+	url = https://github.com/NoamFav/Report.git
+[submodule "Server"]
+	url = https://github.com/NoamFav/Server.git
