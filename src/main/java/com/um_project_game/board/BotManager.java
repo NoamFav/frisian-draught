@@ -150,8 +150,8 @@ public class BotManager {
                     .updateWeights(
                             experience.state,
                             experience.action,
-                            target - qValues.get(experience.action));
-            totalLoss += Math.abs(target - qValues.get(experience.action));
+                            target 
+                            );
         }
         System.out.println("Average Loss: " + (totalLoss / batch.size()));
     }
