@@ -60,8 +60,8 @@ public class Game {
     private boolean isAgainstBot;
     private boolean isBotvBot;
 
-    private Player playerWhite;
-    private Player playerBlack;
+    private Player player;
+
     private List<Player> spectators = new ArrayList<>();
     private PauseTransition resizePause;
 
@@ -917,17 +917,24 @@ public class Game {
     public void setPlayerRole(String role, String name) {
         switch (role) {
             case "White":
-                playerWhite = new Player(name, true);
+                player = new Player(name, true);
                 break;
             case "Black":
-                playerBlack = new Player(name, false);
+                player = new Player(name, false);
                 break;
             case "Spectator":
                 spectators.add(new Player(name, false, true));
-                break;
+                return;
             default:
                 throw new IllegalArgumentException("Invalid role: " + role);
         }
-        System.out.println("[DEBUG] Player role set to: " + role + " From Game");
+        System.out.println("[DEBUG] Player role set to: " + role);
+
+        // Ensure boardState has the player
+        synchronized (mainBoard.boardState.getLock()) {
+            mainBoard.boardState.setPlayer(player);
+            System.out.println("[DEBUG] boardState player set to: " + player);
+            mainBoard.boardState.getLock().notifyAll(); // Notify waiting threads
+        }
     }
 }

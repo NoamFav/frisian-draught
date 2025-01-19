@@ -256,7 +256,7 @@ public class MainBoard {
 
         boardState.setRoot(root);
 
-        boardState.setActive(true);
+        boardState.setActive(false);
 
         boardRendered.setupBoard();
         boardRendered.renderBoard();

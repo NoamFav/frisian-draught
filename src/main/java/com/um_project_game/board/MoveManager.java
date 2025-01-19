@@ -132,6 +132,33 @@ public class MoveManager {
 
         boardState.getPossibleMoves().clear();
         boardRendered.clearHighlights();
+
+        synchronized (boardState.getLock()) {
+            if (boardState.getPlayer() == null
+                    && boardState.isMultiplayer()
+                    && boardState.isActive()) {
+                System.out.println("Player is not ready yet – skipping seePossibleMove.");
+                return;
+            }
+        }
+
+        if (boardState.isMultiplayer()) {
+            System.out.println("Player initialized: " + boardState.getPlayer());
+        }
+
+        if (!boardState.isActive()) {
+            System.out.println("Game not active, cannot move.");
+            return;
+        }
+
+        boolean turnMatchesPlayer = (boardState.isWhiteTurn() == boardState.getPlayer().isWhite());
+        boolean playerMatchesPawn = (boardState.getPlayer().isWhite() == pawn.isWhite());
+
+        if (!turnMatchesPlayer || !playerMatchesPawn) {
+            System.out.println("Not your turn, or you don't control this pawn!");
+            return;
+        }
+
         Vector2i position = pawn.getPosition();
         int x = position.x;
         int y = position.y;

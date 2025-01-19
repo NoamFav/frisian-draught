@@ -207,6 +207,7 @@ public class BoardRendered {
     }
 
     public void highlightMovablePawns(List<Pawn> pawns) {
+
         for (ScaleTransition transition : activeTransitions.values()) {
             transition.stop();
         }

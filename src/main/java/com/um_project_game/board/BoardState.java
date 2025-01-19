@@ -3,6 +3,7 @@ package com.um_project_game.board;
 import com.um_project_game.AI.DQNModel;
 import com.um_project_game.AI.ReplayBuffer;
 import com.um_project_game.Launcher;
+import com.um_project_game.Player;
 import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.board.Bot.Bot;
 import com.um_project_game.util.SoundPlayer;
@@ -75,6 +76,22 @@ public class BoardState {
     private Bot BotvsBotBlack;
 
     private NetworkClient networkClient;
+
+    private Player player;
+
+    private final Object lock = new Object();
+
+    public Object getLock() {
+        return lock;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
 
     public static int getReplayBufferSize() {
         return REPLAY_BUFFER_SIZE;

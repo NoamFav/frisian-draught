@@ -8,6 +8,8 @@ import com.um_project_game.board.Pawn;
 
 import javafx.application.Platform;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joml.Vector2i;
 
 import java.io.BufferedReader;
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class NetworkClient {
+    private static final Logger logger = LogManager.getLogger(NetworkClient.class);
+
     private Socket socket;
     private PrintWriter writer;
     private BufferedReader reader;
@@ -32,40 +36,48 @@ public class NetworkClient {
     public NetworkClient(String host, int port, Game game) {
         this.gameReference = game;
         this.mainBoard = game.getMainBoard();
+        System.out.println("Attempting to connect to server at " + host + ":" + port);
         try {
             socket = new Socket(host, port);
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            writer.println("READY");
+            writer.flush();
+
+            System.out.println("Sent ready message to server.");
 
             // Start a separate thread to listen for messages from server
             listenerThread = new Thread(this::listenForServerMessages);
             listenerThread.start();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(
+                    "Failed to connect to server at {}:{}, error: {}", host, port, e.getMessage());
         }
     }
 
     private void listenForServerMessages() {
         try {
+
+            System.out.println("Listening for server messages...");
             String message;
+            System.out.println("Starting message loop...");
             while ((message = reader.readLine()) != null) {
+
                 handleServerMessage(message);
             }
+            System.out.println("Server closed connection.");
         } catch (IOException e) {
             // Connection error or server closed
-            e.printStackTrace();
+            logger.error("Error while listening to server messages: {}", e.getMessage());
         }
     }
 
     // Example: parse and handle server messages
     private void handleServerMessage(String message) {
-        // Typical messages:
-        // 1) "CHAT Hello everyone!"
-        // 2) "UPDATE White moved from 3,5 to 4,6"
-        // 3) "You are White" (role assignment)
-
         String name = Launcher.user.getName();
+        System.out.println("Received message: " + message);
 
         if (message.startsWith("CHAT")) {
             String chatText = message.substring(4).trim();
@@ -73,6 +85,7 @@ public class NetworkClient {
             Platform.runLater(
                     () -> {
                         gameReference.appendChatMessage(chatText, name);
+                        System.out.println("Chat message: " + chatText);
                     });
 
         } else if (message.startsWith("MOVE")) {
@@ -82,36 +95,29 @@ public class NetworkClient {
                     });
 
         } else if (message.startsWith("You are")) {
-            // e.g. "You are White"
+            System.out.println("Received role message: " + message);
+            String role = message.substring("You are".length()).trim();
+            System.out.println("Role: " + role);
             Platform.runLater(
                     () -> {
-                        gameReference.setPlayerRole(
-                                message.substring("You are".length()).trim(), name);
-                        System.out.println("[DEBUG] Player role set to: " + message);
+                        System.out.println("Setting role: " + role);
+                        gameReference.setPlayerRole(role, name);
+                        System.out.println("Role set: " + role);
                     });
         }
     }
 
     private void processUpdateMove(String details) {
-        System.out.println("[DEBUG] Received move command: " + details);
+        System.out.println("Processing move: " + details);
         if (details.equals(lastProcessedMove)) {
-            System.out.println("[DEBUG] Skipping duplicate move: " + details);
+            System.out.println("Ignoring duplicate move...");
             return;
         }
         lastProcessedMove = details;
 
-        if (details.startsWith("MOVE")) {
-            Platform.runLater(() -> processUpdateMove(details));
-        }
-
-        // Example message formats:
-        // - "MOVE 3,5 TO 4,6" (normal move)
-        // - "MOVE 3,5 TO 9,7 CAPTURED 4,6 5,7" (capture move)
-
         String[] parts = details.split(" ");
         if (parts.length < 4) {
-            System.out.println(
-                    "[ERROR] Invalid move format. Expected at least 4 parts, got: " + parts.length);
+            System.out.println("Invalid move command");
             return;
         }
 
@@ -128,16 +134,16 @@ public class NetworkClient {
 
         Pawn pawnToMove = mainBoard.moveManager.getPawnAtPosition(start);
         if (pawnToMove == null) {
-            System.out.println("[ERROR] No pawn found at position: " + start);
+            System.out.println("No pawn found at start position: " + start);
             return;
         }
 
         if (!isCaptureMove) {
-            System.out.println("[DEBUG] Processing normal move...");
+            System.out.println("Processing normal move...");
             mainBoard.animatePawnMovement(
                     pawnToMove, end, () -> mainBoard.moveManager.executeMove(pawnToMove, end));
         } else {
-            System.out.println("[DEBUG] Processing capture move...");
+            System.out.println("Processing capture move...");
 
             List<CapturePath> allPaths = new ArrayList<>();
             mainBoard.moveManager.captureCheck(
@@ -152,12 +158,12 @@ public class NetworkClient {
                     new CapturePath(),
                     allPaths);
 
-            System.out.println("[DEBUG] All generated capture paths:");
+            System.out.println("All paths:");
             for (CapturePath path : allPaths) {
-                System.out.println(
-                        "[DEBUG] Path: " + path.positions + " | Captured: " + path.capturedPawns);
+                System.out.println(path.positions);
             }
-            System.out.println("[DEBUG] Captured positions from server: " + capturedPositions);
+
+            System.out.println("Captured positions: " + capturedPositions);
 
             CapturePath matchingPath =
                     allPaths.stream()
@@ -172,18 +178,18 @@ public class NetworkClient {
                             .orElse(null);
 
             if (matchingPath == null) {
-                System.out.println("[ERROR] No matching capture path found!");
+                System.out.println(
+                        "No matching path found for captured positions: " + capturedPositions);
                 return;
             }
 
-            System.out.println("[DEBUG] Recreated CapturePath: " + matchingPath.positions);
+            System.out.println("Matching path: " + matchingPath.positions);
             mainBoard.animatePawnCaptureMovement(
                     pawnToMove,
                     matchingPath,
                     () -> mainBoard.moveManager.processAfterCaptureMove(pawnToMove, matchingPath));
         }
-
-        System.out.println("[DEBUG] Move processing complete.");
+        System.out.println("Move processed.");
     }
 
     private Vector2i convertToVector2i(String coords) {
@@ -195,28 +201,43 @@ public class NetworkClient {
 
     public void sendMove(Vector2i from, Vector2i to, List<Vector2i> capturedPositions) {
         if (from == null || to == null || capturedPositions == null || writer == null) {
-            return; // Invalid move or writer not initialized
+            System.out.println("Invalid move command");
+            return;
         }
 
         StringBuilder message =
                 new StringBuilder("MOVE " + from.x + "," + from.y + " TO " + to.x + "," + to.y);
+
         if (!capturedPositions.isEmpty()) {
             message.append(" CAPTURED");
             for (Vector2i pos : capturedPositions) {
                 message.append(" ").append(pos.x).append(",").append(pos.y);
             }
         }
+
+        if (message.toString().equals(lastProcessedMove)) {
+            System.out.println("Ignoring duplicate move...");
+            return;
+        }
+
         writer.println(message.toString());
+        System.out.println("Sent move: " + message);
     }
 
     public void sendMove(Vector2i from, Vector2i to) {
         sendMove(from, to, new ArrayList<>());
     }
 
-    // Public method to send messages to server
     public void sendMessage(String message) {
+        if (message.equals(lastProcessedMove)) {
+            System.out.println("Ignoring duplicate message...");
+            return;
+        }
         if (writer != null) {
             writer.println(message);
+            System.out.println("Sent message: " + message);
+        } else {
+            System.out.println("Failed to send message: " + message);
         }
     }
 }
