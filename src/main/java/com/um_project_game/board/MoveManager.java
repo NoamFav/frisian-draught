@@ -146,11 +146,6 @@ public class MoveManager {
             System.out.println("Player initialized: " + boardState.getPlayer());
         }
 
-        if (!boardState.isActive()) {
-            System.out.println("Game not active, cannot move.");
-            return;
-        }
-
         if (boardState.isMultiplayer()) {
             boolean turnMatchesPlayer =
                     (boardState.isWhiteTurn() == boardState.getPlayer().isWhite());

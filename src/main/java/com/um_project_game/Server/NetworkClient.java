@@ -32,6 +32,7 @@ public class NetworkClient {
     private MainBoard mainBoard;
 
     private String lastProcessedMove = "";
+    private String OPPONENT_NAME = "";
 
     public NetworkClient(String host, int port, Game game) {
         this.gameReference = game;
@@ -43,6 +44,9 @@ public class NetworkClient {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             writer.println("READY");
+            writer.flush();
+
+            writer.println("OPPONENT_NAME " + Launcher.user.getName());
             writer.flush();
 
             System.out.println("Sent ready message to server.");
@@ -84,7 +88,7 @@ public class NetworkClient {
             // Update your chatUI in Game
             Platform.runLater(
                     () -> {
-                        gameReference.appendChatMessage(chatText, name);
+                        gameReference.appendChatMessage(chatText);
                         System.out.println("Chat message: " + chatText);
                     });
 
@@ -103,6 +107,13 @@ public class NetworkClient {
                         System.out.println("Setting role: " + role);
                         gameReference.setPlayerRole(role, name);
                         System.out.println("Role set: " + role);
+                    });
+        } else if (message.startsWith("OPPONENT_NAME")) {
+            OPPONENT_NAME = message.substring("OPPONENT_NAME".length()).trim();
+            System.out.println("Opponent name: " + OPPONENT_NAME);
+            Platform.runLater(
+                    () -> {
+                        gameReference.setOpponentName(OPPONENT_NAME);
                     });
         }
     }

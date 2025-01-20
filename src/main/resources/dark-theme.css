@@ -191,11 +191,17 @@
 
 /* Profile Name Styling */
 .profile-name {
+  /* Text styling */
   -fx-text-fill: #ffffff;
+  -fx-alignment: center;
   -fx-font-size: 24px;
   -fx-font-weight: bold;
+  -fx-background-color: transparent; /* Outer background */
+  -fx-control-inner-background: transparent; /* Inner background */
   -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.3), 4, 0.5, 0, 1);
   -fx-padding: 10 0;
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
 }
 
 /* Profile Info Label Styling */

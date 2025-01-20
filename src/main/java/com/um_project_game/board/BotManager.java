@@ -97,6 +97,9 @@ public class BotManager {
                 .orElse(null);
     }
 
+    /**
+     * @param savePath
+     */
     public void playBotVsBot(String savePath) {
         Platform.runLater(
                 () -> {
@@ -145,13 +148,7 @@ public class BotManager {
                         boardState.getGAMMA()
                                 * nextQValues.values().stream().max(Double::compareTo).orElse(0.0);
             }
-            boardState
-                    .getBotModel()
-                    .updateWeights(
-                            experience.state,
-                            experience.action,
-                            target 
-                            );
+            boardState.getBotModel().updateWeights(experience.state, experience.action, target);
         }
         System.out.println("Average Loss: " + (totalLoss / batch.size()));
     }

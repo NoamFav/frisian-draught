@@ -21,6 +21,7 @@ import org.joml.Vector2i;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -100,8 +101,11 @@ public class MainBoard {
 
         highlightMovablePawns();
 
-        Path home = Path.of(System.getProperty("user.home"));
-        Path savePath = home.resolve("FrisianDraughtAIBin");
+        Path savePath =
+                Paths.get(
+                        System.getProperty("user.home"),
+                        ".frisian-draught",
+                        "FrisianDraughtsExports");
 
         // Ensure the directory exists
         if (!Files.exists(savePath)) {

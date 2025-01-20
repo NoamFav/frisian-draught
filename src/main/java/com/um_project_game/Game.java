@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Game {
 
@@ -61,6 +63,7 @@ public class Game {
     private boolean isBotvBot;
 
     private Player player;
+    private Player opponent;
 
     private List<Player> spectators = new ArrayList<>();
     private PauseTransition resizePause;
@@ -367,7 +370,7 @@ public class Game {
                     new Timeline(
                             new KeyFrame(
                                     Duration.seconds(1),
-                                    e -> {
+                                    _ -> {
                                         remainingTimePlayerOne--;
                                         int minutes = remainingTimePlayerOne / 60;
                                         int seconds = remainingTimePlayerOne % 60;
@@ -496,8 +499,9 @@ public class Game {
         sendButton.setOnAction(
                 _ -> {
                     String message = chatInput.getText().trim();
+                    message = Launcher.user.getName() + ": " + message;
                     if (!message.isEmpty()) {
-                        appendChatMessage(message, Launcher.user.getName());
+                        appendChatMessage(message);
                         if (isMultiplayer) networkClient.sendMessage("CHAT " + message);
                         chatInput.clear();
                     }
@@ -519,7 +523,7 @@ public class Game {
         root.getChildren().add(chatUI);
     }
 
-    public void appendChatMessage(String message, String name) {
+    public void appendChatMessage(String message) {
         // Find the chat UI by ID
         StackPane chatUI = (StackPane) gameRoot.lookup("#chatUI");
         if (chatUI == null) {
@@ -550,13 +554,8 @@ public class Game {
         messageBox.getStyleClass().add("messageBox");
 
         // Different styles for Player 1 and other players
-        if (name.equals("Player 1")) {
-            messageBox.getStyleClass().add("playerMessage");
-        } else {
-            messageBox.getStyleClass().add("opponentMessage");
-        }
 
-        Label messageLabel = new Label(name + ": " + message);
+        Label messageLabel = new Label(message);
         messageLabel.setWrapText(true);
         messageLabel.getStyleClass().add("label");
         messageBox.getChildren().add(messageLabel);
@@ -579,7 +578,7 @@ public class Game {
      * -------------------------------------------------------------------------------- */
     private void showExitConfirmation() {
 
-        ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(true);
+        ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(!isMultiplayer);
 
         switch (choice) {
             case EXIT_WITH_SAVE:
@@ -641,12 +640,17 @@ public class Game {
         controlButtons
                 .getChildren()
                 .addAll(
-                        undoButton.getButton(),
-                        drawButton.getButton(),
-                        resignButton.getButton(),
-                        restartButton.getButton(),
-                        settingsButton.getButton(),
-                        exitButton.getButton());
+                        Stream.of(
+                                        !isMultiplayer && !isBotvBot && !isAgainstBot
+                                                ? undoButton.getButton()
+                                                : null,
+                                        isMultiplayer ? drawButton.getButton() : null,
+                                        isMultiplayer ? resignButton.getButton() : null,
+                                        !isMultiplayer ? restartButton.getButton() : null,
+                                        settingsButton.getButton(),
+                                        exitButton.getButton())
+                                .filter(button -> button != null)
+                                .collect(Collectors.toList()));
         root.getChildren().addAll(controlButtons);
     }
 
@@ -930,11 +934,29 @@ public class Game {
         }
         System.out.println("[DEBUG] Player role set to: " + role);
 
+        if (player.isWhite()) {
+            // ((Text) gameRoot.lookup("#playerOneText")).setText(player.getName());
+            System.out.println("[DEBUG] Player is white: " + player.getName());
+        } else {
+            // ((Text) gameRoot.lookup("#playerTwoText")).setText(player.getName());
+            System.out.println("[DEBUG] Player is black: " + player.getName());
+        }
+
         // Ensure boardState has the player
         synchronized (mainBoard.boardState.getLock()) {
             mainBoard.boardState.setPlayer(player);
             System.out.println("[DEBUG] boardState player set to: " + player);
+
             mainBoard.boardState.getLock().notifyAll(); // Notify waiting threads
+        }
+    }
+
+    public void setOpponentName(String name) {
+        synchronized (mainBoard.boardState.getLock()) {
+            opponent = new Player(name, !player.isWhite());
+            System.out.println("[DEBUG] Opponent name set to: " + name);
+            mainBoard.boardState.setOpponent(opponent);
+            System.out.println("[DEBUG] boardState opponent set to: " + opponent);
         }
     }
 }

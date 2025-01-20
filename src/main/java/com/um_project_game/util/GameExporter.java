@@ -18,7 +18,8 @@ public class GameExporter {
 
     // Define a platform-independent directory for exports
     private static final Path EXPORT_DIRECTORY =
-            Paths.get(System.getProperty("user.home"), "FrisianDraughtsExports");
+            Paths.get(
+                    System.getProperty("user.home"), ".frisian-draught", "FrisianDraughtsExports");
 
     public GameExporter() {
         // Default constructor

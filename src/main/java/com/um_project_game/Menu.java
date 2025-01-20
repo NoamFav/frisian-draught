@@ -14,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
@@ -219,7 +220,11 @@ public class Menu {
         HBox recentGames = new HBox(recentBoardsSpacingX);
 
         // Find PDN files in user's FrisianDraughtsExports folder
-        Path exportPath = Paths.get(System.getProperty("user.home"), "FrisianDraughtsExports");
+        Path exportPath =
+                Paths.get(
+                        System.getProperty("user.home"),
+                        ".frisian-draught",
+                        "FrisianDraughtsExports");
         File directory = exportPath.toFile();
 
         if (directory.exists() && directory.isDirectory()) {
@@ -292,8 +297,13 @@ public class Menu {
         avatarImage.getStyleClass().add("profile-avatar");
 
         // Profile Labels
-        Label nameLabel = new Label(user.getName());
-        nameLabel.getStyleClass().add("profile-name");
+        TextField nameField = new TextField(user.getName());
+        nameField.getStyleClass().add("profile-name");
+        nameField.setPromptText("Enter your name");
+        nameField.setOnAction(
+                event -> {
+                    user.setName(nameField.getText());
+                });
 
         Label levelLabel = new Label("Level: " + user.getLevel());
         levelLabel.getStyleClass().add("profile-info-label");
@@ -359,7 +369,7 @@ public class Menu {
                 .getChildren()
                 .addAll(
                         avatarImage,
-                        nameLabel,
+                        nameField,
                         levelLabel,
                         experienceLabel,
                         experienceProgress,

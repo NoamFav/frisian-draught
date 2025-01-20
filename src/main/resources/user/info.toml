@@ -1,7 +1,7 @@
 # Player Profile
-name = "Noam"  # Asked at runtime
-level = 4  # Level of the player
-experience = 58  # Experience of the player
+name = "Player"  # Asked at runtime
+level = 1  # Level of the player
+experience = 0  # Experience of the player
 rank = "Beginner"  # Player rank (can be upgraded based on level or performance)
 
 # Player Stats

@@ -78,6 +78,7 @@ public class BoardState {
     private NetworkClient networkClient;
 
     private Player player;
+    private Player opponent;
 
     private final Object lock = new Object();
 
@@ -91,6 +92,14 @@ public class BoardState {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public Player getOpponent() {
+        return opponent;
+    }
+
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
     }
 
     public static int getReplayBufferSize() {

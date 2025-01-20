@@ -3,8 +3,6 @@ package com.um_project_game;
 import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.SoundPlayer;
 import com.um_project_game.util.TomlLoader;
-import com.um_project_game.util.Trophy;
-import com.um_project_game.util.TrophyLoader;
 
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -22,10 +20,10 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Launcher extends Application {
     private PauseTransition resizePause;
@@ -41,8 +39,7 @@ public class Launcher extends Application {
     public static Scene menuScene;
     private static final List<Scene> scenes = new ArrayList<>();
 
-    public static UserInfo user = TomlLoader.loadPlayerInfo();
-    public static Map<String, Trophy> trophies = TrophyLoader.loadTrophies();
+    public static UserInfo user;
 
     public static void registerScene(Scene scene) {
         scenes.add(scene);
@@ -59,6 +56,13 @@ public class Launcher extends Application {
     @Override
     public void start(Stage stage) {
         menuStage = stage;
+        try {
+            TomlLoader.ensureExternalConfigExists();
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+        user = TomlLoader.loadPlayerInfo();
         settings = new Settings(soundPlayer, viewManager.getRoot(), viewManager.getScene());
         showLoadingScreen(stage);
     }
@@ -105,6 +109,21 @@ public class Launcher extends Application {
 
         // Add everything to the root
         loadingRoot.getChildren().addAll(dotCircle, loadingText);
+
+        stage.setOnCloseRequest(
+                event -> {
+                    System.out.println("Window is closing...");
+                    saveDataToTOML();
+                });
+
+        // Global shutdown hook to catch other exits
+        Runtime.getRuntime()
+                .addShutdownHook(
+                        new Thread(
+                                () -> {
+                                    System.out.println("Shutdown hook triggered...");
+                                    saveDataToTOML();
+                                }));
 
         // Set the scene and show the stage
         stage.setScene(loadingScene);
@@ -265,6 +284,10 @@ public class Launcher extends Application {
         } else {
             System.err.println("Stylesheet not found.");
         }
+    }
+
+    public static void saveDataToTOML() {
+        TomlLoader.savePlayerInfo(user);
     }
 
     public static void main(String[] args) {
