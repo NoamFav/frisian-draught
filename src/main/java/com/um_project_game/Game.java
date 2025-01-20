@@ -340,7 +340,14 @@ public class Game {
         // Player text and score setup
 
         Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
+
+        if (player.isWhite() == isPlayerOne && player != null) {
+            playerText.setText(player.getName());
+        } else if (opponent != null) {
+            playerText.setText(opponent.getName());
+        }
         playerText.getStyleClass().add("label");
+
         setPlayerStyle.accept(playerText);
         playerText.setId(isPlayerOne ? "playerOneText" : "playerTwoText");
 
@@ -391,7 +398,7 @@ public class Game {
                     new Timeline(
                             new KeyFrame(
                                     Duration.seconds(1),
-                                    e -> {
+                                    _ -> {
                                         remainingTimePlayerTwo--;
                                         int minutes = remainingTimePlayerTwo / 60;
                                         int seconds = remainingTimePlayerTwo % 60;
