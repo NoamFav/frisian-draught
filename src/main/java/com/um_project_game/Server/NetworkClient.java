@@ -34,9 +34,11 @@ public class NetworkClient {
     private String lastProcessedMove = "";
     private String OPPONENT_NAME = "";
 
-    public NetworkClient(String host, int port, Game game) {
+    public NetworkClient(Game game) {
         this.gameReference = game;
         this.mainBoard = game.getMainBoard();
+        String host = "server-billowing-bird-4582.fly.dev"; // Default host
+        int port = 9000; // Default port
         System.out.println("Attempting to connect to server at " + host + ":" + port);
         try {
             socket = new Socket(host, port);

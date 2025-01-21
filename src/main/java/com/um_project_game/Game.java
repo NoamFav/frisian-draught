@@ -278,7 +278,7 @@ public class Game {
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {
 
         try {
-            networkClient = new NetworkClient("localhost", 9000, this);
+            networkClient = new NetworkClient(this);
             System.out.println("Connected to server at localhost:9000");
         } catch (Exception e) {
             e.printStackTrace();
