@@ -313,44 +313,56 @@ public class Game {
         StackPane playerUI = new StackPane();
         playerUI.setPrefSize(scene.getWidth(), playerUIHeight);
 
-        // Positioning based on player
-
+        // Positioning based on "Player One" vs. "Player Two"
+        // - If isPlayerOne = true, place at the bottom
+        // - If isPlayerOne = false, place at the top
         playerUI.setLayoutX(0);
         playerUI.setLayoutY(!isPlayerOne ? 0 : scene.getHeight() - playerUIHeight);
 
         playerUI.getStyleClass().add("playerUI");
         playerUI.setId(isPlayerOne ? "playerOne" : "playerTwo");
 
+        // This Consumer makes text bold and a bit larger if it's that player's turn
         Consumer<Text> setPlayerStyle =
-                player -> {
-                    if (player != null) {
-                        boolean shouldBeBold =
+                textNode -> {
+                    if (textNode != null) {
+                        boolean isActivePlayer =
                                 (isWhiteTurn.get() && isPlayerOne)
                                         || (!isWhiteTurn.get() && !isPlayerOne);
 
-                        player.setStyle(
+                        textNode.setStyle(
                                 "-fx-font-size: "
-                                        + (shouldBeBold ? 20 : 15)
+                                        + (isActivePlayer ? 20 : 15)
                                         + ";"
                                         + "-fx-font-weight: "
-                                        + (shouldBeBold ? "bold" : "normal"));
+                                        + (isActivePlayer ? "bold" : "normal")
+                                        + ";");
                     }
                 };
 
-        // Player text and score setup
+        // Figure out which name to display:
+        //   - Bottom (isPlayerOne = true) => White side
+        //   - Top (isPlayerOne = false)  => Black side
+        boolean isWhiteSide = isPlayerOne;
+        String displayName;
 
-        Text playerText = new Text(isPlayerOne ? "Player 1" : "Player 2");
-
-        if (player.isWhite() == isPlayerOne && player != null) {
-            playerText.setText(player.getName());
-        } else if (opponent != null) {
-            playerText.setText(opponent.getName());
+        if (player != null && player.isWhite() == isWhiteSide) {
+            // Local player is the correct color for this side
+            displayName = player.getName();
+        } else if (opponent != null && opponent.isWhite() == isWhiteSide) {
+            // Opponent is the correct color for this side
+            displayName = opponent.getName();
+        } else {
+            // Fallback if we don't have a player/opponent for this side yet
+            displayName = isPlayerOne ? "Player 1" : "Player 2";
         }
-        playerText.getStyleClass().add("label");
 
-        setPlayerStyle.accept(playerText);
+        Text playerText = new Text(displayName);
         playerText.setId(isPlayerOne ? "playerOneText" : "playerTwoText");
+        playerText.getStyleClass().add("label");
+        setPlayerStyle.accept(playerText); // Apply turn-based style
 
+        // Score text
         Text playerScore = new Text();
         playerScore.getStyleClass().add("label");
         playerScore.setId(isPlayerOne ? "playerOneScore" : "playerTwoScore");
@@ -365,13 +377,13 @@ public class Game {
         }
         setPlayerStyle.accept(playerScore);
 
-        // Timer setup for the entire game
+        // Timer text
         Text playerTime = new Text("Time: 10:00");
         playerTime.getStyleClass().add("label");
-        setPlayerStyle.accept(playerTime);
         playerTime.setId(isPlayerOne ? "playerOneTime" : "playerTwoTime");
+        setPlayerStyle.accept(playerTime);
 
-        // Initialize separate timers for Player 1 and Player 2
+        // Initialize timeline/timer for Player 1 if needed
         if (isPlayerOne && gameTimerPlayerOne == null) {
             gameTimerPlayerOne =
                     new Timeline(
@@ -386,13 +398,14 @@ public class Game {
 
                                         if (remainingTimePlayerOne <= 0) {
                                             gameTimerPlayerOne.stop();
-                                            handleTimeUp(isPlayerOne);
+                                            handleTimeUp(true);
                                         }
                                     }));
             gameTimerPlayerOne.setCycleCount(Timeline.INDEFINITE);
             gameTimerPlayerOne.play();
         }
 
+        // Initialize timeline/timer for Player 2 if needed
         if (!isPlayerOne && gameTimerPlayerTwo == null) {
             gameTimerPlayerTwo =
                     new Timeline(
@@ -407,27 +420,27 @@ public class Game {
 
                                         if (remainingTimePlayerTwo <= 0) {
                                             gameTimerPlayerTwo.stop();
-                                            handleTimeUp(isPlayerOne);
+                                            handleTimeUp(false);
                                         }
                                     }));
             gameTimerPlayerTwo.setCycleCount(Timeline.INDEFINITE);
             gameTimerPlayerTwo.play();
         }
 
-        // UI setup with spacing
-
+        // Combine text nodes in an HBox
         HBox playerInfo = new HBox(playerText, playerScore, playerTime);
         playerInfo.getStyleClass().add("playerInfo");
         playerInfo.setSpacing(playerInfoSpacing);
         playerInfo.setAlignment(javafx.geometry.Pos.CENTER);
 
         playerUI.getChildren().add(playerInfo);
-
         root.getChildren().add(playerUI);
 
-        // OPTIONAL: Add a pulse animation for the active player
-        if ((isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne)) {
-            animatePulse(playerUI, 1.05, 500); // Pulse to emphasize active player's turn
+        // OPTIONAL: small "pulse" animation on the active player's UI
+        boolean isActivePlayer =
+                (isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne);
+        if (isActivePlayer) {
+            animatePulse(playerUI, 1.05, 500); // short pulse to highlight active turn
         }
     }
 
@@ -466,17 +479,8 @@ public class Game {
         Label chatTitle = new Label("Game Chat");
         chatTitle.getStyleClass().add("chatTitle");
 
-        // (Optional) Add an icon or placeholder graphic at the header
-        // e.g., ImageView chatIcon = new ImageView(new Image("path/to/icon.png"));
-        // chatIcon.setFitWidth(24);
-        // chatIcon.setFitHeight(24);
-        // chatHeader.getChildren().add(chatIcon);
-
         chatHeader.getChildren().add(chatTitle);
 
-        // A container that will hold the ScrollPane of messages
-        // We'll create the scrollpane in appendChatMessage if it doesn't exist,
-        // but you can initialize it here to have a permanent scroll area.
         VBox chatMessages = new VBox();
         chatMessages.setSpacing(8);
         chatMessages.setId("chatMessages");
@@ -514,10 +518,8 @@ public class Game {
                     }
                 });
 
-        // Also send message when pressing Enter in the chat input
         chatInput.setOnAction(_ -> sendButton.fire());
 
-        // Add input field and send button to the input box
         chatInputBox.getChildren().addAll(chatInput, sendButton);
 
         // Main vertical container for all chat elements
@@ -526,7 +528,6 @@ public class Game {
 
         chatUI.getChildren().add(chatContainer);
 
-        // Add the chat UI to the game root
         root.getChildren().add(chatUI);
     }
 

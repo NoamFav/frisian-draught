@@ -113,8 +113,31 @@ public class NetworkClient {
             System.out.println("Opponent name: " + OPPONENT_NAME);
             Platform.runLater(
                     () -> {
+                        System.out.println("Setting opponent name: " + OPPONENT_NAME);
                         gameReference.setOpponentName(OPPONENT_NAME);
                     });
+        } else if (message.startsWith("RESIGN")) {
+            Platform.runLater(
+                    () -> {
+                        // gameReference.showResignDialog();
+                    });
+        } else if (message.startsWith("DRAW")) {
+            if (message.contains("ACCEPTED")) {
+                Platform.runLater(
+                        () -> {
+                            // gameReference.showDrawAcceptedDialog();
+                        });
+            } else if (message.contains("REJECTED")) {
+                Platform.runLater(
+                        () -> {
+                            // gameReference.showDrawRejectedDialog();
+                        });
+            } else {
+                Platform.runLater(
+                        () -> {
+                            // gameReference.showDrawDialog();
+                        });
+            }
         }
     }
 
