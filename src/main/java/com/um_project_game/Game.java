@@ -632,7 +632,15 @@ public class Game {
                         () -> {
                             mainBoard.moveManager.undoLastMove();
                         });
-        Buttons drawButton = new Buttons("Draw", buttonWidth, buttonHeight, this::drawWarning);
+        Buttons drawButton =
+                new Buttons(
+                        "Draw",
+                        buttonWidth,
+                        buttonHeight,
+                        () -> {
+                            drawWarning();
+                            networkClient.sendMessage("DRAW"); // Send draw message
+                        });
         Buttons resignButton =
                 new Buttons(
                         "Resign",
@@ -640,6 +648,9 @@ public class Game {
                         buttonHeight,
                         () -> {
                             System.out.println("Resign");
+                            networkClient.sendMessage(
+                                    "RESIGN"); // Send resign message (only in MP but isnt visible
+                            // in SP)
                         });
         Buttons restartButton =
                 new Buttons("Restart", buttonWidth, buttonHeight, this::restartWarning);
@@ -969,5 +980,49 @@ public class Game {
             mainBoard.boardState.setOpponent(opponent);
             System.out.println("[DEBUG] boardState opponent set to: " + opponent);
         }
+    }
+
+    public void showResignDialog() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText("Opponent has resigned!");
+        alert.setContentText("You win!");
+        alert.showAndWait();
+        gameStage.close();
+    }
+
+    public void showDrawDialog() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText("Opponent has proposed a draw!");
+        alert.setContentText("Do you accept?");
+        ButtonType acceptButton = new ButtonType("Accept", ButtonData.OK_DONE);
+        ButtonType declineButton = new ButtonType("Decline", ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(acceptButton, declineButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == acceptButton) {
+            networkClient.sendMessage("DRAW ACCEPTED");
+        } else {
+            networkClient.sendMessage("DRAW DECLINED");
+        }
+        alert.showAndWait();
+    }
+
+    public void showDrawAcceptedDialog() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText("Draw accepted!");
+        alert.setContentText("Game over - draw!");
+        alert.showAndWait();
+        gameStage.close();
+    }
+
+    public void showDrawDeclinedDialog() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Draw Declined");
+        alert.setHeaderText("Opponent has declined the draw!");
+        alert.setContentText("Game continues!");
+        alert.showAndWait();
     }
 }

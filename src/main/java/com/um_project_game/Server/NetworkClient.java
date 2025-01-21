@@ -123,23 +123,23 @@ public class NetworkClient {
         } else if (message.startsWith("RESIGN")) {
             Platform.runLater(
                     () -> {
-                        // gameReference.showResignDialog();
+                        gameReference.showResignDialog();
                     });
         } else if (message.startsWith("DRAW")) {
             if (message.contains("ACCEPTED")) {
                 Platform.runLater(
                         () -> {
-                            // gameReference.showDrawAcceptedDialog();
+                            gameReference.showDrawAcceptedDialog();
                         });
-            } else if (message.contains("REJECTED")) {
+            } else if (message.contains("DECLINED")) {
                 Platform.runLater(
                         () -> {
-                            // gameReference.showDrawRejectedDialog();
+                            gameReference.showDrawDeclinedDialog();
                         });
             } else {
                 Platform.runLater(
                         () -> {
-                            // gameReference.showDrawDialog();
+                            gameReference.showDrawDialog();
                         });
             }
         }
