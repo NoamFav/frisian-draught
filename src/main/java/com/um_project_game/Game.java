@@ -610,6 +610,9 @@ public class Game {
             case NOT_EXIT:
                 break;
         }
+        if (isMultiplayer) {
+            networkClient.close();
+        }
     }
 
     /* --------------------------------------------------------------------------------

@@ -34,6 +34,8 @@ public class NetworkClient {
     private String lastProcessedMove = "";
     private String OPPONENT_NAME = "";
 
+    private boolean closed = false;
+
     public NetworkClient(Game game) {
         this.gameReference = game;
         this.mainBoard = game.getMainBoard();
@@ -274,6 +276,50 @@ public class NetworkClient {
             System.out.println("Sent message: " + message);
         } else {
             System.out.println("Failed to send message: " + message);
+        }
+    }
+
+    public void close() {
+        try {
+            if (socket != null && !socket.isClosed() && writer != null && !writer.checkError()) {
+                writer.println("DISCONNECT");
+                writer.flush();
+            }
+
+            if (listenerThread != null && listenerThread.isAlive()) {
+                listenerThread.interrupt();
+                listenerThread.join(1000);
+                if (listenerThread.isAlive()) {
+                    logger.warn("Listener thread did not terminate in time.");
+                }
+                listenerThread = null;
+            }
+
+            if (writer != null) {
+                writer.close();
+                writer = null;
+            }
+            if (reader != null) {
+                reader.close();
+                reader = null;
+            }
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+                socket = null;
+            }
+
+            logger.info("Network client closed successfully.");
+        } catch (IOException e) {
+            logger.error("Error while closing client: {}", e.getMessage());
+        } catch (InterruptedException e) {
+            logger.error("Error while waiting for listener thread to finish: {}", e.getMessage());
+            Thread.currentThread().interrupt();
+        } finally {
+            closed = true;
+            writer = null;
+            reader = null;
+            socket = null;
+            listenerThread = null;
         }
     }
 }
