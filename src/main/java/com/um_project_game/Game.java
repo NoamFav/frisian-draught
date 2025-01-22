@@ -113,6 +113,9 @@ public class Game {
      * -------------------------------------------------------------------------------- */
 
     public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher) {
+        this(isMultiplayer,isAgainstBot,isBotvBot,launcher,null);
+    }
+    public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher, String filePath) {
         this.launcher = launcher;
         this.gameStage = new Stage();
         this.gameStage.setTitle("Frisian Draughts - Game");
@@ -154,7 +157,7 @@ public class Game {
         if (isMultiplayer) {
             mainGameBoardMultiplayer(gameRoot, scene);
         } else {
-            mainGameBoard(gameRoot, scene, isAgainstBot);
+            mainGameBoard(gameRoot, scene, isAgainstBot, filePath);
         }
         playerUI(gameRoot, scene, true);
         playerUI(gameRoot, scene, false);
@@ -195,6 +198,7 @@ public class Game {
         mainBoard.boardState.setBotvsBotBlack(BotFactory.createBot(blackBot, mainBoard));
     }
 
+    /**
     public Game(Launcher launcher, MainBoard mainBoard) {
         this.launcher = launcher;
         this.gameStage = new Stage();
@@ -257,6 +261,7 @@ public class Game {
                     showExitConfirmation();
                 });
     }
+     */
 
     public void showGameWindow() {
         this.gameStage.show();
@@ -269,7 +274,7 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                               BOARD METHODS
      * -------------------------------------------------------------------------------- */
-    private void mainGameBoard(Pane root, Scene scene, boolean isBotActive) {
+    private void mainGameBoard(Pane root, Scene scene, boolean isBotActive, String filePath) {
         board =
                 mainBoard.getMainBoard(
                         root,
@@ -282,6 +287,8 @@ public class Game {
         board.getStyleClass().add("mainboard");
         root.getChildren().add(board);
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
+
+        mainBoard.loadGameFromPDN(filePath);
     }
 
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {

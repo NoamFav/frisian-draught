@@ -248,7 +248,7 @@ public class Menu {
                             .getBoard()
                             .setOnMouseClicked(
                                     _ -> {
-                                        launcher.startNewGame(mainBoard);
+                                        launcher.startNewGame(pdnFile.getAbsolutePath());
                                         mainBoard.boardState.setActive(true);
                                     });
                     // Click to load game if toggle is ready

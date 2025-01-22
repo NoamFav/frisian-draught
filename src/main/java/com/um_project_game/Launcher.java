@@ -232,9 +232,10 @@ public class Launcher extends Application {
 
         // for loaded games
         if (mainBoard != null) {
-            viewManager.gameStateSwitch(2, mainBoard);
+            //viewManager.gameStateSwitch(2, mainBoard);
         } else if (isOnline) {
 
+            
             viewManager.gameStateSwitch(1);
         } else if (againstBot) {
             viewManager.gameStateSwitch(isBotVsBot ? 4 : 2);
@@ -247,10 +248,9 @@ public class Launcher extends Application {
         viewManager.gameStateSwitch(5);
     }
 
-    public void startNewGame(MainBoard board) {
+    public void startNewGame(String filePath) {
         viewManager.gameStateSwitch(
-                board.boardState.isMultiplayer() ? 1 : board.boardState.isBotActive() ? 2 : 3,
-                board);
+                filePath);
     }
 
     public void closeMenu() {
