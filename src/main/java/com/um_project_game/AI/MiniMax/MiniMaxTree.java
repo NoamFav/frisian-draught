@@ -3,6 +3,7 @@ package com.um_project_game.AI.MiniMax;
 import com.um_project_game.board.GameState;
 import com.um_project_game.board.Move;
 import com.um_project_game.board.Pawn;
+
 import org.joml.Vector2i;
 
 import java.util.ArrayList;
@@ -18,7 +19,15 @@ public class MiniMaxTree {
     }
 
     public Move getBestMove(GameState state, int depth, boolean maximizingPlayer) {
-        MMResult result = minimax(state.clone(), depth, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, maximizingPlayer, 0, new ArrayList<>());
+        MMResult result =
+                minimax(
+                        state.clone(),
+                        depth,
+                        Double.NEGATIVE_INFINITY,
+                        Double.POSITIVE_INFINITY,
+                        maximizingPlayer,
+                        0,
+                        new ArrayList<>());
         if (result.getMoves().isEmpty()) {
             return null;
         }
@@ -41,7 +50,8 @@ public class MiniMaxTree {
             double maxEval = Double.NEGATIVE_INFINITY;
             List<Move> bestMoveSequence = new ArrayList<>();
             for (Move move : state.generateMoves()) {
-                if (state.getMainBoard().moveManager.getPawnAtPosition(move.getStartPosition()) == null) {
+                if (state.getMainBoard().moveManager.getPawnAtPosition(move.getStartPosition())
+                        == null) {
                     System.out.println("Null pawn at position: " + move.getStartPosition());
                 }
                 System.out.println("SMove: " + move.getStartPosition());
@@ -51,7 +61,16 @@ public class MiniMaxTree {
                 newState.printBoardState();
                 List<Move> newMoveSequence = new ArrayList<>(moveSequence);
                 newMoveSequence.add(move);
-                double eval = minimax(newState.clone(), depth - 1, alpha, beta, false, currentEval + evaluate(state, newState, maximizingPlayer), newMoveSequence).getScore();
+                double eval =
+                        minimax(
+                                        newState.clone(),
+                                        depth - 1,
+                                        alpha,
+                                        beta,
+                                        false,
+                                        currentEval + evaluate(state, newState, maximizingPlayer),
+                                        newMoveSequence)
+                                .getScore();
                 if (eval > maxEval) {
                     maxEval = eval;
                     bestMoveSequence = newMoveSequence;
@@ -66,7 +85,8 @@ public class MiniMaxTree {
             double minEval = Double.POSITIVE_INFINITY;
             List<Move> bestMoveSequence = new ArrayList<>();
             for (Move move : state.generateMoves()) {
-                if (state.getMainBoard().moveManager.getPawnAtPosition(move.getStartPosition()) == null) {
+                if (state.getMainBoard().moveManager.getPawnAtPosition(move.getStartPosition())
+                        == null) {
                     System.out.println("Null pawn at position: " + move.getStartPosition());
                 }
                 System.out.println("SMove: " + move.getStartPosition());
@@ -76,7 +96,16 @@ public class MiniMaxTree {
                 newState.printBoardState();
                 List<Move> newMoveSequence = new ArrayList<>(moveSequence);
                 newMoveSequence.add(move);
-                double eval = minimax(newState.clone(), depth - 1, alpha, beta, true, currentEval + evaluate(state, newState, maximizingPlayer), newMoveSequence).getScore();
+                double eval =
+                        minimax(
+                                        newState.clone(),
+                                        depth - 1,
+                                        alpha,
+                                        beta,
+                                        true,
+                                        currentEval + evaluate(state, newState, maximizingPlayer),
+                                        newMoveSequence)
+                                .getScore();
                 if (eval < minEval) {
                     minEval = eval;
                     bestMoveSequence = newMoveSequence;
@@ -94,13 +123,82 @@ public class MiniMaxTree {
         Map<Vector2i, Pawn> oldBoardState = oldState.getBoardState();
         Map<Vector2i, Pawn> newBoardState = newState.getBoardState();
         double eval = 0;
-        long oldBlackCount = oldBoardState.values().stream().filter(pawn -> !pawn.isWhite()).count();
-        long newBlackCount = newBoardState.values().stream().filter(pawn -> !pawn.isWhite()).count();
-        long blackPiecesCaptured = oldBlackCount - newBlackCount;
-        eval += blackPiecesCaptured;
-        System.out.println("Black pieces captured: " + blackPiecesCaptured);
+
+        // Count the number of pawns and kings for both players
+        long oldWhitePawns =
+                oldBoardState.values().stream()
+                        .filter(pawn -> pawn.isWhite() && !pawn.isKing())
+                        .count();
+        long newWhitePawns =
+                newBoardState.values().stream()
+                        .filter(pawn -> pawn.isWhite() && !pawn.isKing())
+                        .count();
+        long oldBlackPawns =
+                oldBoardState.values().stream()
+                        .filter(pawn -> !pawn.isWhite() && !pawn.isKing())
+                        .count();
+        long newBlackPawns =
+                newBoardState.values().stream()
+                        .filter(pawn -> !pawn.isWhite() && !pawn.isKing())
+                        .count();
+        long oldWhiteKings =
+                oldBoardState.values().stream()
+                        .filter(pawn -> pawn.isWhite() && pawn.isKing())
+                        .count();
+        long newWhiteKings =
+                newBoardState.values().stream()
+                        .filter(pawn -> pawn.isWhite() && pawn.isKing())
+                        .count();
+        long oldBlackKings =
+                oldBoardState.values().stream()
+                        .filter(pawn -> !pawn.isWhite() && pawn.isKing())
+                        .count();
+        long newBlackKings =
+                newBoardState.values().stream()
+                        .filter(pawn -> !pawn.isWhite() && pawn.isKing())
+                        .count();
+
+        // Calculate the difference in pawns and kings
+        long whitePawnsCaptured = oldWhitePawns - newWhitePawns;
+        long blackPawnsCaptured = oldBlackPawns - newBlackPawns;
+        long whiteKingsCaptured = oldWhiteKings - newWhiteKings;
+        long blackKingsCaptured = oldBlackKings - newBlackKings;
+
+        // Evaluate based on captured pieces
+        eval +=
+                (blackPawnsCaptured * 1.0 + blackKingsCaptured * 3.0)
+                        - (whitePawnsCaptured * 1.0 + whiteKingsCaptured * 3.0);
+
+        // Evaluate based on control of the edges
+        long whiteEdgeControl =
+                newBoardState.values().stream()
+                        .filter(pawn -> pawn.isWhite() && isEdge(pawn.getPosition()))
+                        .count();
+        long blackEdgeControl =
+                newBoardState.values().stream()
+                        .filter(pawn -> !pawn.isWhite() && isEdge(pawn.getPosition()))
+                        .count();
+        eval += (whiteEdgeControl - blackEdgeControl) * 0.5;
+
+        // Evaluate based on mobility (number of possible moves)
+        long whiteMobility =
+                newState.generateMoves().stream()
+                        .filter(move -> newBoardState.get(move.getStartPosition()).isWhite())
+                        .count();
+        long blackMobility =
+                newState.generateMoves().stream()
+                        .filter(move -> !newBoardState.get(move.getStartPosition()).isWhite())
+                        .count();
+        eval += (whiteMobility - blackMobility) * 0.1;
+
+        System.out.println("Eval: " + eval);
 
         return eval;
     }
 
+    private boolean isEdge(Vector2i position) {
+        int x = position.x;
+
+        return (x == 0 || x == 1 || x == 8 || x == 9);
+    }
 }

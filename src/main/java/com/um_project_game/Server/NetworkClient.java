@@ -34,8 +34,6 @@ public class NetworkClient {
     private String lastProcessedMove = "";
     private String OPPONENT_NAME = "";
 
-    private boolean closed = false;
-
     public NetworkClient(Game game) {
         this.gameReference = game;
         this.mainBoard = game.getMainBoard();
@@ -315,7 +313,6 @@ public class NetworkClient {
             logger.error("Error while waiting for listener thread to finish: {}", e.getMessage());
             Thread.currentThread().interrupt();
         } finally {
-            closed = true;
             writer = null;
             reader = null;
             socket = null;

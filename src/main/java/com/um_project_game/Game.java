@@ -35,7 +35,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -589,7 +588,9 @@ public class Game {
     private void showExitConfirmation() {
 
         ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(!isMultiplayer);
-
+        if (isMultiplayer) {
+            networkClient.close();
+        }
         switch (choice) {
             case EXIT_WITH_SAVE:
                 mainBoard.boardState.setActive(false);
@@ -613,9 +614,6 @@ public class Game {
 
             case NOT_EXIT:
                 break;
-        }
-        if (isMultiplayer) {
-            networkClient.close();
         }
     }
 
@@ -642,7 +640,7 @@ public class Game {
                         buttonWidth,
                         buttonHeight,
                         () -> {
-                            drawWarning();
+                            proposeDraw();
                             networkClient.sendMessage("DRAW"); // Send draw message
                         });
         Buttons resignButton =
@@ -655,7 +653,16 @@ public class Game {
                             networkClient.sendMessage(
                                     "RESIGN"); // Send resign message (only in MP but isnt visible
                             // in SP)
+                            Alert alert = new Alert(AlertType.INFORMATION);
+                            alert.setTitle("Game Over");
+                            alert.setHeaderText("You have resigned!");
+                            alert.setContentText("You lose!");
+                            alert.showAndWait();
                             Launcher.user.forfeitedGame();
+
+                            networkClient.close();
+
+                            gameStage.close();
                         });
         Buttons restartButton =
                 new Buttons("Restart", buttonWidth, buttonHeight, this::restartWarning);
@@ -808,43 +815,6 @@ public class Game {
         gameTimerPlayerTwo.play();
     }
 
-    private void drawWarning() {
-        Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("Draw Confirmation");
-        alert.setHeaderText("Are you sure you want to propose a draw?");
-        alert.setContentText("Both players will receive 1 point.");
-
-        ButtonType yesButton = new ButtonType("Yes", ButtonData.OK_DONE);
-        ButtonType noButton = new ButtonType("No", ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(yesButton, noButton);
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == yesButton) {
-            String botDecision = "Bot is thinking...";
-            Alert botAlert = new Alert(AlertType.INFORMATION);
-            botAlert.setTitle("Bot Decision");
-            botAlert.setContentText(botDecision);
-            botAlert.showAndWait();
-
-            Random rand = new Random();
-            int n = rand.nextInt(2);
-            if (n == 0) {
-                botDecision = "Bot has accepted the draw!";
-                botAlert.setContentText("Game over - draw!");
-            } else {
-                botDecision = "Bot has declined the draw!";
-                botAlert.setContentText("Game continues!");
-            }
-            botAlert.setHeaderText(botDecision);
-            botAlert.showAndWait();
-
-            if (n == 0) {
-                Launcher.user.drewGame();
-                mainBoard.resetGame(mainBoardSize);
-            }
-        }
-    }
-
     /* --------------------------------------------------------------------------------
      *                            RESIZING LOGIC
      * -------------------------------------------------------------------------------- */
@@ -995,7 +965,30 @@ public class Game {
         alert.setHeaderText("Opponent has resigned!");
         alert.setContentText("You win!");
         alert.showAndWait();
+
+        networkClient.close();
+
         gameStage.close();
+    }
+
+    public void proposeDraw() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Propose Draw");
+        alert.setHeaderText("Are you sure you want to propose a draw?");
+        alert.setContentText("Are you sure you want to propose a draw?");
+        ButtonType acceptButton = new ButtonType("Accept", ButtonData.OK_DONE);
+        ButtonType declineButton = new ButtonType("Decline", ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(acceptButton, declineButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == acceptButton) {
+            networkClient.sendMessage("DRAW");
+
+            networkClient.close();
+
+            gameStage.close();
+        }
+        alert.showAndWait();
     }
 
     public void showDrawDialog() {
@@ -1011,6 +1004,9 @@ public class Game {
         if (result.get() == acceptButton) {
             Launcher.user.drewGame();
             networkClient.sendMessage("DRAW ACCEPTED");
+
+            networkClient.close();
+
             gameStage.close();
         } else {
             networkClient.sendMessage("DRAW DECLINED");
@@ -1025,6 +1021,9 @@ public class Game {
         alert.setHeaderText("Draw accepted!");
         alert.setContentText("Game over - draw!");
         alert.showAndWait();
+
+        networkClient.close();
+
         gameStage.close();
     }
 
