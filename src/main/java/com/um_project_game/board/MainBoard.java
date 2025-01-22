@@ -220,6 +220,7 @@ public class MainBoard {
         // Clear highlights and reset pawns
         boardRendered.clearHighlights();
         moveManager.resetPawnsToInitialPositions();
+        highlightMovablePawns();
 
         // Resize pawns
         double scaleFactor = 0.8;
