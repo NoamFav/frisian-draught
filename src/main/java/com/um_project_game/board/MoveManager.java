@@ -256,6 +256,11 @@ public class MoveManager {
             processCaptureSteps(pawn, path);
             processAfterCaptureMove(pawn, path); // Finalize the move
         }
+        //reset nonCaptures for all other kings:
+        boardState.getPawns().stream()
+                .filter(Pawn::isKing)
+                .filter(pawn1 -> pawn1.isWhite() == pawn.isWhite())
+                .forEach(Pawn::resetNumberOfNonCapturingMoves);
         if (onPawnMovedCallback != null) {
             onPawnMovedCallback.accept(pawn, pawn.getPosition(), true);
         }
@@ -336,6 +341,13 @@ public class MoveManager {
             int y,
             boolean isAnimated,
             boolean highlighting) {
+        if (pawn.getNumberOfNonCapturingMoves() >= 3) {
+            System.out.println("King cannot move more than 3 times without capturing.");
+            if (onlyKingsLeft()) {
+                checkGameOver(true);
+            }
+            return;
+        }
         BiConsumer<Integer, Integer> highlightMove =
                 (newX, newY) -> {
                     Rectangle square = boardRendered.createHighlightSquare(Color.GREEN);
@@ -386,12 +398,6 @@ public class MoveManager {
                 }
             }
         } else {
-            if (pawn.getNumberOfNonCapturingMoves() >= 3 && onlyKingsLeft()) {
-                System.out.println("King cannot move more than 3 times without capturing.");
-                return;
-            }
-
-            pawn.incrementNumberOfNonCapturingMoves();
 
             int[][] diagonalDirections = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
             for (int[] dir : diagonalDirections) {
@@ -423,7 +429,18 @@ public class MoveManager {
         GridPane.setColumnIndex(pawnView, landingPos.x);
         GridPane.setRowIndex(pawnView, landingPos.y);
 
-        promotePawnIfNeeded(pawn, landingPos);
+        if (pawn.isKing()) {
+            pawn.incrementNumberOfNonCapturingMoves();
+        } else {
+            promotePawnIfNeeded(pawn, landingPos);
+        }
+        //reset nonCaptures for all other kings:
+        boardState.getPawns().stream()
+                .filter(pawn1 -> pawn1.getPosition() != pawn.getPosition())
+                .filter(pawn1 -> pawn1.isWhite() == pawn.isWhite())
+                .filter(Pawn::isKing)
+                .forEach(Pawn::resetNumberOfNonCapturingMoves);
+
         checkGameOver();
         boardRendered.clearHighlights();
         mainBoard.updateMovesListUI();
@@ -464,8 +481,8 @@ public class MoveManager {
         List<Vector2i> capturedPositions = new ArrayList<>();
 
         int[][] directions = {
-            {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
-            {0, 2}, {0, -2}, {2, 0}, {-2, 0}
+                {1, 1}, {-1, 1}, {1, -1}, {-1, -1},
+                {0, 2}, {0, -2}, {2, 0}, {-2, 0}
         };
 
         for (int[] dir : directions) {
@@ -574,8 +591,11 @@ public class MoveManager {
         }
     }
 
-    /** Checks if the game is over. */
     public void checkGameOver() {
+        checkGameOver(false);
+    }
+    /** Checks if the game is over. */
+    public void checkGameOver(boolean canBeDraw) {
         // Check if the opposing player has any pawns
         boolean oppositePlayerHasPawns =
                 boardState.getPawns().stream()
@@ -583,25 +603,27 @@ public class MoveManager {
 
         Platform.runLater(
                 () -> {
-                    if (!oppositePlayerHasPawns) {
+                    if (!oppositePlayerHasPawns || (onlyKingsLeft() && canBeDraw)) {
                         // Determine the winner
-                        String winner =
-                                boardState.isWhiteTurn() ? "Player 2 (Black)" : "Player 1 (White)";
+                        String winner = "Draw";
+                        if (!oppositePlayerHasPawns) {
+                            winner = boardState.isWhiteTurn() ? "Player 2 (Black)" : "Player 1 (White)";
+                        }
 
                         if (boardState.isMultiplayer()) {
                             if (boardState.isWhiteTurn() == boardState.getPlayer().isWhite()) {
                                 winner =
                                         "You"
                                                 + (boardState.isWhiteTurn()
-                                                        ? " (White)"
-                                                        : " (Black)");
+                                                ? " (White)"
+                                                : " (Black)");
                                 Launcher.user.wonGame();
                             } else {
                                 winner =
                                         "Opponent"
                                                 + (boardState.isWhiteTurn()
-                                                        ? " (White)"
-                                                        : " (Black)");
+                                                ? " (White)"
+                                                : " (Black)");
                                 Launcher.user.lostGame();
                             }
                         }
