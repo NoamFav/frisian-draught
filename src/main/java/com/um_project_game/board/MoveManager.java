@@ -12,6 +12,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import org.apache.logging.log4j.util.TriConsumer;
 import org.joml.Vector2i;
 
 import java.util.ArrayList;
@@ -29,9 +30,15 @@ public class MoveManager {
     private BoardRendered boardRendered;
     private BotManager botManager;
 
+    private TriConsumer<Pawn, Vector2i, Boolean> onPawnMovedCallback;
+
     public MoveManager(BoardState boardState, MainBoard mainBoard) {
         this.boardState = boardState;
         this.mainBoard = mainBoard;
+    }
+
+    public void setOnPawnMovedCallback(TriConsumer<Pawn, Vector2i, Boolean> callback) {
+        this.onPawnMovedCallback = callback;
     }
 
     public void setBotManager(BotManager botManager) {
@@ -247,6 +254,9 @@ public class MoveManager {
             processCaptureSteps(pawn, path);
             processAfterCaptureMove(pawn, path); // Finalize the move
         }
+        if (onPawnMovedCallback != null) {
+            onPawnMovedCallback.accept(pawn, pawn.getPosition(), true);
+        }
     }
 
     public void processCaptureSteps(Pawn pawn, CapturePath path) {
@@ -403,6 +413,10 @@ public class MoveManager {
         pawn.setPosition(landingPos);
         ImageView pawnView = boardState.getPawnViews().get(pawn);
         System.out.println("Moving pawn to " + landingPos);
+
+        if (onPawnMovedCallback != null) {
+            onPawnMovedCallback.accept(pawn, pawn.getPosition(), false);
+        }
 
         GridPane.setColumnIndex(pawnView, landingPos.x);
         GridPane.setRowIndex(pawnView, landingPos.y);
@@ -616,6 +630,7 @@ public class MoveManager {
             pawn.setKing(true);
             ImageView pawnView = boardState.getPawnViews().get(pawn);
             pawnView.setImage(pawn.getImage());
+            boardRendered.renderPawns(true);
         }
     }
 
@@ -647,17 +662,17 @@ public class MoveManager {
     }
 
     /** Switches the turn to the opposite player. */
-    public void switchTurn() {
+    public void switchTurn(boolean isWhiteTurn) {
         if (boardState.getGameInfo() == null) {
             return;
         }
         boardState.getRequiredPawns().clear();
-        boardState.setWhiteTurn(!boardState.isWhiteTurn());
+        boardState.setWhiteTurn(isWhiteTurn);
         boardState.getGameInfo().playerTurn.set(boardState.isWhiteTurn() ? 1 : 2);
         updatePlayerStyles();
         findPawnsWithMaxCaptures();
 
-        // Here I need to get the pawns List instead of the maxCaptures one.
+        // Here get the pawns List instead of the maxCaptures one.
         GameState currentState =
                 new GameState(boardState.getPawnPositionMap(), boardState.isWhiteTurn, mainBoard);
         Map<Pawn, List<Move>> validMovesMap = getValidMovesForState(currentState);
@@ -670,6 +685,10 @@ public class MoveManager {
         }
 
         System.out.println("Player " + (boardState.isWhiteTurn() ? 1 : 2) + "'s turn");
+    }
+
+    public void switchTurn() {
+        switchTurn(!boardState.isWhiteTurn());
     }
 
     /**

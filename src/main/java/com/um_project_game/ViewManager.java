@@ -63,6 +63,7 @@ public class ViewManager {
                 System.out.println("Starting tutorial");
                 Tutorial tutorial = new Tutorial(launcher);
                 tutorial.showTutorialWindow();
+                tutorial.tutorialStart();
 
                 break;
             default:

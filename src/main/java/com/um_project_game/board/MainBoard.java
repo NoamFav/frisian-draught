@@ -269,7 +269,7 @@ public class MainBoard {
             loadGameFromPDN(filePath);
         }
 
-        boardRendered.renderPawns();
+        boardRendered.renderPawns(true);
         boardState.getBoard().getStyleClass().add("board");
 
         highlightMovablePawns();
@@ -449,6 +449,7 @@ public class MainBoard {
             pdnParser.parseFile();
 
             List<Pawn> pawns = pdnParser.getPawns();
+            System.out.println("Found that many pawns: " + pdnParser.getPawns().size());
             if (pawns.isEmpty()) {
                 for (Move move : pdnParser.getMoves()) {
                     Pawn pawn = moveManager.getPawnAtPosition(move.getStartPosition());
@@ -478,6 +479,7 @@ public class MainBoard {
                 }
             } else {
                 boardState.setPawns(pawns);
+                boardRendered.renderPawns(true);
             }
 
             boardState.setBotActive(pdnParser.getIsBot().equals("1"));
