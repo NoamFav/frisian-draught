@@ -71,32 +71,11 @@ public class ViewManager {
         }
     }
 
-    public void gameStateSwitch(int state, MainBoard board) {
-        GAME_STATE = state;
-        switch (GAME_STATE) {
-            case 0:
-                root.getChildren().clear();
-                root.getChildren().add(menu.getMenuRoot());
-                break;
-            case 1:
-            case 2:
-            case 3:
-                // Start a new game
-                boolean isMultiplayer = (GAME_STATE == 1);
-                boolean isAgainstBot = (GAME_STATE == 2);
+    public void gameStateSwitch(String filePath) {
+        Game game = new Game(false, false, false,launcher, filePath);
 
-                System.out.println("Starting game");
-                System.out.println("Multiplayer: " + isMultiplayer);
-                System.out.println("Against Bot: " + isAgainstBot);
-
-                Game game = new Game(launcher, board);
-
-                activeGames.add(game);
-                game.showGameWindow();
-                break;
-            default:
-                break;
-        }
+        activeGames.add(game);
+        game.showGameWindow();
     }
 
     public void closeGame(Game gameToClose) {
