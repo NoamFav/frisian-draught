@@ -5,14 +5,18 @@ import com.um_project_game.board.MainBoard;
 import com.um_project_game.util.Buttons;
 import com.um_project_game.util.ExitChoice;
 
+import com.um_project_game.util.TileConversion;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -20,6 +24,7 @@ import javafx.util.Duration;
 import org.joml.Vector2i;
 
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 public class Tutorial {
@@ -62,7 +67,7 @@ public class Tutorial {
     private GridPane movesListGridPane = new GridPane();
 
     private int currentTutorialStep = 0;
-    private int totalTutorialSteps = 10;
+    private int totalTutorialSteps = 5;
 
     /* --------------------------------------------------------------------------------
      *                               CONSTRUCTORS
@@ -236,13 +241,13 @@ public class Tutorial {
         controlButtons.setLayoutX(controlButtonsX);
         controlButtons.setLayoutY(controlButtonsY);
 
-        Buttons undoButton =
+        Buttons resetButton =
                 new Buttons(
-                        "Undo",
+                        "Reset Tutorial",
                         buttonWidth,
                         buttonHeight,
                         () -> {
-                            mainBoard.moveManager.undoLastMove();
+                            tutorialReset();
                         });
 
         Buttons nextButton =
@@ -263,7 +268,7 @@ public class Tutorial {
         controlButtons
                 .getChildren()
                 .addAll(
-                        undoButton.getButton(),
+                        resetButton.getButton(),
                         nextButton.getButton(),
                         previousButton.getButton(),
                         settingsButton.getButton(),
@@ -277,6 +282,7 @@ public class Tutorial {
 
     public void tutorialSteps() {
         // TODO - implement tutorial steps
+        System.out.println("Tutorial begins");
         switch (currentTutorialStep) {
             case 1:
                 tutorialLesson1();
@@ -368,6 +374,9 @@ public class Tutorial {
         if (currentTutorialStep < totalTutorialSteps) { // Ensure it doesn't go above total steps
             currentTutorialStep++;
         }
+        else {
+            currentTutorialStep = 1;
+        }
         tutorialSteps();
     }
 
@@ -378,25 +387,157 @@ public class Tutorial {
         tutorialSteps();
     }
 
-    public void tutorialLesson1() {
-        // TODO - implement tutorial lesson 1
+    private void initializeBoardForTutorialStep(int step) {
+        try {
+            // Load the appropriate PDN file for the tutorial step
+            String pdnFilePath = String.format("/tutorial/tutorial%d.pdn", step); // e.g., tutorial1.pdn, tutorial2.pdn
+            URL pdnFileUrl = getClass().getResource(pdnFilePath);
+
+            if (pdnFileUrl == null) {
+                throw new IllegalArgumentException("PDN file not found: " + pdnFilePath);
+            }
+
+            String pdnFilePathAbsolute = Paths.get(pdnFileUrl.toURI()).toString();
+
+            // Load the board state from the PDN file
+            mainBoard.loadGameFromPDN(pdnFilePathAbsolute);
+            mainBoard.boardRendered.renderBoard();
+            mainBoard.boardRendered.renderPawns(true);
+            mainBoard.moveManager.switchTurn(true);
+
+        } catch (Exception e) {
+            System.err.println("Error loading tutorial PDN file for step " + step + ": " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
+    public void tutorialPassedAlert() {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Tutorial Lesson Passed");
+            alert.setHeaderText("Congratulations!");
+            alert.setContentText("You have completed this step of the tutorial.");
+            alert.showAndWait();
+            tutorialNext(); // Proceed to the next tutorial step
+        });
+    }
+
+
+
+    public void tutorialLesson1() {
+        System.out.println("Tutorial Lesson 1: Introducing the game board.");
+
+        // Initialize the board for tutorial step 1
+        initializeBoardForTutorialStep(1);
+
+        // Step 2: Define callback to check for goal reached
+
+        mainBoard.moveManager.setOnPawnMovedCallback((pawn, newPosition, isCapture) -> {
+
+            System.out.println("Tutorial passed");
+            // Pawn moved. Automatic pass
+            tutorialPassedAlert();
+        });
+
+
+        // Step 3: Prompt user for their first interaction
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Tutorial Lesson 1");
+        alert.setHeaderText("Welcome to the Tutorial!");
+        alert.setContentText("Please try to move the white piece from the highlighted square.");
+        alert.showAndWait();
+
+
+    }
+
 
     public void tutorialLesson2() {
-        // TODO - implement tutorial lesson 2
+        System.out.println("Tutorial Lesson 2: Teaching captures.");
+
+        // Initialize the board for tutorial step 2
+        initializeBoardForTutorialStep(2);
+
+        // Define callback to check for a successful capture
+        mainBoard.moveManager.setOnPawnMovedCallback((pawn, newPosition, isCapture) -> {
+            if (isCapture) {
+                tutorialPassedAlert();
+            }
+        });
+
+        // Prompt the user
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Tutorial Lesson 2");
+        alert.setHeaderText("Learning Captures!");
+        alert.setContentText("Move the white piece to capture the black piece.");
+        alert.showAndWait();
     }
+
 
     public void tutorialLesson3() {
-        // TODO - implement tutorial lesson 3
+        System.out.println("Tutorial Lesson 3: Teaching multiple captures.");
+
+        // Initialize the board for tutorial step 3
+        initializeBoardForTutorialStep(3);
+
+        // Define callback to check for successful multiple captures
+        mainBoard.moveManager.setOnPawnMovedCallback((pawn, newPosition, isCapture) -> {
+            if (isCapture) {
+                tutorialPassedAlert();
+            }
+        });
+
+        // Prompt the user
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Tutorial Lesson 3");
+        alert.setHeaderText("Learning Multiple Captures!");
+        alert.setContentText("Capture multiple pieces by making consecutive jumps.");
+        alert.showAndWait();
     }
+
 
     public void tutorialLesson4() {
-        // TODO - implement tutorial lesson 4
+        System.out.println("Tutorial Lesson 4: Promoting to King.");
+
+        // Initialize the board for tutorial step 4
+        initializeBoardForTutorialStep(4);
+
+        // Define callback to check for promotion
+        mainBoard.moveManager.setOnPawnMovedCallback((pawn, newPosition, isCapture) -> {
+            if (TileConversion.getTileNotation(newPosition) <= 5) { // If moved to last field
+                tutorialPassedAlert();
+            }
+        });
+
+        // Prompt the user
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Tutorial Lesson 4");
+        alert.setHeaderText("Learning Promotion to King!");
+        alert.setContentText("Move your piece to the opposite end of the board to promote it to a King.");
+        alert.showAndWait();
     }
 
+
     public void tutorialLesson5() {
-        // TODO - implement tutorial lesson 5
+        System.out.println("Tutorial Lesson 5: Capturing with a King.");
+
+        // Initialize the board for tutorial step 5
+        initializeBoardForTutorialStep(5);
+
+        // Define callback to check for a successful capture with a king
+        mainBoard.moveManager.setOnPawnMovedCallback((pawn, newPosition, isCapture) -> {
+            if (isCapture && pawn.isKing()) { // Ensures the capture is performed by a king
+                tutorialPassedAlert();
+            }
+        });
+
+        // Prompt the user
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Tutorial Lesson 5");
+        alert.setHeaderText("Capturing with a King!");
+        alert.setContentText("Use your King to capture an opponent's piece.");
+        alert.showAndWait();
     }
+
 
     public void tutorialLesson6() {
         // TODO - implement tutorial lesson 6

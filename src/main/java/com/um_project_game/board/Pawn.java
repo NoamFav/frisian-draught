@@ -28,11 +28,8 @@ public class Pawn implements Cloneable {
 
         this.position = position;
         this.initialPosition = new Vector2i(position);
-        this.isKing = false;
         this.isWhite = isWhite;
-        this.image = isWhite ? pawnImages.whitePawn() : pawnImages.blackPawn();
-
-        this.isKing = isKing;
+        setKing(isKing);
     }
 
     public Image onHover() {
