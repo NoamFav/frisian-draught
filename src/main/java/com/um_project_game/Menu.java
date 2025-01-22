@@ -180,7 +180,7 @@ public class Menu {
                         () -> launcher.startNewGame(false, true, false));
         Buttons botvBotButton =
                 new Buttons(
-                        "Random Bot against Bot",
+                        "Bot against Bot",
                         buttonWidth,
                         buttonHeight,
                         () -> launcher.startNewGame(false, true, true));

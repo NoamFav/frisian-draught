@@ -226,6 +226,14 @@ public class Game {
 
         // Initialize game player
         board = mainBoard.getBoard(this.movesListGridPane, this.gameInfo);
+        if (board == null) {
+            System.err.println("Error: board is null. Please check getBoard() in MainBoard.");
+            return;
+        }
+        if (!gameRoot.getChildren().contains(board)) {
+            gameRoot.getChildren().add(board);
+        }
+
         playerUI(gameRoot, scene, true);
         playerUI(gameRoot, scene, false);
         chatUI(gameRoot, scene);
@@ -341,9 +349,6 @@ public class Game {
                     }
                 };
 
-        // Figure out which name to display:
-        //   - Bottom (isPlayerOne = true) => White side
-        //   - Top (isPlayerOne = false)  => Black side
         boolean isWhiteSide = isPlayerOne;
         String displayName;
 
