@@ -1,6 +1,7 @@
 package com.um_project_game.board;
 
 import com.um_project_game.AI.DQNModel;
+import com.um_project_game.Launcher;
 import com.um_project_game.Server.NetworkClient;
 import com.um_project_game.util.PDNParser;
 
@@ -371,6 +372,11 @@ public class MainBoard {
         ImageView pawnView = boardState.getPawnViews().get(pawn);
         List<Vector2i> positions = path.positions;
         List<Pawn> capturedPawns = path.capturedPawns;
+
+        for (Pawn capturedPawn : capturedPawns) {
+            if (capturedPawn.isKing()) Launcher.user.capturedKing();
+            else Launcher.user.capturedPiece();
+        }
 
         System.out.println("Animating moves");
 

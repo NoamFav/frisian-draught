@@ -121,6 +121,8 @@ public class Game {
         this.isAgainstBot = isAgainstBot;
         this.isBotvBot = isBotvBot;
 
+        Launcher.user.playedGame();
+
         if (isBotvBot || isAgainstBot) {
             BotPicker botPicker = new BotPicker();
             if (isBotvBot) {
@@ -436,7 +438,6 @@ public class Game {
         playerUI.getChildren().add(playerInfo);
         root.getChildren().add(playerUI);
 
-        // OPTIONAL: small "pulse" animation on the active player's UI
         boolean isActivePlayer =
                 (isWhiteTurn.get() && isPlayerOne) || (!isWhiteTurn.get() && !isPlayerOne);
         if (isActivePlayer) {
@@ -454,6 +455,7 @@ public class Game {
         timeUpAlert.setHeaderText("Game Over!");
         timeUpAlert.setContentText(
                 isPlayerOne ? "Player 1 ran out of time!" : "Player 2 ran out of time!");
+
         timeUpAlert.showAndWait();
         gameStage.close(); // Automatically close the game window
     }
@@ -651,6 +653,7 @@ public class Game {
                             networkClient.sendMessage(
                                     "RESIGN"); // Send resign message (only in MP but isnt visible
                             // in SP)
+                            Launcher.user.forfeitedGame();
                         });
         Buttons restartButton =
                 new Buttons("Restart", buttonWidth, buttonHeight, this::restartWarning);
@@ -834,6 +837,7 @@ public class Game {
             botAlert.showAndWait();
 
             if (n == 0) {
+                Launcher.user.drewGame();
                 mainBoard.resetGame(mainBoardSize);
             }
         }
@@ -983,6 +987,7 @@ public class Game {
     }
 
     public void showResignDialog() {
+        Launcher.user.wonGame();
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Game Over");
         alert.setHeaderText("Opponent has resigned!");
@@ -1002,7 +1007,9 @@ public class Game {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == acceptButton) {
+            Launcher.user.drewGame();
             networkClient.sendMessage("DRAW ACCEPTED");
+            gameStage.close();
         } else {
             networkClient.sendMessage("DRAW DECLINED");
         }
@@ -1010,6 +1017,7 @@ public class Game {
     }
 
     public void showDrawAcceptedDialog() {
+        Launcher.user.drewGame();
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Game Over");
         alert.setHeaderText("Draw accepted!");

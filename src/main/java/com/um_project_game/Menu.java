@@ -301,7 +301,7 @@ public class Menu {
         nameField.getStyleClass().add("profile-name");
         nameField.setPromptText("Enter your name");
         nameField.setOnAction(
-                event -> {
+                _ -> {
                     user.setName(nameField.getText());
                 });
 
@@ -313,8 +313,11 @@ public class Menu {
 
         // Progress Bar for Experience
         ProgressBar experienceProgress = new ProgressBar();
-        experienceProgress.setProgress(
-                user.getExperience() / 100.0); // Assuming max XP is 100 for demo
+
+        double progress =
+                (double) user.getExperience() / user.getLevelThresholds().get(user.getLevel() + 1);
+
+        experienceProgress.setProgress(Math.min(progress, 1.0));
         experienceProgress.getStyleClass().add("progress-bar");
 
         Label rankLabel = new Label("Rank: " + user.getRank());
@@ -328,32 +331,17 @@ public class Menu {
         Label highestWinStreakLabel =
                 new Label("Highest Win Streak: " + user.getHighestWinStreak());
 
-        // Add trophies and achievements
-        Label trophiesUnlockedLabel =
-                new Label("Trophies Unlocked: " + user.getTrophiesUnlocked().size());
-        Label achievementsUnlockedLabel =
-                new Label("Achievements: " + user.getAchievements().size());
+        Label piecesCapturedLabel = new Label("Pieces Captured: " + user.getPiecesCaptured());
+        Label kingPromotionsLabel = new Label("King Promotions: " + user.getKingsPromoted());
 
-        // Multiplayer Stats
-        Label multiplayerGamesPlayedLabel =
-                new Label("Multiplayer Games Played: " + user.getMultiplayerGamesPlayed());
-        Label multiplayerGamesWonLabel =
-                new Label("Multiplayer Games Won: " + user.getMultiplayerGamesWon());
-        Label multiplayerRankLabel =
-                new Label(
-                        "Multiplayer Rank: "
-                                + user.getMultiplayerRank()); // Trophies and Achievements Badges
         //
         gamesPlayedLabel.getStyleClass().add("profile-info-label");
         gamesWonLabel.getStyleClass().add("profile-info-label");
         gamesLostLabel.getStyleClass().add("profile-info-label");
         winStreakLabel.getStyleClass().add("profile-info-label");
         highestWinStreakLabel.getStyleClass().add("profile-info-label");
-        trophiesUnlockedLabel.getStyleClass().add("profile-info-label");
-        achievementsUnlockedLabel.getStyleClass().add("profile-info-label");
-        multiplayerGamesPlayedLabel.getStyleClass().add("profile-info-label");
-        multiplayerGamesWonLabel.getStyleClass().add("profile-info-label");
-        multiplayerRankLabel.getStyleClass().add("profile-info-label");
+        piecesCapturedLabel.getStyleClass().add("profile-info-label");
+        kingPromotionsLabel.getStyleClass().add("profile-info-label");
 
         HBox badgesBox = new HBox(10);
         badgesBox.setAlignment(Pos.CENTER);
@@ -379,11 +367,8 @@ public class Menu {
                         gamesLostLabel,
                         winStreakLabel,
                         highestWinStreakLabel,
-                        trophiesUnlockedLabel,
-                        achievementsUnlockedLabel,
-                        multiplayerGamesPlayedLabel,
-                        multiplayerGamesWonLabel,
-                        multiplayerRankLabel,
+                        piecesCapturedLabel,
+                        kingPromotionsLabel,
                         badgesBox);
 
         // ScrollPane to handle overflow

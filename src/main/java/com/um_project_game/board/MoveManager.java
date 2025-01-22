@@ -1,5 +1,7 @@
 package com.um_project_game.board;
 
+import com.um_project_game.Launcher;
+
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
@@ -586,7 +588,24 @@ public class MoveManager {
                         String winner =
                                 boardState.isWhiteTurn() ? "Player 2 (Black)" : "Player 1 (White)";
 
-                        // Optionally update scores
+                        if (boardState.isMultiplayer()) {
+                            if (boardState.isWhiteTurn() == boardState.getPlayer().isWhite()) {
+                                winner =
+                                        "You"
+                                                + (boardState.isWhiteTurn()
+                                                        ? " (White)"
+                                                        : " (Black)");
+                                Launcher.user.wonGame();
+                            } else {
+                                winner =
+                                        "Opponent"
+                                                + (boardState.isWhiteTurn()
+                                                        ? " (White)"
+                                                        : " (Black)");
+                                Launcher.user.lostGame();
+                            }
+                        }
+
                         if (boardState.getGameInfo() != null) {
                             if (boardState.isWhiteTurn()) {
                                 boardState
@@ -628,6 +647,7 @@ public class MoveManager {
         if ((pawn.isWhite() && landingPos.y == 0)
                 || (!pawn.isWhite() && landingPos.y == boardState.getBoardSize().y - 1)) {
             pawn.setKing(true);
+            Launcher.user.promotedKing();
             ImageView pawnView = boardState.getPawnViews().get(pawn);
             pawnView.setImage(pawn.getImage());
             boardRendered.renderPawns(true);
