@@ -629,7 +629,6 @@ public class MoveManager {
                                             mainBoard.resetGame(
                                                     boardState.getTileSize()
                                                             * BoardState.getMainBoardSize());
-                                            boardState.setActive(false);
                                         });
 
                         summaryScreen.display(winner);
@@ -753,6 +752,7 @@ public class MoveManager {
         // Clear any highlights and re-render the board
         boardRendered.clearHighlights();
         boardRendered.renderPawns();
+        mainBoard.highlightMovablePawns();
     }
 
     public void undoLastMove() {

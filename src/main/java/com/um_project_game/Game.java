@@ -592,6 +592,7 @@ public class Game {
 
         switch (choice) {
             case EXIT_WITH_SAVE:
+                mainBoard.boardState.setActive(false);
                 exporter.exportGameToPDN(
                         mainBoard.boardState.getPawns(),
                         mainBoard.getTakenMoves(),
@@ -601,6 +602,7 @@ public class Game {
                         gameInfo.getPlayerTurn() == 1 ? "W" : "B");
 
             case EXIT_WITHOUT_SAVE:
+                mainBoard.boardState.setActive(false);
                 if (Launcher.menuStage == null) {
                     launcher.showMenu();
                 }

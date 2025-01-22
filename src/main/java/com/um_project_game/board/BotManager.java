@@ -129,7 +129,7 @@ public class BotManager {
                             boardState.getBotModel().saveModel(filename);
                         }
 
-                        PauseTransition pause = new PauseTransition(Duration.millis(1000));
+                        PauseTransition pause = new PauseTransition(Duration.millis(1500));
                         pause.setOnFinished(_ -> playBotVsBot(savePath));
                         pause.play();
                     }
