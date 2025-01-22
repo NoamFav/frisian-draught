@@ -113,8 +113,7 @@ public class PDNParser {
 
                 List<Vector2i> capturedPositions = new ArrayList<>();
                 if (isCapture && endPosition != null) {
-                    capturedPositions.add(
-                            endPosition); // Replace with actual capture logic as needed
+                    capturedPositions.add(endPosition);
                 }
 
                 Move move = new Move(startPosition, endPosition, capturedPositions);

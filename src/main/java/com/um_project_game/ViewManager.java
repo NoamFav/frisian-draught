@@ -1,13 +1,15 @@
 package com.um_project_game;
 
-import com.um_project_game.board.MainBoard;
-
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The ViewManager class is responsible for managing the views of the application. Handles the
+ * gameswitch from one window to the other
+ */
 public class ViewManager {
 
     private Pane root;
@@ -23,6 +25,13 @@ public class ViewManager {
     private List<Game> activeGames = new ArrayList<>();
     private int GAME_STATE = 0;
 
+    /**
+     * Constructor for the ViewManager class
+     *
+     * @param root The root pane of the application
+     * @param launcher The launcher object
+     * @param scene The scene object
+     */
     public ViewManager(Pane root, Launcher launcher, Scene scene) {
 
         this.root = root;
@@ -46,6 +55,7 @@ public class ViewManager {
             case 3:
             case 4:
                 // Start a new game
+                // Case 1, 2, 3, 4 are all game just with different settings bot wise or multiplayer
                 boolean isMultiplayer = (GAME_STATE == 1);
                 boolean isAgainstBot = (GAME_STATE == 2);
                 boolean isBotvsBot = (GAME_STATE == 4);
@@ -71,13 +81,23 @@ public class ViewManager {
         }
     }
 
+    /**
+     * Changes the game state to load a game from a file
+     *
+     * @param filePath The file path of the game to load
+     */
     public void gameStateSwitch(String filePath) {
-        Game game = new Game(false, false, false,launcher, filePath);
+        Game game = new Game(false, false, false, launcher, filePath);
 
         activeGames.add(game);
         game.showGameWindow();
     }
 
+    /**
+     * Closes the game window
+     *
+     * @param gameToClose The game to close
+     */
     public void closeGame(Game gameToClose) {
         activeGames.remove(gameToClose);
         root.getChildren().remove(gameToClose.getGameRoot());

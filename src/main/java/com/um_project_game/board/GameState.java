@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class GameState implements Cloneable {
     Map<Vector2i, Pawn> boardState; // Tracks positions of pawns
@@ -84,14 +83,7 @@ public class GameState implements Cloneable {
 
     public List<Move> generateMoves() {
 
-//        // Call getValidMovesForState to retrieve the map of pawns and their valid moves
-//
-//        Map<Pawn, List<Move>> validMovesMap = moveManager.getValidMovesForState(this);
-//
-//        // Flatten the map values (list of moves) into a single list
-//        return validMovesMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
         return mainBoard.getValidMovesForState(this);
-
     }
 
     public List<Pawn> generateMovablePawnList() {

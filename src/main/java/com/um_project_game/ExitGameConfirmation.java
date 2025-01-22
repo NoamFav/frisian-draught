@@ -18,7 +18,11 @@ import java.net.URL;
 
 public class ExitGameConfirmation {
 
-    // Method 1: Show Exit Confirmation
+    /**
+     * Method 1: Show Exit Confirmation
+     *
+     * @return boolean - Whether the user wants to exit the game
+     */
     public static boolean showExitConfirmation() {
         // Create a custom stage (borderless window)
         Stage stage = new Stage();
@@ -75,8 +79,12 @@ public class ExitGameConfirmation {
         return result[0];
     }
 
-    // Method 2: Show Save Confirmation with Checkbox
-
+    /**
+     * Method 2: Show Save Confirmation
+     *
+     * @param canSave - Whether the game can be saved
+     * @return ExitChoice - The user's choice
+     */
     public static ExitChoice showSaveConfirmation(boolean canSave) {
 
         // Create a custom stage

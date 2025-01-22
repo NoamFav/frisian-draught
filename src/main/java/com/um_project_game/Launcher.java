@@ -25,6 +25,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The Launcher class is responsible for launching the application. It is the entry point of the
+ * application and is responsible for setting up the initial scene and stage.
+ */
 public class Launcher extends Application {
     private PauseTransition resizePause;
     public static SoundPlayer soundPlayer = new SoundPlayer();
@@ -41,11 +45,20 @@ public class Launcher extends Application {
 
     public static UserInfo user;
 
+    /**
+     * Register a scene with the launcher. This allows the launcher to apply the theme to the scene
+     * when the theme is switched.
+     *
+     * @param scene The scene to register
+     */
     public static void registerScene(Scene scene) {
         scenes.add(scene);
         applyTheme(scene);
     }
 
+    /**
+     * Switch the theme of the application. This will apply the new theme to all registered scenes.
+     */
     public static void switchTheme() {
         Launcher.DARK_MODE = !Launcher.DARK_MODE;
         scenes.forEach(Launcher::applyTheme); // Apply the new theme to all scenes
@@ -53,6 +66,12 @@ public class Launcher extends Application {
 
     public static Stage menuStage;
 
+    /**
+     * The start method is called when the application is launched. It is responsible for setting up
+     * the initial stage and scene.
+     *
+     * @param stage The primary stage for the application
+     */
     @Override
     public void start(Stage stage) {
         menuStage = stage;
@@ -67,6 +86,13 @@ public class Launcher extends Application {
         showLoadingScreen(stage);
     }
 
+    /**
+     * Show the loading screen while the application is loading. This is a simple loading screen
+     * with a rotating circle of dots and a loading text. Technically, this is not a loading screen,
+     * but a splash screen.
+     *
+     * @param stage The stage to show the loading screen on
+     */
     private void showLoadingScreen(Stage stage) {
         // Create the root pane and apply the CSS ID
         Pane loadingRoot = new Pane();
@@ -110,13 +136,15 @@ public class Launcher extends Application {
         // Add everything to the root
         loadingRoot.getChildren().addAll(dotCircle, loadingText);
 
+        // Handle close event on the UI thread
         stage.setOnCloseRequest(
-                event -> {
+                _ -> {
                     System.out.println("Window is closing...");
                     saveDataToTOML();
                 });
 
         // Global shutdown hook to catch other exits
+        // Useful for force quitting the application with CTRL+C
         Runtime.getRuntime()
                 .addShutdownHook(
                         new Thread(
@@ -135,7 +163,16 @@ public class Launcher extends Application {
         pause.play();
     }
 
-    // Helper method to create a dotted circle
+    /**
+     * Create a dotted circle with a specified center, radius, and number of dots. Trigonometry is
+     * used to calculate the positions of the dots around the circle.
+     *
+     * @param centerX The x-coordinate of the center of the circle
+     * @param centerY The y-coordinate of the center of the circle
+     * @param radius The radius of the circle
+     * @param dotCount The number of dots to create
+     * @return A group containing the dots
+     */
     private Group createDottedCircle(double centerX, double centerY, double radius, int dotCount) {
         Group group = new Group();
         double angleStep = 360.0 / dotCount;
@@ -167,6 +204,12 @@ public class Launcher extends Application {
         return group;
     }
 
+    /**
+     * Setup the menu stage. This method is called after the loading screen has finished. It creates
+     * the menu and sets up the stage.
+     *
+     * @param stage The stage to set up
+     */
     private void setupMenuStage(Stage stage) {
         Pane root = new Pane();
         Scene scene = new Scene(root, REF_WIDTH, REF_HEIGHT);
@@ -219,6 +262,8 @@ public class Launcher extends Application {
     }
 
     /**
+     * Start a new game with the specified parameters.
+     *
      * @param isOnline Is Online-Game?
      * @param againstBot Is Against Bot?
      */
@@ -227,15 +272,22 @@ public class Launcher extends Application {
         startNewGame(isOnline, againstBot, isBotVsBot, null);
     }
 
+    /**
+     * Start a new game with the specified parameters.
+     *
+     * @param isOnline Is Online-Game?
+     * @param againstBot Is Against Bot?
+     * @param isBotVsBot Is Bot vs Bot?
+     * @param mainBoard The main board to load
+     */
     public void startNewGame(
             boolean isOnline, boolean againstBot, boolean isBotVsBot, MainBoard mainBoard) {
 
         // for loaded games
         if (mainBoard != null) {
-            //viewManager.gameStateSwitch(2, mainBoard);
+            // viewManager.gameStateSwitch(2, mainBoard);
         } else if (isOnline) {
 
-            
             viewManager.gameStateSwitch(1);
         } else if (againstBot) {
             viewManager.gameStateSwitch(isBotVsBot ? 4 : 2);
@@ -244,15 +296,21 @@ public class Launcher extends Application {
         }
     }
 
+    /** Launch the tutorial. */
     public void launchTutorial() {
         viewManager.gameStateSwitch(5);
     }
 
+    /**
+     * Start a new game with the specified file path.
+     *
+     * @param filePath The file path of the game to load
+     */
     public void startNewGame(String filePath) {
-        viewManager.gameStateSwitch(
-                filePath);
+        viewManager.gameStateSwitch(filePath);
     }
 
+    /** Close the menu. */
     public void closeMenu() {
         if (menuStage != null) {
             menuStage.close();
@@ -260,6 +318,7 @@ public class Launcher extends Application {
         }
     }
 
+    /** Show the menu. */
     public void showMenu() {
         viewManager.gameStateSwitch(0);
         if (menuStage == null) {
@@ -271,6 +330,12 @@ public class Launcher extends Application {
         }
     }
 
+    /**
+     * Apply the theme to the specified scene. This method will apply the dark theme if the
+     * DARK_MODE is true, otherwise it will apply the light theme.
+     *
+     * @param scene The scene to apply the theme to
+     */
     public static void applyTheme(Scene scene) {
         URL cssUrl =
                 Launcher.DARK_MODE
@@ -286,10 +351,16 @@ public class Launcher extends Application {
         }
     }
 
+    /** Save the user data to the TOML file. */
     public static void saveDataToTOML() {
         TomlLoader.savePlayerInfo(user);
     }
 
+    /**
+     * The main method is the entry point of the application. It launches the application.
+     *
+     * @param args The command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }

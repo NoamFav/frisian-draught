@@ -22,7 +22,7 @@ public class TrophyLoader {
             // Parse the TOML file
             Toml toml = new Toml().read(input);
 
-            // Loop through trophies (assuming 50 trophies)
+            // Loop through trophies
             for (int i = 1; i <= 50; i++) {
                 // Use default values if keys are missing
                 String name = toml.getString("trophy_" + i + "_name", "Unknown Trophy");

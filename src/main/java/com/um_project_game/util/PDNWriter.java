@@ -25,13 +25,6 @@ public class PDNWriter {
 
     private String boardPosition; // Pawns board position for easy loading.
 
-    // Additional Tags
-    //
-    // FEN -> Starting a game from a different starting position,
-    // Notation -> Different notational styles
-    // Time
-    //
-
     public PDNWriter(
             String event,
             String site,

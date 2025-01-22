@@ -1,14 +1,15 @@
 package com.um_project_game.Simulation;
 
-import com.um_project_game.board.*;
 import com.um_project_game.AI.*;
+import com.um_project_game.board.*;
+
 import javafx.application.Platform;
+
 import org.joml.Vector2i;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -25,8 +26,17 @@ public class GameSimulator {
     private final int batchSize;
     private final Path savePath;
 
-    public GameSimulator(DQNModel model, DQNModel targetModel, ReplayBuffer replayBuffer,
-                         int maxGames, int maxMoves, double epsilon, double gamma, double alpha, int batchSize, Path savePath) {
+    public GameSimulator(
+            DQNModel model,
+            DQNModel targetModel,
+            ReplayBuffer replayBuffer,
+            int maxGames,
+            int maxMoves,
+            double epsilon,
+            double gamma,
+            double alpha,
+            int batchSize,
+            Path savePath) {
         this.model = model;
         this.targetModel = targetModel;
         this.replayBuffer = replayBuffer;
@@ -39,9 +49,7 @@ public class GameSimulator {
         this.savePath = savePath;
     }
 
-    /**
-     * Runs the simulation for a specified number of games.
-     */
+    /** Runs the simulation for a specified number of games. */
     public void runSimulation() {
         for (int game = 0; game < maxGames; game++) {
             System.out.println("Starting game " + (game + 1));
@@ -74,13 +82,12 @@ public class GameSimulator {
         boardState.getAllPawns().clear();
         boardState.getAllPawns().addAll(boardState.getPawns());
     }
-    /**
-     * Simulates a single game.
-     */
+
+    /** Simulates a single game. */
     private void simulateGame() {
         BoardState boardState = new BoardState();
         boardState.setTileSize(50); // Example tile size
-        boardState.setBoardSize(new Vector2i(10, 10)); // Example board size
+        boardState.setBoardSize(new Vector2i(10, 10));
         setupBoard(boardState);
         MainBoard mainBoard = new MainBoard();
         mainBoard.boardState = boardState;
@@ -103,7 +110,13 @@ public class GameSimulator {
             isGameOver = result.isGameOver();
 
             // Store experience in replay buffer
-            replayBuffer.addExperience(new Experience(currentState, action.getStartPosition(), reward, nextState, isGameOver));
+            replayBuffer.addExperience(
+                    new Experience(
+                            currentState,
+                            action.getStartPosition(),
+                            reward,
+                            nextState,
+                            isGameOver));
 
             // Train model
             if (replayBuffer.size() >= batchSize) {
@@ -116,27 +129,37 @@ public class GameSimulator {
         System.out.println("Game finished after " + moveCount + " moves.");
     }
 
-    /**
-     * Trains the model using a mini-batch from the replay buffer.
-     */
+    /** Trains the model using a mini-batch from the replay buffer. */
     private void trainModel() {
         var miniBatch = replayBuffer.sample(batchSize);
         double totalLoss = 0.0;
 
         for (Experience experience : miniBatch) {
-            double target = experience.isTerminal ? experience.reward :
-                    experience.reward + gamma * targetModel.predict(experience.nextState).values().stream().max(Double::compareTo).orElse(0.0);
+            double target =
+                    experience.isTerminal
+                            ? experience.reward
+                            : experience.reward
+                                    + gamma
+                                            * targetModel
+                                                    .predict(experience.nextState)
+                                                    .values()
+                                                    .stream()
+                                                    .max(Double::compareTo)
+                                                    .orElse(0.0);
 
             model.updateWeights(experience.state, experience.action, target);
-            totalLoss += Math.pow(target - model.predict(experience.state).getOrDefault(experience.action, 0.0), 2);
+            totalLoss +=
+                    Math.pow(
+                            target
+                                    - model.predict(experience.state)
+                                            .getOrDefault(experience.action, 0.0),
+                            2);
         }
 
         System.out.println("Average Loss: " + (totalLoss / miniBatch.size()));
     }
 
-    /**
-     * Chooses an action using the epsilon-greedy strategy.
-     */
+    /** Chooses an action using the epsilon-greedy strategy. */
     private Move chooseActionEpsilonGreedy(GameState state, DQNModel model, double epsilon) {
         state.printBoardState();
         List<Move> validMoves = state.generateMoves();
@@ -161,9 +184,8 @@ public class GameSimulator {
             return bestMove;
         }
     }
-    /**
-     * Saves the current model to a file.
-     */
+
+    /** Saves the current model to a file. */
     private void saveModel(String filename) {
         try {
             Path filePath = savePath.resolve(filename);
@@ -175,10 +197,7 @@ public class GameSimulator {
         }
     }
 
-
-    /**
-     * Main method to run the simulation.
-     */
+    /** Main method to run the simulation. */
     public static void main(String[] args) {
 
         Platform.startup(() -> {});
@@ -210,7 +229,18 @@ public class GameSimulator {
             System.err.println("Error creating save directory: " + e.getMessage());
         }
 
-        GameSimulator simulator = new GameSimulator(model, targetModel, replayBuffer, maxGames, maxMoves, epsilon, gamma, alpha, batchSize, savePath);
+        GameSimulator simulator =
+                new GameSimulator(
+                        model,
+                        targetModel,
+                        replayBuffer,
+                        maxGames,
+                        maxMoves,
+                        epsilon,
+                        gamma,
+                        alpha,
+                        batchSize,
+                        savePath);
         simulator.runSimulation();
     }
 }

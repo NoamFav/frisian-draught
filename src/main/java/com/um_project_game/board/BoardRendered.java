@@ -22,7 +22,6 @@ public class BoardRendered {
     private final BoardState boardState;
     private MoveManager moveManager;
 
-
     private final Map<Pawn, ScaleTransition> activeTransitions = new HashMap<>();
 
     public BoardRendered(BoardState boardState) {
@@ -87,11 +86,9 @@ public class BoardRendered {
      * @param tileSize Size of each tile.
      */
     public void renderPawns(boolean rerendering) {
-        //complete rerendering of all pawns
+        // complete rerendering of all pawns
         if (rerendering) {
-            boardState.getBoard().getChildren().removeIf(node ->
-                    node instanceof ImageView
-            );
+            boardState.getBoard().getChildren().removeIf(node -> node instanceof ImageView);
         }
 
         for (Pawn pawn : boardState.getPawns()) {
@@ -107,10 +104,10 @@ public class BoardRendered {
             setupPawnInteractions(pawnView, pawn);
         }
     }
+
     public void renderPawns() {
         renderPawns(false);
     }
-
 
     /**
      * Creates an ImageView for a pawn.
@@ -175,7 +172,6 @@ public class BoardRendered {
                     renderPawns();
                 });
     }
-
 
     /**
      * Creates a highlight square for possible moves.

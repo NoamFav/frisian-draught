@@ -8,7 +8,6 @@ import com.um_project_game.util.TileConversion;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
-import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Scene;
@@ -25,6 +24,10 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+/**
+ * The Tutorial class is responsible for managing the tutorial of the game. It provides a
+ * step-by-step guide to the user on how to play the game.
+ */
 public class Tutorial {
 
     private MainBoard mainBoard = new MainBoard();
@@ -71,6 +74,11 @@ public class Tutorial {
      *                               CONSTRUCTORS
      * -------------------------------------------------------------------------------- */
 
+    /**
+     * Constructor for the Tutorial class
+     *
+     * @param launcher The launcher object
+     */
     public Tutorial(Launcher launcher) {
         this.launcher = launcher;
         this.gameStage = new Stage();
@@ -127,6 +135,13 @@ public class Tutorial {
     /* --------------------------------------------------------------------------------
      *                               BOARD METHODS
      * -------------------------------------------------------------------------------- */
+
+    /**
+     * Create the main game board
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     private void mainGameBoard(Pane root, Scene scene) {
         board =
                 mainBoard.getMainBoard(
@@ -141,6 +156,11 @@ public class Tutorial {
         root.getChildren().add(board);
     }
 
+    /**
+     * Resize the game board to fit the new dimensions
+     *
+     * @param root The root pane
+     */
     private void resizeBoard(Pane root) {
         board = mainBoard.resizeBoard(mainBoardSize);
         board.setLayoutX(mainBoardX);
@@ -151,6 +171,14 @@ public class Tutorial {
     /* --------------------------------------------------------------------------------
      *                               PLAYER UI
      * -------------------------------------------------------------------------------- */
+
+    /**
+     * Create the player UI If isPlayerOne == false => we position it at the top, else at the bottom
+     *
+     * @param root The root pane
+     * @param scene The scene
+     * @param isPlayerOne Whether the player is player one
+     */
     private void playerUI(Pane root, Scene scene, boolean isPlayerOne) {
         StackPane playerUI = new StackPane();
         playerUI.setPrefSize(scene.getWidth(), playerUIHeight);
@@ -193,6 +221,13 @@ public class Tutorial {
     /* --------------------------------------------------------------------------------
      *                                CHAT UI -- INSTRUCTIONS
      * -------------------------------------------------------------------------------- */
+
+    /**
+     * Create the chat UI Not used in the tutorial, but will be in the TODO list
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     private void chatUI(Pane root, Scene scene) {
         StackPane chatUI = new StackPane();
         chatUI.setPrefSize(chatUIWidth, chatUIHeight);
@@ -210,6 +245,8 @@ public class Tutorial {
     /* --------------------------------------------------------------------------------
      *                            EXIT CONFIRMATION
      * -------------------------------------------------------------------------------- */
+
+    /** Show the exit confirmation dialog */
     private void showExitConfirmation() {
 
         ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(false);
@@ -233,6 +270,14 @@ public class Tutorial {
     /* --------------------------------------------------------------------------------
      *                           CONTROL BUTTONS
      * -------------------------------------------------------------------------------- */
+
+    /**
+     * Create the control buttons for the Game Allowing the user to reset the tutorial, go to the
+     * next or previous step, open settings
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     private void buttonGameLogic(Pane root, Scene scene) {
         VBox controlButtons = new VBox();
         controlButtons.setSpacing(buttonSpacing);
@@ -273,6 +318,7 @@ public class Tutorial {
      *                            TUTORIAL LOGIC
      * -------------------------------------------------------------------------------- */
 
+    /** Tutorial steps Not all implemented yet */
     public void tutorialSteps() {
 
         System.out.println("Tutorial begins");
@@ -312,6 +358,10 @@ public class Tutorial {
         }
     }
 
+    /**
+     * Start the tutorial If the tutorial has already been started, ask the user if they want to
+     * reset it
+     */
     public void tutorialStart() {
         if (currentTutorialStep == 0) {
             currentTutorialStep = 1;
@@ -321,6 +371,7 @@ public class Tutorial {
         }
     }
 
+    /** End the tutorial Ask the user if they want to play the game or restart the tutorial */
     public void tutorialEnd() {
         currentTutorialStep = 0;
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -342,6 +393,7 @@ public class Tutorial {
         }
     }
 
+    /** Reset the tutorial Ask the user if they want to reset their progress */
     public void tutorialReset() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Reset Tutorial");
@@ -362,6 +414,7 @@ public class Tutorial {
         }
     }
 
+    /** Proceed to the next tutorial step */
     public void tutorialNext() {
         if (currentTutorialStep < totalTutorialSteps) { // Ensure it doesn't go above total steps
             currentTutorialStep++;
@@ -371,6 +424,7 @@ public class Tutorial {
         tutorialSteps();
     }
 
+    /** Go back to the previous tutorial step */
     public void tutorialPrevious() {
         if (currentTutorialStep > 1) { // Ensure it doesn't go below step 1
             currentTutorialStep--;
@@ -378,6 +432,11 @@ public class Tutorial {
         tutorialSteps();
     }
 
+    /**
+     * Initialize the board for the given tutorial step
+     *
+     * @param step The tutorial step
+     */
     private void initializeBoardForTutorialStep(int step) {
         try {
             // Load the appropriate PDN file for the tutorial step
@@ -390,6 +449,7 @@ public class Tutorial {
                 throw new IllegalArgumentException("PDN file not found: " + pdnFilePath);
             }
 
+            // Get the absolute path of the PDN file for loading
             String pdnFilePathAbsolute = Paths.get(pdnFileUrl.toURI()).toString();
 
             // Load the board state from the PDN file
@@ -405,9 +465,11 @@ public class Tutorial {
         }
     }
 
+    /** Alert the user that they have passed the tutorial step */
     public void tutorialPassedAlert() {
         Platform.runLater(
                 () -> {
+                    // Inform the user that they have passed the tutorial
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Tutorial Lesson Passed");
                     alert.setHeaderText("Congratulations!");
@@ -417,6 +479,7 @@ public class Tutorial {
                 });
     }
 
+    /** Tutorial Lesson 1: Introducing the game board */
     public void tutorialLesson1() {
         System.out.println("Tutorial Lesson 1: Introducing the game board.");
 
@@ -438,6 +501,7 @@ public class Tutorial {
         alert.showAndWait();
     }
 
+    /** Tutorial Lesson 2: Teaching captures */
     public void tutorialLesson2() {
         System.out.println("Tutorial Lesson 2: Teaching captures.");
 
@@ -461,6 +525,7 @@ public class Tutorial {
         alert.showAndWait();
     }
 
+    /** Tutorial Lesson 3: Teaching multiple captures */
     public void tutorialLesson3() {
         System.out.println("Tutorial Lesson 3: Teaching multiple captures.");
 
@@ -484,6 +549,7 @@ public class Tutorial {
         alert.showAndWait();
     }
 
+    /** Tutorial Lesson 4: Promoting to King */
     public void tutorialLesson4() {
         System.out.println("Tutorial Lesson 4: Promoting to King.");
 
@@ -509,6 +575,7 @@ public class Tutorial {
         alert.showAndWait();
     }
 
+    /** Tutorial Lesson 5: Capturing with a King */
     public void tutorialLesson5() {
         System.out.println("Tutorial Lesson 5: Capturing with a King.");
 
@@ -555,6 +622,13 @@ public class Tutorial {
     /* --------------------------------------------------------------------------------
      *                            RESIZING LOGIC
      * -------------------------------------------------------------------------------- */
+
+    /**
+     * Resize the game elements when the window is resized
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     public void onResize(Pane root, Scene scene) {
         root.getChildren().clear();
         newDimension(scene);
@@ -570,6 +644,11 @@ public class Tutorial {
         animateFadeIn(root, 300);
     }
 
+    /**
+     * Calculate the new dimensions for the given scene
+     *
+     * @param scene The scene
+     */
     private void newDimension(Scene scene) {
         int newSceneWidth = (int) scene.getWidth();
         int newSceneHeight = (int) scene.getHeight();
@@ -597,6 +676,14 @@ public class Tutorial {
         controlButtonsY = convertDimensions(99, newSceneHeight, referenceHeight);
     }
 
+    /**
+     * Convert dimensions from the reference dimensions to the new dimensions
+     *
+     * @param oldDimension The old dimension
+     * @param newDimension The new dimension
+     * @param oldReferenceDimension The old reference dimension
+     * @return The converted dimension
+     */
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
         return (int)
                 ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
@@ -606,7 +693,12 @@ public class Tutorial {
      *                           ANIMATION HELPERS
      * -------------------------------------------------------------------------------- */
 
-    /** Smooth fade-in of the given parent node over a specified duration (in ms). */
+    /**
+     * Smooth fade-in of the given parent node over a specified duration (in ms).
+     *
+     * @param parent The parent node to fade in
+     * @param durationMs The duration of the fade-in animation in milliseconds
+     */
     private void animateFadeIn(Pane parent, int durationMs) {
         parent.setOpacity(0); // Start fully transparent
         FadeTransition ft = new FadeTransition(Duration.millis(durationMs), parent);
@@ -616,23 +708,11 @@ public class Tutorial {
     }
 
     /**
-     * Scale/pulse effect for a node. For example, call this on a player's UI if it's their turn.
-     * The node scales up and then back down once.
-     */
-    private void animatePulse(Pane node, double scaleTo, int durationMs) {
-        ScaleTransition st = new ScaleTransition(Duration.millis(durationMs), node);
-        st.setFromX(1.0);
-        st.setFromY(1.0);
-        st.setToX(scaleTo);
-        st.setToY(scaleTo);
-        st.setAutoReverse(true);
-        st.setCycleCount(2); // Go up, then back down
-        st.play();
-    }
-
-    /**
-     * Optional: fade out the window before closing. If you want to use it, call
-     * fadeOutAndClose(gameStage, 300) in showExitConfirmation().
+     * Smooth fade-out of the given stage over a specified duration (in ms), followed by closing the
+     * stage.
+     *
+     * @param stage The stage to fade out and close
+     * @param durationMs The duration of the fade-out animation in milliseconds
      */
     private void fadeOutAndClose(Stage stage, int durationMs) {
         FadeTransition ft =

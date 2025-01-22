@@ -39,6 +39,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * The Game class is responsible for managing the game state, including the board, players, timers,
+ * and UI elements. It also handles server communication for multiplayer games.
+ */
 public class Game {
 
     private MainBoard mainBoard = new MainBoard();
@@ -112,10 +116,33 @@ public class Game {
      *                               CONSTRUCTORS
      * -------------------------------------------------------------------------------- */
 
+    /**
+     * Constructor for a single-player game.
+     *
+     * @param isMultiplayer
+     * @param isAgainstBot
+     * @param isBotvBot
+     * @param launcher
+     */
     public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher) {
-        this(isMultiplayer,isAgainstBot,isBotvBot,launcher,null);
+        this(isMultiplayer, isAgainstBot, isBotvBot, launcher, null);
     }
-    public Game(boolean isMultiplayer, boolean isAgainstBot, boolean isBotvBot, Launcher launcher, String filePath) {
+
+    /**
+     * Constructor for a single-player game loaded from a PDN file.
+     *
+     * @param isMultiplayer
+     * @param isAgainstBot
+     * @param isBotvBot
+     * @param launcher
+     * @param filePath
+     */
+    public Game(
+            boolean isMultiplayer,
+            boolean isAgainstBot,
+            boolean isBotvBot,
+            Launcher launcher,
+            String filePath) {
         this.launcher = launcher;
         this.gameStage = new Stage();
         this.gameStage.setTitle("Frisian Draughts - Game");
@@ -189,80 +216,65 @@ public class Game {
         }
     }
 
+    /**
+     * set the bot player
+     *
+     * @param botType
+     */
     public void setBotPlayer(BotType botType) {
         mainBoard.boardState.setBotPlayer(BotFactory.createBot(botType, mainBoard));
     }
 
+    /**
+     * set the bot vs bot players
+     *
+     * @param whiteBot
+     * @param blackBot
+     */
     public void setBotvsBotPlayers(BotType whiteBot, BotType blackBot) {
         mainBoard.boardState.setBotvsBotWhite(BotFactory.createBot(whiteBot, mainBoard));
         mainBoard.boardState.setBotvsBotBlack(BotFactory.createBot(blackBot, mainBoard));
     }
 
     /**
-    public Game(Launcher launcher, MainBoard mainBoard) {
-        this.launcher = launcher;
-        this.gameStage = new Stage();
-        this.gameStage.setTitle("Frisian Draughts - Game");
-        this.movesListGridPane = mainBoard.getMovesListGridPane();
-        this.mainBoard = mainBoard;
-        this.isWhiteTurn =
-                mainBoard.boardState.isWhiteTurn()
-                        ? Bindings.createBooleanBinding(() -> true)
-                        : Bindings.createBooleanBinding(() -> false);
-
-        // Disable board interaction when loading from PDN
-        mainBoard.getBoard().setOnMouseClicked(null);
-
-        this.gameRoot = new Pane();
-        Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
-        Launcher.registerScene(scene);
-
-        // Load CSS
-        URL cssUrl =
-                getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css");
-        if (cssUrl != null) {
-            scene.getStylesheets().add(cssUrl.toExternalForm());
-        } else {
-            System.err.println("Stylesheet not found");
-        }
-
-        this.gameStage.setScene(scene);
-
-        // Initialize game player
-        board = mainBoard.getBoard(this.movesListGridPane, this.gameInfo);
-        if (board == null) {
-            System.err.println("Error: board is null. Please check getBoard() in MainBoard.");
-            return;
-        }
-        if (!gameRoot.getChildren().contains(board)) {
-            gameRoot.getChildren().add(board);
-        }
-
-        playerUI(gameRoot, scene, true);
-        playerUI(gameRoot, scene, false);
-        chatUI(gameRoot, scene);
-        buttonGameLogic(gameRoot, scene);
-        moveList(gameRoot, scene);
-
-        // Fade in effect on first load
-        animateFadeIn(gameRoot, 300);
-
-        // Debounced resizing
-        resizePause = new PauseTransition(Duration.millis(50));
-        resizePause.setOnFinished(_ -> onResize(gameRoot, scene));
-
-        scene.widthProperty().addListener((_, _, _) -> resizePause.playFromStart());
-        scene.heightProperty().addListener((_, _, _) -> resizePause.playFromStart());
-
-        // Handle close event
-        this.gameStage.setOnCloseRequest(
-                e -> {
-                    e.consume();
-                    showExitConfirmation();
-                });
-    }
+     * public Game(Launcher launcher, MainBoard mainBoard) { this.launcher = launcher;
+     * this.gameStage = new Stage(); this.gameStage.setTitle("Frisian Draughts - Game");
+     * this.movesListGridPane = mainBoard.getMovesListGridPane(); this.mainBoard = mainBoard;
+     * this.isWhiteTurn = mainBoard.boardState.isWhiteTurn() ? Bindings.createBooleanBinding(() ->
+     * true) : Bindings.createBooleanBinding(() -> false);
+     *
+     * <p>// Disable board interaction when loading from PDN
+     * mainBoard.getBoard().setOnMouseClicked(null);
+     *
+     * <p>this.gameRoot = new Pane(); Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH,
+     * Launcher.REF_HEIGHT); Launcher.registerScene(scene);
+     *
+     * <p>// Load CSS URL cssUrl = getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" :
+     * "/light-theme.css"); if (cssUrl != null) {
+     * scene.getStylesheets().add(cssUrl.toExternalForm()); } else { System.err.println("Stylesheet
+     * not found"); }
+     *
+     * <p>this.gameStage.setScene(scene);
+     *
+     * <p>// Initialize game player board = mainBoard.getBoard(this.movesListGridPane,
+     * this.gameInfo); if (board == null) { System.err.println("Error: board is null. Please check
+     * getBoard() in MainBoard."); return; } if (!gameRoot.getChildren().contains(board)) {
+     * gameRoot.getChildren().add(board); }
+     *
+     * <p>playerUI(gameRoot, scene, true); playerUI(gameRoot, scene, false); chatUI(gameRoot,
+     * scene); buttonGameLogic(gameRoot, scene); moveList(gameRoot, scene);
+     *
+     * <p>// Fade in effect on first load animateFadeIn(gameRoot, 300);
+     *
+     * <p>// Debounced resizing resizePause = new PauseTransition(Duration.millis(50));
+     * resizePause.setOnFinished(_ -> onResize(gameRoot, scene));
+     *
+     * <p>scene.widthProperty().addListener((_, _, _) -> resizePause.playFromStart());
+     * scene.heightProperty().addListener((_, _, _) -> resizePause.playFromStart());
+     *
+     * <p>// Handle close event this.gameStage.setOnCloseRequest( e -> { e.consume();
+     * showExitConfirmation(); }); }
      */
-
     public void showGameWindow() {
         this.gameStage.show();
     }
@@ -274,6 +286,15 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                               BOARD METHODS
      * -------------------------------------------------------------------------------- */
+
+    /**
+     * Create the main game board.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     * @param isBotActive Whether the bot is active
+     * @param filePath The file path
+     */
     private void mainGameBoard(Pane root, Scene scene, boolean isBotActive, String filePath) {
         board =
                 mainBoard.getMainBoard(
@@ -291,6 +312,12 @@ public class Game {
         mainBoard.loadGameFromPDN(filePath);
     }
 
+    /**
+     * Create the main game board for multiplayer games.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     private void mainGameBoardMultiplayer(Pane root, Scene scene) {
 
         try {
@@ -315,6 +342,11 @@ public class Game {
         isWhiteTurn = Bindings.equal(gameInfo.playerTurnProperty(), 1);
     }
 
+    /**
+     * Resize the game board.
+     *
+     * @param root The root pane
+     */
     private void resizeBoard(Pane root) {
         board = mainBoard.resizeBoard(mainBoardSize);
         board.setLayoutX(mainBoardX);
@@ -325,6 +357,13 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                               PLAYER UI
      * -------------------------------------------------------------------------------- */
+    /**
+     * Create the player UI.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     * @param isPlayerOne Whether the player is Player One
+     */
     private void playerUI(Pane root, Scene scene, boolean isPlayerOne) {
         StackPane playerUI = new StackPane();
         playerUI.setPrefSize(scene.getWidth(), playerUIHeight);
@@ -460,6 +499,12 @@ public class Game {
 
     *                            HANDLE TIME UP EVENT
     * -------------------------------------------------------------------------------- */
+    /**
+     * Handle the time up event for a player. This method is called when a player's timer reaches
+     * zero.
+     *
+     * @param isPlayerOne Whether the player is Player One
+     */
     private void handleTimeUp(boolean isPlayerOne) {
         Alert timeUpAlert = new Alert(Alert.AlertType.INFORMATION);
         timeUpAlert.setTitle("Time's Up!");
@@ -475,6 +520,12 @@ public class Game {
 
     *                                CHAT UI
     * -------------------------------------------------------------------------------- */
+    /**
+     * Create the chat UI.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     public void chatUI(Pane root, Scene scene) {
         // Main chat UI container
         StackPane chatUI = new StackPane();
@@ -544,6 +595,11 @@ public class Game {
         root.getChildren().add(chatUI);
     }
 
+    /**
+     * Append a chat message to the chat UI.
+     *
+     * @param message The message to append
+     */
     public void appendChatMessage(String message) {
         // Find the chat UI by ID
         StackPane chatUI = (StackPane) gameRoot.lookup("#chatUI");
@@ -597,6 +653,10 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                            EXIT CONFIRMATION
      * -------------------------------------------------------------------------------- */
+    /**
+     * Show an exit confirmation dialog. The user can choose to exit with or without saving the
+     * game.
+     */
     private void showExitConfirmation() {
 
         ExitChoice choice = ExitGameConfirmation.showSaveConfirmation(!isMultiplayer);
@@ -632,6 +692,12 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                           CONTROL BUTTONS
      * -------------------------------------------------------------------------------- */
+    /**
+     * Propose a draw to the opponent. The opponent can accept or decline the draw offer.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     private void buttonGameLogic(Pane root, Scene scene) {
         VBox controlButtons = new VBox();
         controlButtons.setSpacing(buttonSpacing);
@@ -703,6 +769,12 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                            MOVES LIST
      * -------------------------------------------------------------------------------- */
+    /**
+     * Create the moves list UI.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     private void moveList(Pane root, Scene scene) {
         StackPane movesList = new StackPane();
         movesList.setPrefSize(movesListWidth, movesListHeight);
@@ -746,6 +818,7 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                     RESTART & DRAW CONFIRMATIONS
      * -------------------------------------------------------------------------------- */
+    /** Propose a draw to the opponent. The opponent can accept or decline the draw offer. */
     private void restartWarning() {
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Restart Confirmation");
@@ -830,6 +903,12 @@ public class Game {
     /* --------------------------------------------------------------------------------
      *                            RESIZING LOGIC
      * -------------------------------------------------------------------------------- */
+    /**
+     * Resize the game UI elements when the window is resized.
+     *
+     * @param root The root pane
+     * @param scene The scene
+     */
     public void onResize(Pane root, Scene scene) {
         root.getChildren().clear();
         newDimension(scene);
@@ -846,6 +925,11 @@ public class Game {
         animateFadeIn(root, 300);
     }
 
+    /**
+     * Calculate new dimensions for the game UI elements based on the new scene dimensions.
+     *
+     * @param scene The scene
+     */
     private void newDimension(Scene scene) {
         int newSceneWidth = (int) scene.getWidth();
         int newSceneHeight = (int) scene.getHeight();
@@ -878,6 +962,14 @@ public class Game {
         movesListHeight = convertDimensions(222, newSceneHeight, referenceHeight);
     }
 
+    /**
+     * Convert old dimensions to new dimensions based on a reference dimension.
+     *
+     * @param oldDimension The old dimension
+     * @param newDimension The new dimension
+     * @param oldReferenceDimension The old reference dimension
+     * @return The new dimension
+     */
     private int convertDimensions(int oldDimension, int newDimension, int oldReferenceDimension) {
         return (int)
                 ((double) oldDimension * ((double) newDimension / (double) oldReferenceDimension));
@@ -887,7 +979,12 @@ public class Game {
      *                           ANIMATION HELPERS
      * -------------------------------------------------------------------------------- */
 
-    /** Smooth fade-in of the given parent node over a specified duration (in ms). */
+    /**
+     * Smooth fade-in of the given parent node over a specified duration (in ms).
+     *
+     * @param parent The parent node
+     * @param durationMs The duration in milliseconds
+     */
     private void animateFadeIn(Pane parent, int durationMs) {
         parent.setOpacity(0); // Start fully transparent
         FadeTransition ft = new FadeTransition(Duration.millis(durationMs), parent);
@@ -899,6 +996,9 @@ public class Game {
     /**
      * Scale/pulse effect for a node. For example, call this on a player's UI if it's their turn.
      * The node scales up and then back down once.
+     *
+     * @param node The node to animate
+     * @param scaleTo The scale factor to animate to
      */
     private void animatePulse(Pane node, double scaleTo, int durationMs) {
         ScaleTransition st = new ScaleTransition(Duration.millis(durationMs), node);
@@ -912,8 +1012,10 @@ public class Game {
     }
 
     /**
-     * Optional: fade out the window before closing. If you want to use it, call
-     * fadeOutAndClose(gameStage, 300) in showExitConfirmation().
+     * Smooth fade-out of the given stage over a specified duration (in ms). The stage will be
+     *
+     * @param stage The stage to fade out
+     * @param durationMs The duration in milliseconds
      */
     private void fadeOutAndClose(Stage stage, int durationMs) {
         FadeTransition ft =
@@ -928,6 +1030,12 @@ public class Game {
      *                           SERVER COMMUNICATION
      * -------------------------------------------------------------------------------- */
 
+    /**
+     * Set the player role (White, Black, or Spectator).
+     *
+     * @param role The player role
+     * @param name The player name
+     */
     public void setPlayerRole(String role, String name) {
         switch (role) {
             case "White":
@@ -961,6 +1069,11 @@ public class Game {
         }
     }
 
+    /**
+     * Set the opponent's name.
+     *
+     * @param name The opponent's name
+     */
     public void setOpponentName(String name) {
         synchronized (mainBoard.boardState.getLock()) {
             opponent = new Player(name, !player.isWhite());
@@ -970,6 +1083,11 @@ public class Game {
         }
     }
 
+    /**
+     * Set the game state based on the given PDN string.
+     *
+     * @param pdn The PDN string
+     */
     public void showResignDialog() {
         Launcher.user.wonGame();
         Alert alert = new Alert(AlertType.INFORMATION);
@@ -983,6 +1101,7 @@ public class Game {
         gameStage.close();
     }
 
+    /** Show a dialog when the opponent resigns. */
     public void proposeDraw() {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Propose Draw");
@@ -1003,6 +1122,10 @@ public class Game {
         alert.showAndWait();
     }
 
+    /**
+     * Show a dialog when the opponent proposes a draw. The user can accept or decline the draw
+     * offer.
+     */
     public void showDrawDialog() {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Game Over");
@@ -1026,6 +1149,7 @@ public class Game {
         alert.showAndWait();
     }
 
+    /** Show a dialog when the opponent accepts the draw offer. The game ends in a draw. */
     public void showDrawAcceptedDialog() {
         Launcher.user.drewGame();
         Alert alert = new Alert(AlertType.INFORMATION);
@@ -1039,6 +1163,7 @@ public class Game {
         gameStage.close();
     }
 
+    /** Show a dialog when the opponent declines the draw offer. The game continues. */
     public void showDrawDeclinedDialog() {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Draw Declined");

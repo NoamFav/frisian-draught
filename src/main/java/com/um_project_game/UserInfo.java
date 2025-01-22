@@ -3,6 +3,7 @@ package com.um_project_game;
 import java.util.ArrayList;
 import java.util.List;
 
+/** The UserInfo class is responsible for storing the user's information and statistics */
 public class UserInfo {
     private String name;
     private int level;
@@ -49,11 +50,22 @@ public class UserInfo {
         this.levelThresholds = generateLevelThresholds(100, 1.3, 100);
     }
 
+    /**
+     * Generates the level thresholds for the user Uses an exponential growth factor to calculate
+     * the XP required to reach each Level. Makes the XP required to reach each level increase
+     * exponentially
+     *
+     * @param baseXP The base XP required to reach level 1
+     * @param growthFactor The growth factor for the XP required to reach the next level
+     * @param maxLevel The maximum level that can be reached
+     * @return A list of the XP thresholds required to reach each level
+     */
     public List<Integer> generateLevelThresholds(int baseXP, double growthFactor, int maxLevel) {
         List<Integer> thresholds = new ArrayList<>();
         thresholds.add(0); // Level 0 XP
 
         for (int i = 1; i <= maxLevel; i++) {
+            // XP required to reach the next level is calculated using an exponential growth factor
             int xp = (int) (baseXP * Math.pow(i, growthFactor));
             thresholds.add(thresholds.get(i - 1) + xp);
         }
@@ -64,10 +76,12 @@ public class UserInfo {
         return levelThresholds;
     }
 
+    /** Updates the user's level and rank based on their current experience */
     public void updateLevel() {
         for (int i = 1; i < levelThresholds.size(); i++) {
             if (experience < levelThresholds.get(i)) {
                 level = i - 1;
+                // Assign rank based on level range (Love the name of the ranks)
                 switch (level) {
                     case 0, 1, 2, 3, 4 -> rank = "Beginner";
                     case 5, 6, 7, 8, 9 -> rank = "Novice";
@@ -107,6 +121,11 @@ public class UserInfo {
         }
     }
 
+    /**
+     * Adds experience to the user and updates their level
+     *
+     * @param xp The amount of experience to add
+     */
     public void addExperience(int xp) {
         experience += xp;
         updateLevel();

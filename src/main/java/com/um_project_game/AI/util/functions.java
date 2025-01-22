@@ -5,7 +5,6 @@ import com.um_project_game.AI.Experience;
 import com.um_project_game.AI.ReplayBuffer;
 import com.um_project_game.board.GameState;
 import com.um_project_game.board.Move;
-import com.um_project_game.board.MoveResult;
 
 import org.joml.Vector2i;
 
@@ -14,10 +13,6 @@ import java.util.Map;
 import java.util.Random;
 
 public class functions {
-
-    private static final int TARGET_UPDATE_FREQUENCY = 100;
-    private static final int BATCH_SIZE = 32;
-    private static final int NUM_EPOCHS = 1;
 
     public void qLearningUpdate(
             GameState state,
@@ -122,25 +117,6 @@ public class functions {
         }
     }
 
-    public void trainDRLModel(
-            DQNModel model,
-            DQNModel targetModel,
-            ReplayBuffer replayBuffer,
-            int batchSize,
-            double gamma,
-            double alpha,
-            int numEpochs) {
-        for (int epoch = 0; epoch < numEpochs; epoch++) {
-            List<Experience> miniBatch = replayBuffer.sample(batchSize);
-            double totalLoss = computeLoss(miniBatch, model, targetModel, gamma);
-            model.updateWeights(miniBatch, totalLoss);
-
-            if (epoch % TARGET_UPDATE_FREQUENCY == 0) {
-                targetModel.copyWeightsFrom(model);
-            }
-        }
-    }
-
     public void storeExperience(
             ReplayBuffer replayBuffer,
             GameState state,
@@ -150,30 +126,6 @@ public class functions {
             boolean done) {
         replayBuffer.addExperience(
                 new Experience(state, action.getStartPosition(), reward, nextState, done));
-    }
-
-    public void mainDRLLoop(
-            GameState initialState,
-            DQNModel model,
-            DQNModel targetModel,
-            ReplayBuffer replayBuffer,
-            double epsilon,
-            double gamma,
-            double alpha) {
-        GameState state = initialState;
-        while (!state.isTerminal()) {
-            Move action = chooseActionEpsilonGreedy(state, model, epsilon);
-            MoveResult result = state.applyMove(action);
-            GameState nextState = result.getNextState();
-            double reward = result.getReward();
-            boolean done = result.isGameOver();
-
-            storeExperience(replayBuffer, state, action, reward, nextState, done);
-            trainDRLModel(model, targetModel, replayBuffer, BATCH_SIZE, gamma, alpha, NUM_EPOCHS);
-
-            state = nextState;
-            if (done) break;
-        }
     }
 
     public Move adversarialSearch(GameState state, int depth, DQNModel model) {

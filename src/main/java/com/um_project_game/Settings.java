@@ -17,6 +17,10 @@ import javafx.util.Duration;
 
 import java.net.URL;
 
+/**
+ * The Settings class is responsible for managing the settings of the application. Handles the
+ * volume control and toggling of dark mode.
+ */
 public class Settings {
 
     private Stage settingsStage;
@@ -28,11 +32,25 @@ public class Settings {
     private double moveRelativeVolume;
     private double captureRelativeVolume;
 
+    /**
+     * Constructor for the Settings class
+     *
+     * @param soundPlayer The SoundPlayer object
+     * @param root The root pane of the application
+     * @param scene The scene object
+     */
     public Settings(SoundPlayer soundPlayer, Pane root, Scene scene) {
         this.soundPlayer = soundPlayer;
         initializeSettingsWindow(root, scene);
     }
 
+    /**
+     * Initializes the settings window with sliders for volume control and buttons for toggling DQN
+     * bot and dark mode.
+     *
+     * @param root The root pane of the application
+     * @param scene The scene object
+     */
     private void initializeSettingsWindow(Pane root, Scene scene) {
         // Store initial relative volumes
         mainVolume = soundPlayer.getMainVolume();
@@ -65,26 +83,6 @@ public class Settings {
         Label captureVolumeLabel = new Label("Capture Volume:");
         Slider captureVolumeSlider = new Slider(0, 1, captureRelativeVolume * mainVolume);
         setupSlider(captureVolumeSlider);
-
-        // DQN Bot Setting
-        Label dqnbotLabel = new Label("Enable DQN Bot:");
-        dqnbotLabel.getStyleClass().add("settings-label");
-
-        final Buttons[] dqnbotToggleButton = new Buttons[1];
-        dqnbotToggleButton[0] =
-                new Buttons(
-                        Launcher.dqnbot ? "Disable" : "Enable",
-                        100,
-                        30,
-                        () -> {
-                            Launcher.dqnbot = !Launcher.dqnbot;
-                            dqnbotToggleButton[0]
-                                    .getButton()
-                                    .setText(Launcher.dqnbot ? "Disable" : "Enable");
-                            System.out.println(
-                                    "DQN Bot is now: "
-                                            + (Launcher.dqnbot ? "Enabled" : "Disabled"));
-                        });
 
         // Dark mode
         Label darkModeLabel = new Label("Dark Mode:");
@@ -133,8 +131,7 @@ public class Settings {
         grid.add(moveVolumeSlider, 1, 2);
         grid.add(captureVolumeLabel, 0, 3);
         grid.add(captureVolumeSlider, 1, 3);
-        grid.add(dqnbotLabel, 0, 4);
-        grid.add(dqnbotToggleButton[0].getButton(), 1, 4);
+
         grid.add(darkModeLabel, 0, 5);
         grid.add(darkModeButton.getButton(), 1, 5);
 
@@ -166,18 +163,20 @@ public class Settings {
         // Make the settings window modal
         settingsStage.initModality(Modality.APPLICATION_MODAL);
 
-        // Animations on hover for the "Done" button (optional)
         animateHoverScale(doneButtons.getButton(), 1.05);
 
-        // If you want the DQN or darkMode toggles to have a hover effect:
-        // animateHoverScale(dqnbotToggleButton[0].getButton(), 1.05);
-        // animateHoverScale(darkModeButton.getButton(), 1.05);
+        animateHoverScale(darkModeButton.getButton(), 1.05);
 
         // Set up listeners
         setupListeners(
                 mainVolumeSlider, backgroundVolumeSlider, moveVolumeSlider, captureVolumeSlider);
     }
 
+    /**
+     * Sets up the sliders for volume control.
+     *
+     * @param slider The slider object
+     */
     private void setupSlider(Slider slider) {
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
@@ -185,6 +184,14 @@ public class Settings {
         slider.setBlockIncrement(0.01);
     }
 
+    /**
+     * Sets up listeners for the volume sliders.
+     *
+     * @param mainVolumeSlider The main volume slider
+     * @param backgroundVolumeSlider The background volume slider
+     * @param moveVolumeSlider The move volume slider
+     * @param captureVolumeSlider The capture volume slider
+     */
     private void setupListeners(
             Slider mainVolumeSlider,
             Slider backgroundVolumeSlider,

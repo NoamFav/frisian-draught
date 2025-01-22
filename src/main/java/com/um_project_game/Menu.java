@@ -27,6 +27,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * The Menu class is responsible for managing the main menu of the game. It handles the layout of
+ * the main menu, including the top and bottom bars, main menu buttons, recent games, live game
+ * preview, and player status card.
+ */
 public class Menu {
 
     private final Pane menuRoot;
@@ -58,7 +63,13 @@ public class Menu {
     private int versionStatusWidth = 300;
     private int versionStatusHeight = 570;
 
-    /** Constructor */
+    /**
+     * Constructor for the Menu class.
+     *
+     * @param root The root pane of the application
+     * @param scene The scene object
+     * @param launcher The launcher object
+     */
     public Menu(Pane root, Scene scene, Launcher launcher) {
         this.menuRoot = root;
         this.launcher = launcher;
@@ -78,13 +89,21 @@ public class Menu {
     /**
      * Called when the window is resized. Rebuilds the entire layout using updated dimensions, then
      * animates in.
+     *
+     * @param root The root pane of the application
+     * @param scene The scene object
      */
     public void onResize(Pane root, Scene scene) {
         rebuildLayout(scene, root);
         animateFadeIn(root, 300);
     }
 
-    /** Rebuilds the entire menu layout (useful for first load and resizing). */
+    /**
+     * Rebuilds the entire menu layout (useful for first load and resizing).
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void rebuildLayout(Scene scene, Pane root) {
         removeExistingNodes(root);
         updateDimensions(scene);
@@ -98,7 +117,12 @@ public class Menu {
         initPlayerStatus(scene, root, Launcher.user);
     }
 
-    /** Initializes top bar. */
+    /**
+     * Initializes top bar.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void initTopBar(Scene scene, Pane root) {
         StackPane topBarPane =
                 createStackedBar(
@@ -106,7 +130,12 @@ public class Menu {
         root.getChildren().add(topBarPane);
     }
 
-    /** Initializes bottom bar. */
+    /**
+     * Initializes bottom bar.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void initBottomBar(Scene scene, Pane root) {
         StackPane bottomBarPane =
                 createStackedBar(
@@ -119,7 +148,12 @@ public class Menu {
         root.getChildren().add(bottomBarPane);
     }
 
-    /** Initializes main menu buttons. */
+    /**
+     * Initializes the main menu buttons.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void initMenuButtons(Scene scene, Pane root) {
         VBox controlButtons = new VBox(controlButtonsSpacing);
         controlButtons.setLayoutX(controlButtonsX);
@@ -153,11 +187,16 @@ public class Menu {
 
         root.getChildren().add(controlButtons);
 
-        // Optional: If you want to animate the menu button container itself on hover
         animateHoverScale(controlButtons, 1.02);
     }
 
-    /** Shows the "play local" options, replacing the main menu buttons. */
+    /**
+     * Shows the local options (Player vs Player, Player vs Bot, Bot vs Bot) when the "Play Local"
+     * button is clicked.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void showLocalOptions(Scene scene, Pane root) {
         removeNodeById(root, "#control-buttons");
 
@@ -197,17 +236,26 @@ public class Menu {
 
         root.getChildren().add(playLocalOptions);
 
-        // Optional: Animate new local options container
         animateFadeIn(playLocalOptions, 250);
     }
 
-    /** Returns to main menu by removing the local options and re-adding main menu buttons. */
+    /**
+     * Returns to the main menu when the "Back" button is clicked.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void returnToMainMenu(Scene scene, Pane root) {
         removeNodeById(root, "#play-local-options");
         initMenuButtons(scene, root);
     }
 
-    /** Initializes the "Recent Games" boards. */
+    /**
+     * Initializes the "Recent Games" boards. On click, loads the game from the PDN file.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void initRecentGames(Scene scene, Pane root) {
         VBox recentContainer = new VBox(recentBoardsSpacingY);
         recentContainer.setLayoutX(recentBoardsX);
@@ -262,7 +310,13 @@ public class Menu {
         root.getChildren().add(recentContainer);
     }
 
-    /** Initializes the "Live Game" board preview. */
+    /**
+     * Initializes the live game preview board. Note: This is a placeholder and does not actually
+     * show a live game. For now at least.
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     */
     private void initLiveGame(Scene scene, Pane root) {
         VBox liveGame = new VBox(liveGameSpacing);
         liveGame.setLayoutX(liveGameX);
@@ -274,7 +328,7 @@ public class Menu {
         liveGameTitle.getStyleClass().add("label");
 
         MainBoard mainBoard = new MainBoard();
-        GridPane liveBoard = mainBoard.getRandomBoard(root, liveGameSize);
+        GridPane liveBoard = mainBoard.getRandomBoard(root, liveGameSize); // Placeholder board
 
         liveGame.getChildren().addAll(liveGameTitle, liveBoard);
         root.getChildren().add(liveGame);
@@ -282,6 +336,13 @@ public class Menu {
         animateHoverScale(liveGame, 1.03);
     }
 
+    /**
+     * Initializes the player status card. More infos will be added in the future
+     *
+     * @param scene The scene object
+     * @param root The root pane of the application
+     * @param user The user info object
+     */
     private void initPlayerStatus(Scene scene, Pane root, UserInfo user) {
         // Create a VBox to hold player info
         VBox playerInfoBox = new VBox(15);
@@ -305,6 +366,7 @@ public class Menu {
                     user.setName(nameField.getText());
                 });
 
+        // Profile Info
         Label levelLabel = new Label("Level: " + user.getLevel());
         levelLabel.getStyleClass().add("profile-info-label");
 
@@ -394,7 +456,11 @@ public class Menu {
         animateHoverScale(playerStatusPane, 1.02);
     }
 
-    /** Updates dimension fields based on the current Scene width/height. */
+    /**
+     * Updates the dimensions of the menu elements based on the new scene dimensions.
+     *
+     * @param scene The scene object
+     */
     private void updateDimensions(Scene scene) {
         int newWidth = (int) scene.getWidth();
         int newHeight = (int) scene.getHeight();
@@ -428,12 +494,23 @@ public class Menu {
         versionStatusHeight = scaleDimension(570, newHeight, refHeight);
     }
 
-    /** Helper to scale a single dimension. */
+    /**
+     * Scales a dimension based on the reference dimension.
+     *
+     * @param original The original dimension
+     * @param newVal The new dimension
+     * @param refVal The reference dimension
+     * @return The scaled dimension
+     */
     private int scaleDimension(int original, int newVal, int refVal) {
         return (int) (original * (double) newVal / (double) refVal);
     }
 
-    /** Removes all major nodes (bars, buttons, boards, etc.) from the root. */
+    /**
+     * Removes existing nodes from the root pane.
+     *
+     * @param root The root pane of the application
+     */
     private void removeExistingNodes(Pane root) {
         String[] ids = {
             "#top-bar",
@@ -449,7 +526,12 @@ public class Menu {
         }
     }
 
-    /** Utility to remove a single node by its CSS ID. */
+    /**
+     * Removes a node from the root pane by its CSS ID.
+     *
+     * @param root The root pane of the application
+     * @param cssId The CSS ID of the node to remove
+     */
     private void removeNodeById(Pane root, String cssId) {
         Node node = root.lookup(cssId);
         if (node != null) {
@@ -457,7 +539,17 @@ public class Menu {
         }
     }
 
-    /** Helper to create a stack pane bar with background rectangle + centered text. */
+    /**
+     * Creates a stacked bar with a rectangle and text label.
+     *
+     * @param x The x-coordinate of the bar
+     * @param y The y-coordinate of the bar
+     * @param width The width of the bar
+     * @param height The height of the bar
+     * @param textContent The text content of the label
+     * @param barId The CSS ID of the bar
+     * @return The stacked bar
+     */
     private StackPane createStackedBar(
             int x, int y, int width, int height, String textContent, String barId) {
         Rectangle rect = new Rectangle(x, y, width, height);
@@ -477,7 +569,12 @@ public class Menu {
      *                          ANIMATION HELPERS
      * -------------------------------------------------------------------------------- */
 
-    /** Fades in the given node over the specified duration (ms). */
+    /**
+     * Fades in the given node over the specified duration (ms).
+     *
+     * @param node - Node to fade in
+     * @param durationMs - Duration of the fade in animation in milliseconds
+     */
     private void animateFadeIn(Node node, int durationMs) {
         node.setOpacity(0);
         FadeTransition ft = new FadeTransition(Duration.millis(durationMs), node);
