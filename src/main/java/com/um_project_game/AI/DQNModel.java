@@ -14,15 +14,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The DQNModel class represents a Deep Q-Network model used for evaluating game states
+ * and determining the best moves in a game.
+ */
 public class DQNModel {
     private NeuralNetwork network;
 
-    // Constructor initializes the Neural Network
+    /**
+     * Constructs a DQNModel with the specified parameters.
+     *
+     * @param inputSize the size of the input layer
+     * @param hiddenSize the size of the hidden layer
+     * @param outputSize the size of the output layer
+     * @param learningRate the learning rate for the neural network
+     */
     public DQNModel(int inputSize, int hiddenSize, int outputSize, double learningRate) {
         this.network = new NeuralNetwork(inputSize, hiddenSize, outputSize, learningRate);
     }
 
-    // Predict Q-values for all possible moves
+    /**
+     * Predicts Q-values for all possible moves in the given game state.
+     *
+     * @param state the current game state
+     * @return a map of positions to Q-values
+     */
     public Map<Vector2i, Double> predict(GameState state) {
         double[] input = state.toInputArray();
         double[] output = network.predict(input);
@@ -49,24 +65,34 @@ public class DQNModel {
         return filteredQValues;
     }
 
-    // Update weights using a single experience
+    /**
+     * Updates the weights of the neural network using a single experience.
+     *
+     * @param state the current game state
+     * @param action the action taken
+     * @param targetQValue the target Q-value for the action
+     */
     public void updateWeights(GameState state, Vector2i action, double targetQValue) {
         // 1. Get current network predictions for this state
         double[] input = state.toInputArray();
         double[] predictedQ = network.predict(input);
-    
+
         // 2. Convert (x, y) action to the 1D index in predictedQ
         int actionIndex = action.y * 10 + action.x;
-    
+
         // 3. Overwrite the chosen action’s Q-value with the Bellman target
         predictedQ[actionIndex] = targetQValue;
-    
+
         // 4. Train the network to fit this updated Q vector
         network.train(input, predictedQ);
     }
-    
 
-    // Batch training with multiple experiences
+    /**
+     * Updates the weights of the neural network using multiple experiences.
+     *
+     * @param experiences an iterable of experiences
+     * @param gamma the discount factor for future rewards
+     */
     public void updateWeights(Iterable<Experience> experiences, double gamma) {
         for (Experience exp : experiences) {
             double[] input = exp.state.toInputArray(); // Convert state to input array
@@ -89,16 +115,30 @@ public class DQNModel {
         }
     }
 
-    // Copy weights from another DQN model
+    /**
+     * Copies the weights from another DQN model.
+     *
+     * @param model the DQN model to copy weights from
+     */
     public void copyWeightsFrom(DQNModel model) {
         network.setWeights(model.network.getWeights());
     }
 
-    // Evaluate the maximum Q-value for a given state
+    /**
+     * Evaluates the maximum Q-value for a given game state.
+     *
+     * @param state the current game state
+     * @return the maximum Q-value
+     */
     public double evaluate(GameState state) {
         return predict(state).values().stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
     }
 
+    /**
+     * Saves the model to a file.
+     *
+     * @param filename the name of the file to save the model to
+     */
     public void saveModel(String filename) {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(this.network.getWeights());
@@ -108,6 +148,11 @@ public class DQNModel {
         }
     }
 
+    /**
+     * Loads the model from a file.
+     *
+     * @param filename the name of the file to load the model from
+     */
     public void loadModel(String filename) {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             double[][][] weights = (double[][][]) in.readObject();
