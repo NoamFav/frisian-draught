@@ -93,11 +93,12 @@ The Frisian Draughts project is constantly evolving! Upcoming features include:
   - Each player starts with **20 pieces**, and white moves first.
 
 **2. Moves:**  
-  - Pawns move diagonally forward one square.  
+  - Pawns move diagonally forward one square.
   - Kings move diagonally or orthogonally across multiple squares.
 
 **3. Capturing:**  
   - Mandatory captures with multi-jump sequences.
+  - Can capture in any direction, vertically and horizontally as well
 
 **4. Win Conditions:**  
   - Win by eliminating all opponent pieces or blocking their moves.
