@@ -1,20 +1,22 @@
 # 🌟 Frisian Draughts Game 🌟
 
-Welcome to **Frisian Draughts**, an exciting and modern take on the classic board game, built with **JavaFX** for a sleek and interactive experience. Featuring custom UI elements, strategic move tracking, dynamic sound effects, and intuitive gameplay – Frisian Draughts brings the traditional game to life like never before!
+Welcome to **Frisian Draughts**, an exciting modern twist on the classic board game! Built with **JavaFX**, it offers immersive gameplay, smart AI opponents, multiplayer capabilities, and a beautifully designed interface. Whether you're a beginner or a draughts pro, Frisian Draughts provides a challenging and rewarding experience! 🎮🚀
 
 ---
 
 ## 🛠️ Prerequisites
 
-Ensure you have the following installed to run Frisian Draughts smoothly:
+Before jumping into the action, make sure your system is ready to run Frisian Draughts:
 
-- **Java 22 or later**  
-- **Maven** ([Installation Guide](https://maven.apache.org/install.html))  
-- **JavaFX 22**, already included as a dependency in `pom.xml`  
+- 💻 **Java 22 or later**  
+- 📚 **Maven** ([Installation Guide](https://maven.apache.org/install.html))  
+- 📁 **JavaFX 22**, already included in project dependencies  
 
 ---
 
-## 🌱 Installation
+## 🌱 Installation Guide
+
+Follow these simple steps to set up the game:
 
 1. **Clone the repository:**
    ```bash
@@ -27,91 +29,82 @@ Ensure you have the following installed to run Frisian Draughts smoothly:
    mvn clean javafx:run
    ```
 
+Enjoy the game in no time! 🌈
+
 ---
 
-## 🎉 Running the Game
+## 🎮 How to Play
 
-### 💻 Using Jpackage (Recommended for Standalone Use)
+### 💻 Package for Standalone Use
 
-Easily package the game for your OS and enjoy Frisian Draughts as a standalone application.
+Easily create an installer and play Frisian Draughts natively on your system.
 
-**For Windows:**
+**Windows:**
 ```bash
 mvn clean package -Djpackage.type=exe
 ```
 
-**For macOS:**
+**macOS:**
 ```bash
 mvn clean package -Djpackage.type=dmg
 ```
 
-**For Linux:**
+**Linux:**
 ```bash
 mvn clean package -Djpackage.type=deb
 mvn clean package -Djpackage.type=rpm
 ```
 
-The game will be installed in your system's Applications folder, and save files will be stored under `FrisianDraughtsExports` in your home directory.
-
----
+Your game will be installed with a simple click! 💾
 
 ### 📚 Running in an IDE
 
-You can also run the game from your favorite IDE (IntelliJ IDEA, Eclipse, etc.) by executing the `Launcher` class.
+You can also run the game from your favorite IDE (IntelliJ IDEA, Eclipse, etc.) by executing the `Launcher` class to jump straight into the action! 💪
 
 ---
 
-## 📺 Game Features
+## 📺 Key Features
 
-- **Intuitive UI:**
-  - Elegant board design with responsive move tracking.
-  - Easy-to-navigate menus and fluid animations.
-  - Light and dark mode themes.
-
-- **Dynamic Sound Effects:**
-  - Enjoy immersive audio feedback for every move.
-  - Background music with adjustable volume settings.
-
-- **Advanced AI:**
-  - Play against different AI difficulty levels.
-  - **Bot vs Bot mode**, with the ability to pick your preferred bot.
-
-- **Multiplayer Mode (Proof of Concept):**
-  - A functional prototype of online multiplayer (not production-ready).
-
-- **Tutorial Mode:**
-  - A step-by-step tutorial with **5 introductory lessons** to learn the game.
+- 🌈 **Beautiful UI:** Light/Dark mode themes for an enhanced experience.
+- 🎤 **Dynamic Sound Effects:** Immerse yourself with exciting audio.
+- 🤖 **Advanced AI:** Choose different bot types or watch bots battle it out!
+- 👥 **Multiplayer Mode:** A proof-of-concept multiplayer experience to test your skills online.
+- 🎓 **Interactive Tutorials:** Five detailed lessons to master the game mechanics.
+- 🏡 **Customization:** Adjustable sound settings, theme preferences, and board styles.
 
 ---
 
-## 🛠️ Future Improvements
+## 🛠️ Planned Features
 
-We are working on exciting new features, including:
+The Frisian Draughts project is constantly evolving! Upcoming features include:
 
-- 🎮 **Enhanced Multiplayer Mode** – Fully functional with online matchmaking.
-- 👨‍🎨 **Visual Enhancements** – Additional animations and effects.
-- 🎤 **Live Watch Mode** – Spectate live games.
-- 🌟 **Extended Tutorial** – More in-depth lessons to master strategies.
+- 💪 Fully functional multiplayer with online matchmaking.
+- 🎮 Live Watch Mode to spectate ongoing games.
+- 💨 Additional animations and visual enhancements.
+- 🌀 Enhanced AI for tougher single-player challenges.
+- 🎉 Expanded tutorial modes for a better learning experience.
 
 ---
 
-## 📚 Frisian Draughts Rules
+## 🌟 Game Rules
 
 **1. Board Setup:**  
-  - Played on a **10x10 board** using dark squares only.  
+  - Played on a **10x10 board**, dark squares only.  
   - Each player starts with **20 pieces**, and white moves first.
 
-**2. Basic Moves:**  
+**2. Moves:**  
   - Pawns move diagonally forward one square.  
-  - Kings move diagonally or orthogonally any number of squares.
+  - Kings move diagonally or orthogonally across multiple squares.
 
 **3. Capturing:**  
-  - Capturing is **mandatory**, prioritizing the largest number of opponent pieces.  
-  - Kings can capture horizontally, vertically, and diagonally.
+  - Mandatory captures with multi-jump sequences.
 
 **4. Win Conditions:**  
-  - The game ends when a player has no legal moves or no pieces left.  
-  - A draw is possible after repetition or mutual agreement.
+  - Win by eliminating all opponent pieces or blocking their moves.
+
+**5. Special Rules:**  
+  - King promotion occurs upon reaching the opponent's back row.
+  - Capture priority is given to moves with the highest piece value.
 
 ---
 
@@ -125,4 +118,8 @@ We are working on exciting new features, including:
 
 ## 🌟 Thank You!
 
-We appreciate your support in trying Frisian Draughts. Stay tuned for updates and new features! Have feedback? Submit an issue or suggestion via our [GitHub Issues page](https://github.com/NoamFav/frisian-draught/issues).
+We appreciate your support and feedback! 🎉 Stay tuned for more updates and exciting features.
+
+Have questions or suggestions? Feel free to submit an issue on our [GitHub Issues page](https://github.com/NoamFav/frisian-draught/issues).
+
+Let the games begin! 🏆
