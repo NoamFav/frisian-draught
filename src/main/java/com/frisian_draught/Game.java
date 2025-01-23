@@ -168,7 +168,8 @@ public class Game {
         this.gameRoot = new Pane();
         Scene scene = new Scene(gameRoot, Launcher.REF_WIDTH, Launcher.REF_HEIGHT);
         Launcher.registerScene(scene);
-
+        
+        
         // Load CSS
         URL cssUrl =
                 getClass().getResource(Launcher.DARK_MODE ? "/dark-theme.css" : "/light-theme.css");

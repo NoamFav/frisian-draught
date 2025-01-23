@@ -1,220 +1,298 @@
-# Frisian Draughts Game
+<div align="center">
 
-This project is a Frisian Draughts game implemented using JavaFX. It features custom UI elements, move tracking, capture path logic, and sound effects. The game supports different types of pawns and kings, with hover states, and includes logic for non-capturing moves, multi-capture paths, and more.
+# 🌟 Frisian Draughts Game 🌟
 
-## Prerequisites
+[![Java](https://img.shields.io/badge/Java-23-orange.svg)](https://www.oracle.com/java/)
+[![JavaFX](https://img.shields.io/badge/JavaFX-23-blue.svg)](https://openjfx.io/)
+[![Maven](https://img.shields.io/badge/Maven-3.9-red.svg)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-- Java 22 or later.
-- Maven installed. [Maven Installation Guide](https://maven.apache.org/install.html)
-- JavaFX 22 or later, added to the project dependencies.
+<img src="https://github.com/NoamFav/frisian-draught/raw/main/src/main/resources/icons/Icon-linux.png" width="250" alt="Frisian Draughts Logo"/>
 
-## Installation
+A modern implementation of the classic Frisian Draughts board game with advanced AI, multiplayer capabilities, and a beautiful interface.
 
-1. Clone the repository:
+[Installation](#-installation-guide) • 
+[Features](#-key-features) • 
+[Game Rules](#-game-rules) • 
+[How to Play](#-how-to-play)
+
+</div>
+
+---
+
+## 🎮 Overview
+
+Welcome to **Frisian Draughts**, an exciting modern twist on the classic board game! Built with **JavaFX**, it offers immersive gameplay, smart AI opponents, multiplayer capabilities, and a beautifully designed interface. Whether you're a beginner or a draughts pro, Frisian Draughts provides a challenging and rewarding experience!
+
+<div align="center">
+  <img src="https://github.com/NoamFav/frisian-draught/raw/main/src/main/resources/gameplay.png" width="600" alt="Frisian Draughts Gameplay"/>
+</div>
+
+---
+
+## 🛠️ Prerequisites
+
+Before jumping into the action, make sure your system is ready to run Frisian Draughts:
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| **Java** | 23 or later | [Installation Guide](https://www.oracle.com/java/technologies/downloads/#java23) |
+| **Maven** | 3.8+ | [Installation Guide](https://maven.apache.org/install.html) |
+| **JavaFX** | 23 | Already included in project dependencies |
+| **Graphics** | - | OpenGL 2.1+ compatible graphics card |
+| **Storage** | - | 100MB free disk space |
+
+---
+
+## 🌱 Installation Guide
+
+<details open>
+<summary><b>Quick Start</b></summary>
+
+Follow these simple steps to set up the game:
+
+1. **Clone the repository:**
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/NoamFav/frisian-draught.git
+   cd frisian-draught
    ```
-2. Ensure you have JavaFX and the necessary dependencies. If using Maven, the dependencies are already defined in the `pom.xml`.
 
-3. Navigate to the project folder:
+2. **Build and run the game:**
    ```bash
-   cd <project-folder>
+   mvn clean javafx:run
    ```
 
-## Running the Game
+That's it! The game will launch automatically. 🚀
 
-### Using Jpackage
+</details>
 
-To run the game by creating a fully packaged application using Jpackage, use the following command:
+---
 
-For Windows:
+## 🎮 How to Play
 
+<details>
+<summary><b>Package for Standalone Use</b></summary>
+
+Easily create an installer and play Frisian Draughts natively on your system.
+
+**Windows:**
 ```bash
 mvn clean package -Djpackage.type=exe
 ```
 
-For macOS:
-
+**macOS:**
 ```bash
 mvn clean package -Djpackage.type=dmg
 ```
 
-For Linux:
-
+**Linux:**
 ```bash
 mvn clean package -Djpackage.type=deb
-```
-
-```bash
+# OR
 mvn clean package -Djpackage.type=rpm
 ```
 
-This will prompt you to move the app to the Applications' folder on macOS or install it on Windows. You can then run the game as a standalone application.
-Note that the save files are stored in the user's home directory under the `FrisianDraughtsExports` folder.
+Your game will be installed with a simple click! 💾
 
-### Using Maven
+</details>
 
-To run the game via Maven, use the following command:
+<details>
+<summary><b>Running in an IDE</b></summary>
 
-```bash
-mvn clean javafx:run
-```
+You can also run the game from your favorite IDE (IntelliJ IDEA, Eclipse, etc.) by executing the `Launcher` class.
 
-### Using an IDE
+**IntelliJ IDEA:**
+1. Open the project
+2. Navigate to `src/main/java/com/frisiandraught/Launcher.java`
+3. Right-click and select "Run Launcher.main()"
 
-You can also run the game using an IDE like IntelliJ IDEA or Eclipse by running the `Launcher` class.
+**Eclipse:**
+1. Import the project as a Maven project
+2. Find the Launcher class
+3. Right-click and select "Run As > Java Application"
 
-## User Interface (UI)
+</details>
 
-The game interface is built using JavaFX and includes the following key components:
+<details>
+<summary><b>Game Controls</b></summary>
 
-### How to Use the UI
+- **Mouse**: Click to select and move pieces
+- **Esc**: Open game menu
+- **M**: Toggle sound on/off
+- **T**: Switch theme (Light/Dark)
+- **R**: Restart current game
+- **H**: Show hint (where available)
+- **Space**: Pause AI thinking (in AI matches)
 
-1. **Main Menu**:
+</details>
 
-   - From the **main menu**, players can start a new game, view settings, or exit the game.
-   - Navigation is done through buttons like "Start Game", "Settings", and "Exit". Clicking "Start Game" will initialize the game board.
+---
 
-2. **In-Game Interface**:
+## 📺 Key Features
 
-   - Once a game is started, the **game board** is displayed with pawns already set up for both players. Players can interact with the game by clicking on their pawns and selecting valid moves.
-   - The UI highlights available moves, and captures are indicated by red highlights. Click on a valid destination to move your piece.
+<div style="display: flex; flex-wrap: wrap;">
 
-3. **Move List**:
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🌈 Beautiful UI</h3>
+<p>Choose between Light and Dark mode themes for an enhanced visual experience that's easy on the eyes. The interface adapts to your system preferences by default.</p>
+</div>
 
-   - A **moves list** is available, showing the history of moves made during the game. This list is displayed on the right side of the screen for reference.
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🎤 Dynamic Sound Effects</h3>
+<p>Immerse yourself with exciting audio feedback for moves, captures, and game events. All sounds can be toggled on/off at any time.</p>
+</div>
 
-4. **Game Control Buttons**:
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🤖 Advanced AI</h3>
+<p>Test your skills against multiple difficulty levels of AI opponents, or watch bots battle each other as you learn strategies!</p>
+</div>
 
-   - **Undo**: This button is currently non-functional, but a placeholder exists for future implementation.
-   - **Draw**: Allows players to offer a draw. A confirmation popup will appear.
-   - **Resign**: Clicking "Resign" will end the game and declare the other player the winner.
-   - **Restart**: Restarts the game after confirming with the player that all progress will be lost.
-   - **Settings**: This button is currently a placeholder for future settings adjustments.
-   - **Exit**: Returns to the main menu or exits the game entirely.
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>👥 Multiplayer Mode</h3>
+<p>Enjoy a proof-of-concept multiplayer experience to test your skills online against other players around the world.</p>
+</div>
 
-5. **Exit Confirmation**:
-   - When the player chooses to exit the game, a confirmation dialog will prompt the user to confirm if they want to quit. They can select "Yes" or "No" to continue or cancel.
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🎓 Interactive Tutorials</h3>
+<p>Master the game through five detailed interactive lessons that guide you through basic moves to advanced strategies.</p>
+</div>
 
-### What's Done
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🏡 Customization</h3>
+<p>Adjust sound settings, theme preferences, and board styles to create your perfect playing environment.</p>
+</div>
 
-- The main game UI is fully functional, including the game board, pawns, and control buttons for gameplay interactions.
-- Basic game features like move highlighting, pawn movement, captures, and scoring are implemented.
-- Game start, restart, resign, and exit functions work as expected.
-- Draw offers are supported, and the game tracks the move history but it is only a random draw as no AI nor multiplayer mode is implemented.
-- Sound effects are added for moves, and background music plays during the game.
+</div>
 
-### What's Pending
+---
 
-- **Undo Functionality**: While the button is in place, the undo feature is not yet implemented.
-- **Multiplayer Mode**: The game currently supports single-player mode only. Multiplayer mode will be added in the future once network capabilities are implemented.
-- **Live Watch Mode**: A live watch mode to observe games between two players is planned.
-- **Chat Feature**: A chat feature for multiplayer games is planned to allow players to communicate during the game.
-- **Tutorial Mode**: A tutorial mode to help players learn the game rules and mechanics is planned with interactive guides and hints.
-- **Settings Page**: The settings button exists but is not functional.
-- **Enhanced AI for Single Player**: This feature is pending, it will be implemented soon.
-- **Additional Visual Effects**: Some polishing and potential animations could enhance the user experience further.
+## 🛠️ Planned Features
 
-## Frisian Draughts Game Rules
+<table>
+<tr>
+<td width="33%">
+<h3>💪 Enhanced Multiplayer</h3>
+<p>Fully functional online matchmaking with player rankings and tournaments.</p>
+</td>
+<td width="33%">
+<h3>🎮 Live Watch Mode</h3>
+<p>Spectate ongoing games between top players to learn advanced strategies.</p>
+</td>
+<td width="33%">
+<h3>💨 Visual Improvements</h3>
+<p>Additional animations and visual enhancements for a more immersive experience.</p>
+</td>
+</tr>
+<tr>
+<td width="33%">
+<h3>🌀 Enhanced AI</h3>
+<p>More sophisticated AI algorithms for even tougher single-player challenges.</p>
+</td>
+<td width="33%">
+<h3>🎉 Expanded Tutorials</h3>
+<p>More comprehensive learning resources for players of all skill levels.</p>
+</td>
+<td width="33%">
+<h3>📱 Mobile Support</h3>
+<p>Cross-platform support for mobile devices to play on the go.</p>
+</td>
+</tr>
+</table>
 
-Frisian Draughts is a variant of international draughts (checkers) played on a 10x10 board, but with some unique and complex capturing rules. Below are the official game rules in detail:
+---
 
-### 1. Board and Initial Setup
+## 🌟 Game Rules
 
-- The game is played on a **10x10 board**, using only the 50 dark squares.
-- Each player starts with **20 pieces**: White starts first. The pawns are placed on the first four rows closest to each player.
-- The game is managed through the `MainBoard` class, which handles board initialization, rendering, and interaction.
+<details open>
+<summary><b>Basic Rules</b></summary>
 
-### 2. Basic Moves
+**1. Board Setup:**
+- Played on a **10x10 board**, dark squares only.
+- Each player starts with **20 pieces**, and white moves first.
 
-- **Pawns** move diagonally forward one square.
-- **Kings**, which are promoted pawns, can move diagonally any number of squares.
-- Moves and interactions in this implementation are handled via mouse clicks on highlighted squares, with hover effects providing visual feedback.
+**2. Moves:**
+- Pawns move diagonally forward one square.
+- Kings move diagonally or orthogonally across multiple squares.
 
-### 3. Capturing Rules
+**3. Capturing:**
+- Mandatory captures with multi-jump sequences.
+- Can capture in any direction, vertically and horizontally as well.
 
-Capturing is **mandatory**, and Frisian Draughts follows strict capture rules:
+**4. Win Conditions:**
+- Win by eliminating all opponent pieces or blocking their moves.
 
-- Pawns capture by jumping over an adjacent opponent's piece to an empty square behind it.
-- **Kings** can capture diagonally or **orthogonally** (left, right, up, or down) over any number of empty squares, but they must continue capturing if possible.
+**5. Special Rules:**
+- King promotion occurs upon reaching the opponent's back row.
+- Capture priority is given to moves with the highest piece value.
 
-  In the game, the `captureCheck()` method recursively explores all possible capture paths from the current position of a pawn or king. Capture paths are highlighted in red.
+</details>
 
-#### 3.1. Multi-Capture
+<div align="center">
+  <img src="https://github.com/NoamFav/frisian-draught/raw/main/src/main/resources/images/board_setup.png" width="400" alt="Board Setup"/>
+</div>
 
-- A piece must capture the **maximum number** of opponent's pieces available. If there are multiple paths, the player must choose the path that captures the highest-value pieces, where kings are worth **1.5 pawns**.
-- This logic is enforced through the `findPawnsWithMaxCaptures()` method, which identifies which pawns or kings are required to move based on the best available captures.
+---
 
-### 4. Special Frisian Draughts Capture Rules
+## 🎧 Sound & Music
 
-Frisian Draughts introduces unique capture mechanics:
+- **Move Sound Effect:** [Creative Commons 0](https://freesound.org/s/371352/)
+- **Background Music:** [Uppbeat](https://uppbeat.io/t/pecan-pie/important-to-you)
+  - License code: `0V6UVBKUHDBDI1XW`
 
-- **Orthogonal Capturing**: Kings can capture pieces horizontally or vertically as well as diagonally, which significantly increases the tactical depth of the game.
-- The game checks for **capture continuation**, meaning if a piece can continue capturing after its first capture, it must do so.
+---
 
-### 5. Turn Switching and Scoring
+## 👨‍💻 Technical Details
 
-- The turn system is managed by the `switchTurn()` method, which alternates between the players and checks for new captures.
-- Each player's score is tracked based on the number of captured pieces, with points updated via `gameInfo.scorePlayerOne` and `gameInfo.scorePlayerTwo`.
+<details>
+<summary><b>Architecture</b></summary>
 
-### 6. Game End Conditions
+The game is built using a Model-View-Controller (MVC) architecture:
+- **Model**: Game logic, board state, and AI algorithms
+- **View**: JavaFX UI components and animations
+- **Controller**: User input handling and game flow management
 
-- The game ends when one player cannot make a legal move or has no pieces left.
-- A draw can occur if both players agree or if only two kings remain.
+Key technologies:
+- **JavaFX**: UI framework
+- **FXML**: Layout definition
+- **CSS**: Styling and theming
+- **Minimax Algorithm**: Core of the AI decision-making process
 
-  The game also supports **threefold repetition**, where a draw is declared if the same board state occurs three times.
+</details>
 
-### 8. Promotion
+<details>
+<summary><b>Performance Optimizations</b></summary>
 
-- A pawn is **promoted to a king** when it reaches the opponent's back row.
-- This is automatically handled in the game via the `promotePawnIfNeeded()` method, which updates the pawn's status and changes its image.
+- **Alpha-beta pruning**: Enhances AI decision speed
+- **Move caching**: Reduces redundant calculations
+- **Lazy loading**: Improves startup time
+- **Responsive design**: Adapts to various screen sizes
 
-### 9. Animations
+</details>
 
-- Movement and capture animations are managed using JavaFX's **`TranslateTransition`** and **`SequentialTransition`**, providing smooth and visual feedback for pawn movement and captures.
+---
 
-### 10. Separation of classes
+## 🤝 Contributing
 
-| Class File/ Directory | Relative Path              | Description                                                                                                                                                |
-| --------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Launcher              | com.frisian_draught        | Entry point of the application, initializes the main menu, handles scene switching, and theming.                                                           |
-| Menu                  | com.frisian_draught        | Manages the main menu of the application, including UI elements like buttons, recent games, and live games.                                                |
-| Game                  | com.frisian_draught        | Defines and manages UI-Elements of the game                                                                                                                |
-| ViewManager           | com.frisian_draught        | Manages active games and transitions between menu, gameplay and server                                                                                     |
-| Settings              | com.frisian_draught        | Manages Game Settings UI                                                                                                                                   |
-| ExitGameConfirmation  | com.frisian_draught        | Displays an exit confirmation when trying to exit a game                                                                                                   |
-| /util/...             | com.frisian_draught.util   | Manages utility classes, buttons, fileReaders, fileWriters, sound, ...                                                                                     |
-| /server/...           | com.frisian_draught.Server | Manages Server instance and client handling                                                                                                                |
-| CapturePath           | ...frisian_draught.board   | Instance of a capturePath, storing a single capture and its steps                                                                                          |
-| GameInfo              | ...frisian_draught.board   | Stores additional game information                                                                                                                         |
-| GameState             | ...frisian_draught.board   | Stores important game information regarding the current board position                                                                                     |
-| MainBoard             | ...frisian_draught.board   | Main game logic class. Stores information about the main board instance and the actual game logic.                                                         |
-| Move                  | ...frisian_draught.board   | Instance of a single move. Contains the initial and final position of a move in both vector and PDN format.                                                |
-| MoveResult            | ...frisian_draught.board   | Stores additional information after a taken move.                                                                                                          |
-| MovesListManager      | ...frisian_draught.board   | Manages the moves list table entries displayed in the game UI                                                                                              |
-| Pawn                  | ...frisian_draught.board   | Instance of a Pawn                                                                                                                                         |
-| DQNModel              | ...frisian_draught.AI      | Implements a Deep Q-Network for AI decision-making in games, handling Q-value prediction, training, and weight updates.                                    |
-| Experience            | ...frisian_draught.AI      | Represents a single learning step for reinforcement learning, containing state, action, reward, next state, and terminal status.                           |
-| init.java             | ...frisian_draught.AI      |                                                                                                                                                            |
-| NeuralNetwork         | ...frisian_draught.AI      | Implements a basic neural network with forward propagation, backpropagation, and weight updates for training.                                              |
-| ReplayBuffer          | ...frisian_draught.AI      | Manages a buffer of experiences, allowing the addition, sampling, and maintaining a fixed size for training in reinforcement learning.                     |
-| functions             | ...frisian_draught.AI.util | AI utility file. Contains various utility methods for Q-learning, training, action selection, and adversarial search in reinforcement learning for a game. |
+We welcome contributions to make Frisian Draughts even better! Whether it's adding new features, fixing bugs, or improving documentation, your help is appreciated.
 
-### 11. AI and algorithms
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-The game includes a basic AI implementation using a **Deep Q-Network (DQN)** for decision-making.
-The file `DQNModel.java` contains the DQN implementation, which handles Q-value prediction, training, and weight updates.
-It is located in the `com.frisian_draught.AI` package.
-Helper classes like `Experience.java`, `NeuralNetwork.java`, and `ReplayBuffer.java` are used to manage the learning process. And are in the same package.
+Please make sure to update tests as appropriate and adhere to the code style guidelines.
 
-For the moves themselves, `GameState` contain how the board is represented and how the moves are stored.
-The rest like the method for triggering the AI move is located in the `MainBoard` class. Same for the random bot and the way those two bots play against each other.
-This is located in the `com.frisian_draught.board` package. In the `MainBoard` class. At line around 1298.
+---
 
-### License
+## 🌟 Thank You!
 
-D9_pawn.mp3 by Iamgiorgio -- https://freesound.org/s/371352/ -- License: Creative Commons 0
+We appreciate your support and feedback! 🎉 Stay tuned for more updates and exciting features.
 
-Music from #Uppbeat (free for Creators!):
-https://uppbeat.io/t/pecan-pie/important-to-you
-License code: 0V6UVBKUHDBDI1XW
+Have questions or suggestions? Feel free to submit an issue on our [GitHub Issues page](https://github.com/NoamFav/frisian-draught/issues).
+
+<div align="center">
+
+### Let the games begin! 🏆
+
+</div>

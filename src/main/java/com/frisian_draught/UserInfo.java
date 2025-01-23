@@ -87,8 +87,6 @@ public class UserInfo {
                 break;
             }
         }
-        level = levelThresholds.size() - 1;
-        assignRank(level);
     }
 
     public void assignRank(int level) {
