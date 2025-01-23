@@ -11,7 +11,7 @@ Thank you for your interest in contributing to Frisian Draught! Please follow th
 
 2. **Clone Your Fork:**  
    ```bash
-   git clone https://github.com/your-username/frisian-draught.git
+   git clone https://github.com/NoamFav/frisian-draught.git
    cd frisian-draught
    ```
 
@@ -91,7 +91,7 @@ To set up the development environment:
 
 3. Run the project locally:
    ```bash
-   mvn exec:java -Dexec.mainClass="com.yourpackage.Main"
+   mvn javafx:run
    ```
 
 4. Run tests:
