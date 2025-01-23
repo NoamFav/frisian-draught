@@ -22,6 +22,9 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,6 +78,7 @@ public class Launcher extends Application {
     @Override
     public void start(Stage stage) {
         menuStage = stage;
+        copyPDNFilesToHomeDirectory();
         try {
             TomlLoader.ensureExternalConfigExists();
         } catch (IOException e) {
@@ -348,6 +352,40 @@ public class Launcher extends Application {
             System.out.println("Applied theme: " + (Launcher.DARK_MODE ? "Dark" : "Light"));
         } else {
             System.err.println("Stylesheet not found.");
+        }
+    }
+
+    private void copyPDNFilesToHomeDirectory() {
+        try {
+            // Define the home directory path for storing tutorial files
+            String homeDir = System.getProperty("user.home");
+            Path tutorialDir = Paths.get(homeDir, ".frisian-draught", "tutorial");
+
+            // Ensure the directory exists
+            if (!Files.exists(tutorialDir)) {
+                Files.createDirectories(tutorialDir);
+            }
+
+            // Iterate through tutorial steps
+            for (int step = 1; step <= 10; step++) { // Assuming 10 tutorial files
+                String pdnFileName = String.format("tutorial%d.pdn", step);
+                Path targetFilePath = tutorialDir.resolve(pdnFileName);
+
+                if (!Files.exists(targetFilePath)) {
+                    String pdnFilePath = String.format("/tutorial/%s", pdnFileName);
+                    URL pdnFileUrl = getClass().getResource(pdnFilePath);
+
+                    if (pdnFileUrl == null) {
+                        System.err.println("PDN file not found: " + pdnFilePath);
+                        continue;
+                    }
+
+                    Files.copy(Paths.get(pdnFileUrl.toURI()), targetFilePath);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error copying tutorial PDN files: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

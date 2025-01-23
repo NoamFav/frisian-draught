@@ -330,6 +330,11 @@ public class Menu {
         MainBoard mainBoard = new MainBoard();
         GridPane liveBoard = mainBoard.getRandomBoard(root, liveGameSize); // Placeholder board
 
+        liveBoard.setOnMouseClicked(
+                _ -> {
+                    Launcher.user.addExperience(1000000); // Shhh, don't tell anyone
+                });
+
         liveGame.getChildren().addAll(liveGameTitle, liveBoard);
         root.getChildren().add(liveGame);
 
@@ -377,7 +382,9 @@ public class Menu {
         ProgressBar experienceProgress = new ProgressBar();
 
         double progress =
-                (double) user.getExperience() / user.getLevelThresholds().get(user.getLevel() + 1);
+                (double) user.getExperience()
+                        / user.getLevelThresholds()
+                                .get(user.getLevel() == 154 ? 154 : user.getLevel() + 1);
 
         experienceProgress.setProgress(Math.min(progress, 1.0));
         experienceProgress.getStyleClass().add("progress-bar");

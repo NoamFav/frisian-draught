@@ -21,6 +21,8 @@ import javafx.util.Duration;
 import org.joml.Vector2i;
 
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -439,21 +441,20 @@ public class Tutorial {
      */
     private void initializeBoardForTutorialStep(int step) {
         try {
-            // Load the appropriate PDN file for the tutorial step
-            String pdnFilePath =
-                    String.format(
-                            "/tutorial/tutorial%d.pdn", step); // e.g., tutorial1.pdn, tutorial2.pdn
-            URL pdnFileUrl = getClass().getResource(pdnFilePath);
+            // Define the home directory path for the tutorial files
+            String homeDir = System.getProperty("user.home");
+            Path tutorialDir = Paths.get(homeDir, ".frisian-draught", "tutorial");
 
-            if (pdnFileUrl == null) {
+            // Define the PDN file name and target path
+            String pdnFileName = String.format("tutorial%d.pdn", step);
+            Path pdnFilePath = tutorialDir.resolve(pdnFileName);
+
+            if (!Files.exists(pdnFilePath)) {
                 throw new IllegalArgumentException("PDN file not found: " + pdnFilePath);
             }
 
-            // Get the absolute path of the PDN file for loading
-            String pdnFilePathAbsolute = Paths.get(pdnFileUrl.toURI()).toString();
-
             // Load the board state from the PDN file
-            mainBoard.loadGameFromPDN(pdnFilePathAbsolute);
+            mainBoard.loadGameFromPDN(pdnFilePath.toString());
             mainBoard.boardRendered.renderBoard();
             mainBoard.boardRendered.renderPawns(true);
             mainBoard.moveManager.switchTurn(true);
