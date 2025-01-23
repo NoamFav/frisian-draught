@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
  <modelVersion>4.0.0</modelVersion>
- <groupId>com.um_project_game</groupId>
- <artifactId>um-project-game</artifactId>
+ <groupId>com.frisian_draught</groupId>
+ <artifactId>frisian-draught</artifactId>
  <packaging>jar</packaging>
  <version>1.0-SNAPSHOT</version>
- <name>um_project_game</name>
+ <name>frisian-draught</name>
  <url>https://maven.apache.org</url>
  <properties>
- <main.class>com.um_project_game.Launcher</main.class>
+ <main.class>com.frisian_draught.Launcher</main.class>
  <app.version>1.0.0</app.version>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   <junit.version>5.10.0</junit.version>
@@ -195,11 +195,11 @@
             </goals>
             <configuration>
                 <executable>${java.home}/bin/jpackage</executable>
-                <commandlineArgs>--type ${jpackage.type} --dest "${project.build.directory}/installer" --name "Frisian Draught" --icon "${icon.path}" --app-version "${app.version}" --module com.um_project_game/com.um_project_game.Launcher --module-path "${project.build.outputDirectory}:${project.build.directory}/mods:${java.home}/jmods" --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing,javafx.media</commandlineArgs>
+                <commandlineArgs>--type ${jpackage.type} --dest "${project.build.directory}/installer" --name "Frisian Draught" --icon "${icon.path}" --app-version "${app.version}" --module com.frisian_draught/com.frisian_draught.Launcher --module-path "${project.build.outputDirectory}:${project.build.directory}/mods:${java.home}/jmods" --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing,javafx.media</commandlineArgs>
             </configuration>
         </execution>
     </executions>
-</plugin>
+    </plugin>
   </plugins>
   </build>
   <profiles>

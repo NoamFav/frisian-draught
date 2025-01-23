@@ -1,4 +1,4 @@
-module com.um_project_game {
+module com.frisian_draught {
     requires org.jetbrains.annotations;
     requires transitive org.joml;
     requires org.apache.logging.log4j;
@@ -13,13 +13,13 @@ module com.um_project_game {
     requires javafx.base;
     requires toml4j;
 
-    opens com.um_project_game to
+    opens com.frisian_draught to
             javafx.graphics;
 
-    exports com.um_project_game;
-    exports com.um_project_game.board;
-    exports com.um_project_game.board.Bot;
-    exports com.um_project_game.AI;
-    exports com.um_project_game.util;
-    exports com.um_project_game.Server;
+    exports com.frisian_draught;
+    exports com.frisian_draught.board;
+    exports com.frisian_draught.board.Bot;
+    exports com.frisian_draught.AI;
+    exports com.frisian_draught.util;
+    exports com.frisian_draught.Server;
 }

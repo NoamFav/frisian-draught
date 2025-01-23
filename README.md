@@ -177,39 +177,39 @@ Frisian Draughts introduces unique capture mechanics:
 
 | Class File/ Directory | Relative Path              | Description                                                                                                                                                |
 | --------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Launcher              | com.um_project_game        | Entry point of the application, initializes the main menu, handles scene switching, and theming.                                                           |
-| Menu                  | com.um_project_game        | Manages the main menu of the application, including UI elements like buttons, recent games, and live games.                                                |
-| Game                  | com.um_project_game        | Defines and manages UI-Elements of the game                                                                                                                |
-| ViewManager           | com.um_project_game        | Manages active games and transitions between menu, gameplay and server                                                                                     |
-| Settings              | com.um_project_game        | Manages Game Settings UI                                                                                                                                   |
-| ExitGameConfirmation  | com.um_project_game        | Displays an exit confirmation when trying to exit a game                                                                                                   |
-| /util/...             | com.um_project_game.util   | Manages utility classes, buttons, fileReaders, fileWriters, sound, ...                                                                                     |
-| /server/...           | com.um_project_game.Server | Manages Server instance and client handling                                                                                                                |
-| CapturePath           | ...um_project_game.board   | Instance of a capturePath, storing a single capture and its steps                                                                                          |
-| GameInfo              | ...um_project_game.board   | Stores additional game information                                                                                                                         |
-| GameState             | ...um_project_game.board   | Stores important game information regarding the current board position                                                                                     |
-| MainBoard             | ...um_project_game.board   | Main game logic class. Stores information about the main board instance and the actual game logic.                                                         |
-| Move                  | ...um_project_game.board   | Instance of a single move. Contains the initial and final position of a move in both vector and PDN format.                                                |
-| MoveResult            | ...um_project_game.board   | Stores additional information after a taken move.                                                                                                          |
-| MovesListManager      | ...um_project_game.board   | Manages the moves list table entries displayed in the game UI                                                                                              |
-| Pawn                  | ...um_project_game.board   | Instance of a Pawn                                                                                                                                         |
-| DQNModel              | ...um_project_game.AI      | Implements a Deep Q-Network for AI decision-making in games, handling Q-value prediction, training, and weight updates.                                    |
-| Experience            | ...um_project_game.AI      | Represents a single learning step for reinforcement learning, containing state, action, reward, next state, and terminal status.                           |
-| init.java             | ...um_project_game.AI      |                                                                                                                                                            |
-| NeuralNetwork         | ...um_project_game.AI      | Implements a basic neural network with forward propagation, backpropagation, and weight updates for training.                                              |
-| ReplayBuffer          | ...um_project_game.AI      | Manages a buffer of experiences, allowing the addition, sampling, and maintaining a fixed size for training in reinforcement learning.                     |
-| functions             | ...um_project_game.AI.util | AI utility file. Contains various utility methods for Q-learning, training, action selection, and adversarial search in reinforcement learning for a game. |
+| Launcher              | com.frisian_draught        | Entry point of the application, initializes the main menu, handles scene switching, and theming.                                                           |
+| Menu                  | com.frisian_draught        | Manages the main menu of the application, including UI elements like buttons, recent games, and live games.                                                |
+| Game                  | com.frisian_draught        | Defines and manages UI-Elements of the game                                                                                                                |
+| ViewManager           | com.frisian_draught        | Manages active games and transitions between menu, gameplay and server                                                                                     |
+| Settings              | com.frisian_draught        | Manages Game Settings UI                                                                                                                                   |
+| ExitGameConfirmation  | com.frisian_draught        | Displays an exit confirmation when trying to exit a game                                                                                                   |
+| /util/...             | com.frisian_draught.util   | Manages utility classes, buttons, fileReaders, fileWriters, sound, ...                                                                                     |
+| /server/...           | com.frisian_draught.Server | Manages Server instance and client handling                                                                                                                |
+| CapturePath           | ...frisian_draught.board   | Instance of a capturePath, storing a single capture and its steps                                                                                          |
+| GameInfo              | ...frisian_draught.board   | Stores additional game information                                                                                                                         |
+| GameState             | ...frisian_draught.board   | Stores important game information regarding the current board position                                                                                     |
+| MainBoard             | ...frisian_draught.board   | Main game logic class. Stores information about the main board instance and the actual game logic.                                                         |
+| Move                  | ...frisian_draught.board   | Instance of a single move. Contains the initial and final position of a move in both vector and PDN format.                                                |
+| MoveResult            | ...frisian_draught.board   | Stores additional information after a taken move.                                                                                                          |
+| MovesListManager      | ...frisian_draught.board   | Manages the moves list table entries displayed in the game UI                                                                                              |
+| Pawn                  | ...frisian_draught.board   | Instance of a Pawn                                                                                                                                         |
+| DQNModel              | ...frisian_draught.AI      | Implements a Deep Q-Network for AI decision-making in games, handling Q-value prediction, training, and weight updates.                                    |
+| Experience            | ...frisian_draught.AI      | Represents a single learning step for reinforcement learning, containing state, action, reward, next state, and terminal status.                           |
+| init.java             | ...frisian_draught.AI      |                                                                                                                                                            |
+| NeuralNetwork         | ...frisian_draught.AI      | Implements a basic neural network with forward propagation, backpropagation, and weight updates for training.                                              |
+| ReplayBuffer          | ...frisian_draught.AI      | Manages a buffer of experiences, allowing the addition, sampling, and maintaining a fixed size for training in reinforcement learning.                     |
+| functions             | ...frisian_draught.AI.util | AI utility file. Contains various utility methods for Q-learning, training, action selection, and adversarial search in reinforcement learning for a game. |
 
 ### 11. AI and algorithms
 
 The game includes a basic AI implementation using a **Deep Q-Network (DQN)** for decision-making.
 The file `DQNModel.java` contains the DQN implementation, which handles Q-value prediction, training, and weight updates.
-It is located in the `com.um_project_game.AI` package.
+It is located in the `com.frisian_draught.AI` package.
 Helper classes like `Experience.java`, `NeuralNetwork.java`, and `ReplayBuffer.java` are used to manage the learning process. And are in the same package.
 
 For the moves themselves, `GameState` contain how the board is represented and how the moves are stored.
 The rest like the method for triggering the AI move is located in the `MainBoard` class. Same for the random bot and the way those two bots play against each other.
-This is located in the `com.um_project_game.board` package. In the `MainBoard` class. At line around 1298.
+This is located in the `com.frisian_draught.board` package. In the `MainBoard` class. At line around 1298.
 
 ### License
 
