@@ -1,6 +1,6 @@
 # Player Profile
 name = "Player"  # Asked at runtime
-level = 1  # Level of the player
+level = 0  # Level of the player
 experience = 0  # Experience of the player
 rank = "Beginner"  # Player rank (can be upgraded based on level or performance)
 

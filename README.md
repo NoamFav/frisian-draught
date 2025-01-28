@@ -8,9 +8,9 @@ Welcome to **Frisian Draughts**, an exciting modern twist on the classic board g
 
 Before jumping into the action, make sure your system is ready to run Frisian Draughts:
 
-- 💻 **Java 22 or later**  
-- 📚 **Maven** ([Installation Guide](https://maven.apache.org/install.html))  
-- 📁 **JavaFX 22**, already included in project dependencies  
+- 💻 **Java 23 or later** ([Installation Guide](https://www.oracle.com/java/technologies/downloads/#java23))
+- 📚 **Maven** ([Installation Guide](https://maven.apache.org/install.html))
+- 📁 **JavaFX 23**, already included in project dependencies
 
 ---
 
@@ -19,6 +19,7 @@ Before jumping into the action, make sure your system is ready to run Frisian Dr
 Follow these simple steps to set up the game:
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/NoamFav/frisian-draught.git
    cd frisian-draught
@@ -40,16 +41,19 @@ Enjoy the game in no time! 🌈
 Easily create an installer and play Frisian Draughts natively on your system.
 
 **Windows:**
+
 ```bash
 mvn clean package -Djpackage.type=exe
 ```
 
 **macOS:**
+
 ```bash
 mvn clean package -Djpackage.type=dmg
 ```
 
 **Linux:**
+
 ```bash
 mvn clean package -Djpackage.type=deb
 mvn clean package -Djpackage.type=rpm
@@ -88,24 +92,29 @@ The Frisian Draughts project is constantly evolving! Upcoming features include:
 
 ## 🌟 Game Rules
 
-**1. Board Setup:**  
-  - Played on a **10x10 board**, dark squares only.  
-  - Each player starts with **20 pieces**, and white moves first.
+**1. Board Setup:**
 
-**2. Moves:**  
-  - Pawns move diagonally forward one square.
-  - Kings move diagonally or orthogonally across multiple squares.
+- Played on a **10x10 board**, dark squares only.
+- Each player starts with **20 pieces**, and white moves first.
 
-**3. Capturing:**  
-  - Mandatory captures with multi-jump sequences.
-  - Can capture in any direction, vertically and horizontally as well
+**2. Moves:**
 
-**4. Win Conditions:**  
-  - Win by eliminating all opponent pieces or blocking their moves.
+- Pawns move diagonally forward one square.
+- Kings move diagonally or orthogonally across multiple squares.
 
-**5. Special Rules:**  
-  - King promotion occurs upon reaching the opponent's back row.
-  - Capture priority is given to moves with the highest piece value.
+**3. Capturing:**
+
+- Mandatory captures with multi-jump sequences.
+- Can capture in any direction, vertically and horizontally as well
+
+**4. Win Conditions:**
+
+- Win by eliminating all opponent pieces or blocking their moves.
+
+**5. Special Rules:**
+
+- King promotion occurs upon reaching the opponent's back row.
+- Capture priority is given to moves with the highest piece value.
 
 ---
 
